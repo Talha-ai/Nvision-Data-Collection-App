@@ -45,7 +45,7 @@ function ReviewImagesPage({
                   className="h-full w-full object-cover"
                 />
               </div>
-              <span className="text-sm">red_pattern_{ppid}.jpg</span>
+              <span className="text-sm">{ppid}_red_pattern.jpg</span>
             </div>
           ))}
         </div>
