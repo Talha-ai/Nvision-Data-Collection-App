@@ -10,17 +10,19 @@ declare global {
   }
 }
 
-function ImageCaptureProcess({ patterns, onComplete }) {
+interface ImageCaptureProcessProps {
+  onComplete: (images: string[]) => void;
+}
+
+function ImageCaptureProcess({ onComplete }: ImageCaptureProcessProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [capturedImages, setCapturedImages] = useState<string[]>([]);
+  const [isCameraReady, setIsCameraReady] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
-  // Mock images for testing
-  // In a real app, you'd load these from somewhere or generate them
-  const testImages = Array(15)
-    .fill(null)
-    .map((_, i) => `/test-pattern-${i + 1}.jpg`);
+  // We'll use 15 test images as shown in the screenshots
+  const testImagesCount = 15;
 
   useEffect(() => {
     let stream: MediaStream;
@@ -48,6 +50,15 @@ function ImageCaptureProcess({ patterns, onComplete }) {
         stream = await navigator.mediaDevices.getUserMedia(constraints);
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
+
+          // Add event listener to check when video is actually playing
+          videoRef.current.onloadedmetadata = () => {
+            videoRef.current?.play();
+          };
+
+          videoRef.current.onplaying = () => {
+            setIsCameraReady(true);
+          };
         }
       } catch (error) {
         console.error('Error accessing camera:', error);
@@ -66,35 +77,42 @@ function ImageCaptureProcess({ patterns, onComplete }) {
   }, []);
 
   useEffect(() => {
-    if (currentImageIndex < testImages.length) {
-      // Show the current image, then after a delay capture the webcam image
+    // Only proceed with image capture if camera is ready
+    if (isCameraReady && currentImageIndex < testImagesCount) {
+      // Show the current test pattern, then after a delay capture the webcam image
       const timer = setTimeout(() => {
         captureImage();
-      }, 500); // 1 second to display each image
+      }, 500);
 
       return () => clearTimeout(timer);
-    } else if (currentImageIndex === testImages.length) {
-      // All images have been processed, save them
-      if (capturedImages.length === testImages.length) {
-        // Save captured images using Electron API
+    } else if (currentImageIndex === testImagesCount) {
+      // All images have been processed, return them
+      if (capturedImages.length === testImagesCount) {
+        // If using Electron, save via its API
         if (window.electronAPI) {
           console.log('Captured:', capturedImages);
 
           window.electronAPI.saveTestImages(capturedImages);
           window.electronAPI.onTestImagesSaved(() => {
-            onComplete();
+            onComplete(capturedImages);
           });
         } else {
           // For development without Electron
           console.log('Captured images:', capturedImages);
-          onComplete();
+          onComplete(capturedImages);
         }
       }
     }
-  }, [currentImageIndex, testImages.length, capturedImages.length, onComplete]);
+  }, [
+    currentImageIndex,
+    testImagesCount,
+    capturedImages,
+    onComplete,
+    isCameraReady,
+  ]);
 
   const captureImage = () => {
-    if (videoRef.current && canvasRef.current) {
+    if (videoRef.current && canvasRef.current && isCameraReady) {
       const canvas = canvasRef.current;
       const context = canvas.getContext('2d');
 
@@ -111,7 +129,7 @@ function ImageCaptureProcess({ patterns, onComplete }) {
         context.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
       }
 
-      // Get the image data as a data URL at high quality
+      // Get the image data as a data URL
       const imageData = canvas.toDataURL('image/png', 1.0);
 
       // Add to captured images
@@ -122,18 +140,17 @@ function ImageCaptureProcess({ patterns, onComplete }) {
     }
   };
 
-  // For development, show placeholder instead of missing images
-  const currentImage =
-    currentImageIndex < testImages.length ? testImages[currentImageIndex] : '';
-
   return (
     <div className="fixed inset-0 bg-black flex flex-col items-center justify-center">
-      {currentImageIndex < testImages.length ? (
-        <div className="text-white text-center">
-          <div className="bg-white w-screen h-screen flex items-center justify-center">
-            {/* In development, use a placeholder div with the image name */}
-            <div className="bg-gray-300 w-3/4 h-3/4 flex items-center justify-center">
-              <span>Test Pattern Image {currentImageIndex + 1}</span>
+      {currentImageIndex < testImagesCount ? (
+        <div className="text-white text-center w-full h-full">
+          <div className="bg-white w-full h-full flex items-center justify-center">
+            <div className="bg-gray-300 w-full h-full flex items-center justify-center">
+              <span className="absolute z-10 bg-black bg-opacity-50 text-white px-4 py-2 rounded">
+                {isCameraReady
+                  ? `Test Pattern Image ${currentImageIndex + 1}`
+                  : 'Waiting for camera...'}
+              </span>
             </div>
           </div>
         </div>
@@ -149,7 +166,7 @@ function ImageCaptureProcess({ patterns, onComplete }) {
           style={{
             width: '320px',
             height: '240px',
-            border: '2px solid green',
+            border: isCameraReady ? '2px solid green' : '2px solid yellow',
             backgroundColor: '#000',
           }}
         />
