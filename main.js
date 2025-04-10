@@ -2,6 +2,7 @@ const { app, BrowserWindow, globalShortcut, Tray, Menu, ipcMain, Notification } 
 const path = require('path');
 const fs = require('fs');
 
+
 let mainWindow;
 let tray = null;
 
@@ -9,10 +10,11 @@ function createWindow() {
   mainWindow = new BrowserWindow({
     width: 900,
     height: 700,
+    frame: false,
     icon: path.join(__dirname, 'assets/icon.png'),
     webPreferences: {
-      nodeIntegration: true,
       contextIsolation: true,
+      nodeIntegration: false,
       preload: path.join(__dirname, 'preload.js')
     }
   });
@@ -20,7 +22,7 @@ function createWindow() {
   // In development, load from Vite dev server
   // In production, load the built index.html
   const isDev = process.env.NODE_ENV === 'development';
-  if (!isDev) {
+  if (isDev) {
     mainWindow.loadURL('http://localhost:5173');
     mainWindow.webContents.openDevTools();
   } else {
@@ -90,6 +92,11 @@ function takeScreenshot() {
     mainWindow.webContents.send('take-screenshot');
   }
 }
+
+ipcMain.on('set-fullscreen', (event, flag) => {
+  mainWindow.setFullScreen(flag);
+});
+
 
 // Handle saving the screenshot image
 ipcMain.on('screenshot-taken', (event, imageData) => {

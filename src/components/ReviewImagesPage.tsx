@@ -8,6 +8,24 @@ interface ReviewImagesPageProps {
   onDiscard: () => void;
 }
 
+const testPatterns = [
+  'white_AAA.bmp',
+  'black_BBB.bmp',
+  'cyan_CCC.bmp',
+  'gray50_DDD.bmp',
+  'red_EEE.bmp',
+  'green_FFF.bmp',
+  'blue_GGG.bmp',
+  'gray75_HHH.bmp',
+  'grayVertical_III.bmp',
+  'colorBars_JJJ.bmp',
+  'focus_KKK.bmp',
+  'blackWithWhiteBorder_LLL.jpg',
+  'crossHatch_MMM.bmp',
+  '16BarGray_NNN.bmp',
+  'black&White_OOO.bmp',
+];
+
 function ReviewImagesPage({
   ppid,
   capturedImages,
@@ -45,7 +63,9 @@ function ReviewImagesPage({
                   className="h-full w-full object-cover"
                 />
               </div>
-              <span className="text-sm">{ppid}_red_pattern.jpg</span>
+              <span className="text-sm">
+                {ppid}_{testPatterns[index]}
+              </span>
             </div>
           ))}
         </div>

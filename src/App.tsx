@@ -5,6 +5,17 @@ import ReviewImagesPage from './components/ReviewImagesPage';
 import DefectAnalysisPage from './components/DefectAnalysisPage';
 import ImageCaptureProcess from './components/ImageCaptureProcess';
 
+declare global {
+  interface Window {
+    electronAPI?: {
+      saveTestImages: (images: string[]) => void;
+      onTestImagesSaved: (callback: () => void) => void;
+      enableFullScreen: () => void;
+      disableFullScreen: () => void;
+    };
+  }
+}
+
 function App() {
   const [currentPage, setCurrentPage] = useState<string>('home');
   const [isCapturing, setIsCapturing] = useState<boolean>(false);
@@ -19,6 +30,7 @@ function App() {
 
   // Handle when image capture is complete
   const handleCaptureComplete = (images: string[]) => {
+    window.electronAPI.disableFullScreen();
     setCapturedImages(images);
     setIsCapturing(false);
     setCurrentPage('review');
@@ -50,7 +62,10 @@ function App() {
 
   // Determine which page to render
   if (isCapturing) {
-    return <ImageCaptureProcess onComplete={handleCaptureComplete} />;
+    window.electronAPI.enableFullScreen();
+    return (
+      <ImageCaptureProcess onComplete={handleCaptureComplete} ppid={ppid} />
+    );
   }
 
   switch (currentPage) {
