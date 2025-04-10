@@ -17,8 +17,11 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     emptyOutDir: true,
+    assetsInlineLimit: 0,
     rollupOptions: {
-      external: ['aws-sdk'], 
+      external: ['aws-sdk'],
     },
+    assetsDir: 'assets',
   },
+  publicDir: 'public',
 });
