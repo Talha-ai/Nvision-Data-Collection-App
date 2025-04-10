@@ -222,7 +222,14 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
                       <td className="py-3 w-12 text-center">{index}</td>
                       <td className="py-3">
                         <div className=" border border-black w-24">
-                          <img src={`/test-patterns/${pattern}`} alt="patter" />
+                          <img
+                            src={
+                              window.electronAPI?.loadImageAsDataURL?.(
+                                pattern
+                              ) || `/test-patterns/${pattern}`
+                            }
+                            alt="pattern"
+                          />
                         </div>
                       </td>
                       <td className="py-3">{pattern}</td>

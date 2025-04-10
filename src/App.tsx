@@ -12,6 +12,8 @@ declare global {
       onTestImagesSaved: (callback: () => void) => void;
       enableFullScreen: () => void;
       disableFullScreen: () => void;
+      getAssetPath: (assetName: string) => string;
+      loadImageAsDataURL: (imageName: string) => string;
     };
   }
 }
