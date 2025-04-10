@@ -39,13 +39,6 @@
       "preload.js",
       "package.json"
     ],
-    "extraResources": [
-      {
-        "from": "public/test-patterns",
-        "to": "test-patterns",
-        "filter": ["**/*"]
-      }
-    ],
     "win": {
       "target": "nsis"
     }

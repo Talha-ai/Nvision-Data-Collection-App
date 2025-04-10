@@ -121,7 +121,6 @@ ipcMain.on('set-fullscreen', (event, flag) => {
   mainWindow.setFullScreen(flag);
 });
 
-
 // Handle saving the screenshot image
 ipcMain.on('screenshot-taken', (event, imageData) => {
   const savePath = path.join(app.getPath('pictures'), 'WebcamScreenshots');
