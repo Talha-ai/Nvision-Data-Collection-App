@@ -1,6 +1,7 @@
 const { app, BrowserWindow, globalShortcut, Tray, Menu, ipcMain, Notification } = require('electron');
 const path = require('path');
 const fs = require('fs');
+
 // import AWS from 'aws-sdk';
 
 // ipcMain.handle('upload-to-s3', async (_, fileData) => {
@@ -35,10 +36,11 @@ function createWindow() {
     width: 900,
     height: 700,
     frame: false,
+    fullscreen: true,
     icon: path.join(__dirname, 'assets/icon.png'),
     webPreferences: {
       contextIsolation: true,
-      nodeIntegration: false,
+      nodeIntegration: true,
       preload: path.join(__dirname, 'preload.js')
     }
   });
@@ -121,6 +123,7 @@ ipcMain.on('set-fullscreen', (event, flag) => {
   mainWindow.setFullScreen(flag);
 });
 
+
 // Handle saving the screenshot image
 ipcMain.on('screenshot-taken', (event, imageData) => {
   const savePath = path.join(app.getPath('pictures'), 'WebcamScreenshots');
@@ -187,6 +190,18 @@ ipcMain.on('save-test-images', (event, imageDataArray) => {
 
   // Send back the saved file paths
   event.reply('test-images-saved', savedPaths);
+});
+
+ipcMain.on('minimize-window', () => {
+  if (mainWindow) {
+    mainWindow.minimize();
+  }
+});
+
+ipcMain.on('close-window', () => {
+  if (mainWindow) {
+    mainWindow.close();
+  }
 });
 
 // This method will be called when Electron has finished initialization

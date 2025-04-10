@@ -3,6 +3,7 @@ import HomePage from './components/HomePage';
 import ReviewImagesPage from './components/ReviewImagesPage';
 import DefectAnalysisPage from './components/DefectAnalysisPage';
 import ImageCaptureProcess from './components/ImageCaptureProcess';
+import CustomTitlebar from './components/customTitlebar';
 
 declare global {
   interface Window {
@@ -13,6 +14,9 @@ declare global {
       disableFullScreen: () => void;
       getAssetPath: (assetName: string) => string;
       loadImageAsDataURL: (imageName: string) => string;
+      convertToBMP: (pngDataUrl: string) => string;
+      minimizeWindow: () => void;
+      closeWindow: () => void;
     };
   }
 }
@@ -23,6 +27,14 @@ function App() {
   const [ppid, setPpid] = useState<string>('');
   const [capturedImages, setCapturedImages] = useState<string[]>([]);
 
+  const handleMinimize = () => {
+    window.electronAPI?.minimizeWindow();
+  };
+
+  const handleClose = () => {
+    window.electronAPI?.closeWindow();
+  };
+
   // Start the defect checker routine
   const startDefectChecker = (enteredPpid: string) => {
     setPpid(enteredPpid);
@@ -31,6 +43,7 @@ function App() {
 
   // Handle when image capture is complete
   const handleCaptureComplete = (images: string[]) => {
+    console.log(images);
     window.electronAPI.disableFullScreen();
     setCapturedImages(images);
     setIsCapturing(false);
@@ -69,30 +82,54 @@ function App() {
     );
   }
 
-  switch (currentPage) {
-    case 'home':
-      return <HomePage onStartDefectChecker={startDefectChecker} />;
-    case 'review':
-      return (
-        <ReviewImagesPage
-          ppid={ppid}
-          capturedImages={capturedImages}
-          onApprove={approveImages}
-          onRetake={retakeImages}
-          onDiscard={discardSession}
-        />
-      );
-    case 'defect-analysis':
-      return (
-        <DefectAnalysisPage
-          ppid={ppid}
-          onSubmit={submitDefectAnalysis}
-          onDiscard={discardSession}
-        />
-      );
-    default:
-      return <HomePage onStartDefectChecker={startDefectChecker} />;
-  }
+  return (
+    <div className="app-container">
+      {/* Only render the titlebar when not in capture mode */}
+      <CustomTitlebar onMinimize={handleMinimize} onClose={handleClose} />
+
+      <div className="content-area">
+        {(() => {
+          switch (currentPage) {
+            case 'home':
+              return <HomePage onStartDefectChecker={startDefectChecker} />;
+            case 'review':
+              return (
+                <ReviewImagesPage
+                  ppid={ppid}
+                  capturedImages={capturedImages}
+                  onApprove={approveImages}
+                  onRetake={retakeImages}
+                  onDiscard={discardSession}
+                />
+              );
+            case 'defect-analysis':
+              return (
+                <DefectAnalysisPage
+                  ppid={ppid}
+                  onSubmit={submitDefectAnalysis}
+                  onDiscard={discardSession}
+                />
+              );
+            default:
+              return <HomePage onStartDefectChecker={startDefectChecker} />;
+          }
+        })()}
+      </div>
+
+      <style jsx>{`
+        .app-container {
+          display: flex;
+          flex-direction: column;
+          height: 100vh;
+        }
+
+        .content-area {
+          flex-grow: 1;
+          overflow: auto;
+        }
+      `}</style>
+    </div>
+  );
 }
 
 export default App;

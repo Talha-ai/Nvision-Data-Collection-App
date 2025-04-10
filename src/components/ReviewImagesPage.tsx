@@ -9,21 +9,21 @@ interface ReviewImagesPageProps {
 }
 
 const testPatterns = [
-  'white_AAA.bmp',
-  'black_BBB.bmp',
-  'cyan_CCC.bmp',
-  'gray50_DDD.bmp',
-  'red_EEE.bmp',
-  'green_FFF.bmp',
-  'blue_GGG.bmp',
-  'gray75_HHH.bmp',
-  'grayVertical_III.bmp',
-  'colorBars_JJJ.bmp',
-  'focus_KKK.bmp',
+  'white_AAA.png',
+  'black_BBB.png',
+  'cyan_CCC.png',
+  'gray50_DDD.png',
+  'red_EEE.png',
+  'green_FFF.png',
+  'blue_GGG.png',
+  'gray75_HHH.png',
+  'grayVertical_III.png',
+  'colorBars_JJJ.png',
+  'focus_KKK.png',
   'blackWithWhiteBorder_LLL.jpg',
-  'crossHatch_MMM.bmp',
-  '16BarGray_NNN.bmp',
-  'black&White_OOO.bmp',
+  'crossHatch_MMM.png',
+  '16BarGray_NNN.png',
+  'black&White_OOO.png',
 ];
 
 function ReviewImagesPage({

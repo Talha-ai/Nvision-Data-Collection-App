@@ -11,6 +11,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   },
   onTestImagesSaved: (callback) => {
     ipcRenderer.on('test-images-saved', (event, filePaths) => callback(filePaths));
-  }
+  },
 
+  minimizeWindow: () => ipcRenderer.send('minimize-window'),
+  closeWindow: () => ipcRenderer.send('close-window')
 });
