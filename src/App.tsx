@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import HomePage from './components/HomePage';
-// import PatternOrderPage from './components/PatternOrderPage';
 import ReviewImagesPage from './components/ReviewImagesPage';
 import DefectAnalysisPage from './components/DefectAnalysisPage';
 import ImageCaptureProcess from './components/ImageCaptureProcess';
@@ -73,8 +72,6 @@ function App() {
   switch (currentPage) {
     case 'home':
       return <HomePage onStartDefectChecker={startDefectChecker} />;
-    // case 'pattern-order':
-    //   return <PatternOrderPage ppid={ppid} onDiscard={discardSession} />;
     case 'review':
       return (
         <ReviewImagesPage

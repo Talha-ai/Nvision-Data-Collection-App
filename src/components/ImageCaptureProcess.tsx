@@ -1,6 +1,21 @@
 import { useState, useEffect, useRef } from 'react';
 // import AWS from 'aws-sdk/global';
 // import S3 from 'aws-sdk/clients/s3';
+import white_AAA from '../assets/white_AAA.bmp';
+import black_BBB from '../assets/black_BBB.bmp';
+import cyan_CCC from '../assets/cyan_CCC.bmp';
+import gray50_DDD from '../assets/gray50_DDD.bmp';
+import red_EEE from '../assets/red_EEE.bmp';
+import green_FFF from '../assets/green_FFF.bmp';
+import blue_GGG from '../assets/blue_GGG.bmp';
+import gray75_HHH from '../assets/gray75_HHH.bmp';
+import grayVertical_III from '../assets/grayVertical_III.bmp';
+import colorBars_JJJ from '../assets/colorBars_JJJ.bmp';
+import focus_KKK from '../assets/focus_KKK.bmp';
+import blackWithWhiteBorder_LLL from '../assets/blackWithWhiteBorder_LLL.jpg';
+import crossHatch_MMM from '../assets/crossHatch_MMM.bmp';
+import barGray_NNN from '../assets/16BarGray_NNN.bmp';
+import blackWhite_OOO from '../assets/black&White_OOO.bmp';
 
 interface ImageCaptureProcessProps {
   onComplete: (images: string[]) => void;
@@ -19,6 +34,24 @@ function ImageCaptureProcess({
   const [isUploading, setIsUploading] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  const patternImportMap = {
+    'white_AAA.bmp': white_AAA,
+    'black_BBB.bmp': black_BBB,
+    'cyan_CCC.bmp': cyan_CCC,
+    'gray50_DDD.bmp': gray50_DDD,
+    'red_EEE.bmp': red_EEE,
+    'green_FFF.bmp': green_FFF,
+    'blue_GGG.bmp': blue_GGG,
+    'gray75_HHH.bmp': gray75_HHH,
+    'grayVertical_III.bmp': grayVertical_III,
+    'colorBars_JJJ.bmp': colorBars_JJJ,
+    'focus_KKK.bmp': focus_KKK,
+    'blackWithWhiteBorder_LLL.jpg': blackWithWhiteBorder_LLL,
+    'crossHatch_MMM.bmp': crossHatch_MMM,
+    '16BarGray_NNN.bmp': barGray_NNN,
+    'black&White_OOO.bmp': blackWhite_OOO,
+  };
 
   // Array of test pattern images
   const testPatterns = [
@@ -212,7 +245,7 @@ function ImageCaptureProcess({
             {currentPattern && (
               <div className="relative w-full h-full">
                 <img
-                  src={`/test-patterns/${currentPattern}`}
+                  src={patternImportMap[currentPattern]}
                   alt={`Test pattern ${currentImageIndex + 1}`}
                   className="absolute inset-0 w-full h-full object-cover"
                 />

@@ -1,5 +1,4 @@
 import React, { useState, useRef, useEffect } from 'react';
-
 import white_AAA from '../assets/white_AAA.bmp';
 import black_BBB from '../assets/black_BBB.bmp';
 import cyan_CCC from '../assets/cyan_CCC.bmp';
