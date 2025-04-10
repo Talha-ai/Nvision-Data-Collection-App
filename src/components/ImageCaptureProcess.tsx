@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import AWS from 'aws-sdk/global';
-import S3 from 'aws-sdk/clients/s3';
+// import AWS from 'aws-sdk/global';
+// import S3 from 'aws-sdk/clients/s3';
 
 interface ImageCaptureProcessProps {
   onComplete: (images: string[]) => void;
@@ -43,13 +43,13 @@ function ImageCaptureProcess({
   const testImagesCount = testPatterns.length;
 
   // Configure DigitalOcean Spaces
-  const spacesEndpoint = new AWS.Endpoint('blr1.digitaloceanspaces.com');
-  const s3 = new S3({
-    endpoint: spacesEndpoint,
-    accessKeyId: 'DO801GNGMDNYAUGC8JYG',
-    secretAccessKey: 'AtFgGOnOMcmtOg/3gky6XXyYXzneOZ3H89e3wclzFaw',
-    region: 'blr1',
-  });
+  // const spacesEndpoint = new AWS.Endpoint('blr1.digitaloceanspaces.com');
+  // const s3 = new S3({
+  //   endpoint: spacesEndpoint,
+  //   accessKeyId: 'DO801GNGMDNYAUGC8JYG',
+  //   secretAccessKey: 'AtFgGOnOMcmtOg/3gky6XXyYXzneOZ3H89e3wclzFaw',
+  //   region: 'blr1',
+  // });
 
   useEffect(() => {
     let stream: MediaStream;

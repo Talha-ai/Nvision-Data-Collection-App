@@ -1,6 +1,30 @@
 const { app, BrowserWindow, globalShortcut, Tray, Menu, ipcMain, Notification } = require('electron');
 const path = require('path');
 const fs = require('fs');
+// import AWS from 'aws-sdk';
+
+// ipcMain.handle('upload-to-s3', async (_, fileData) => {
+//   const spacesEndpoint = new AWS.Endpoint('blr1.digitaloceanspaces.com');
+//   const s3 = new AWS.S3({
+//     endpoint: spacesEndpoint,
+//     accessKeyId: 'DO801GNGMDNYAUGC8JYG',
+//     secretAccessKey: 'AtFgGOnOMcmtOg/3gky6XXyYXzneOZ3H89e3wclzFaw',
+//     region: 'blr1',
+//   });
+
+//   const params = {
+//     Bucket: 'rlogic-images-data',
+//     Key: fileName,
+//     Body: buff,
+//     ContentEncoding: 'base64',
+//     ContentType: 'image/png',
+//     ACL: 'public-read',
+//   };
+
+//   await s3.upload(params).promise();
+
+//   return 'Uploaded';
+// });
 
 
 let mainWindow;
