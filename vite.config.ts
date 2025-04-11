@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { nodePolyfills } from 'vite-plugin-node-polyfills';
+import path from 'path';
 
 export default defineConfig(() => ({
   plugins: [
@@ -22,6 +23,11 @@ export default defineConfig(() => ({
     port: 5173,
     hmr: {
       port: 5173,
+    },
+  },
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
     },
   },
 }));

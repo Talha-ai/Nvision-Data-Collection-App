@@ -20,7 +20,7 @@ const testPatterns = [
   'grayVertical_III.png',
   'colorBars_JJJ.png',
   'focus_KKK.png',
-  'blackWithWhiteBorder_LLL.jpg',
+  'blackWithWhiteBorder_LLL.png',
   'crossHatch_MMM.png',
   '16BarGray_NNN.png',
   'black&White_OOO.png',

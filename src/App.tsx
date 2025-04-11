@@ -10,12 +10,20 @@ declare global {
     electronAPI?: {
       saveTestImages: (images: string[]) => void;
       onTestImagesSaved: (callback: () => void) => void;
-      enableFullScreen: () => void;
-      disableFullScreen: () => void;
+
       getAssetPath: (assetName: string) => string;
       loadImageAsDataURL: (imageName: string) => string;
-      convertToBMP: (pngDataUrl: string) => string;
+      uploadImage: (data: {
+        imageData: string;
+        ppid: string;
+        patternName: string;
+        isTestMode: boolean;
+      }) => Promise<string>;
+
+      enableFullScreen: () => void;
+      disableFullScreen: () => void;
       minimizeWindow: () => void;
+      maximizeWindow: () => void;
       closeWindow: () => void;
     };
   }
@@ -25,10 +33,15 @@ function App() {
   const [currentPage, setCurrentPage] = useState<string>('home');
   const [isCapturing, setIsCapturing] = useState<boolean>(false);
   const [ppid, setPpid] = useState<string>('');
+  const [isTestMode, setIsTestMode] = useState<boolean>(true);
   const [capturedImages, setCapturedImages] = useState<string[]>([]);
 
   const handleMinimize = () => {
     window.electronAPI?.minimizeWindow();
+  };
+
+  const handleMaximize = () => {
+    window.electronAPI?.maximizeWindow();
   };
 
   const handleClose = () => {
@@ -36,8 +49,9 @@ function App() {
   };
 
   // Start the defect checker routine
-  const startDefectChecker = (enteredPpid: string) => {
+  const startDefectChecker = (enteredPpid: string, mode: boolean) => {
     setPpid(enteredPpid);
+    setIsTestMode(mode);
     setIsCapturing(true);
   };
 
@@ -78,15 +92,24 @@ function App() {
   if (isCapturing) {
     window.electronAPI.enableFullScreen();
     return (
-      <ImageCaptureProcess onComplete={handleCaptureComplete} ppid={ppid} />
+      <ImageCaptureProcess
+        onComplete={handleCaptureComplete}
+        ppid={ppid}
+        isTestMode={isTestMode}
+      />
     );
   }
 
   return (
     <div className="app-container">
       {/* Only render the titlebar when not in capture mode */}
-      <CustomTitlebar onMinimize={handleMinimize} onClose={handleClose} />
-
+      {!isCapturing && (
+        <CustomTitlebar
+          onMinimize={handleMinimize}
+          onMaximize={handleMaximize}
+          onClose={handleClose}
+        />
+      )}
       <div className="content-area">
         {(() => {
           switch (currentPage) {

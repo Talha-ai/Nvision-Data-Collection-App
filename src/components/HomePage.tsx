@@ -16,11 +16,13 @@ import barGray_NNN from '../assets/16BarGray_NNN.bmp';
 import blackWhite_OOO from '../assets/black&White_OOO.bmp';
 
 interface HomePageProps {
-  onStartDefectChecker: (ppid: string) => void;
+  onStartDefectChecker: (ppid: string, isTestMode: boolean) => void;
 }
 
 function HomePage({ onStartDefectChecker }: HomePageProps) {
   const [ppid, setPpid] = useState<string>('');
+  const [isTestMode, setIsTestMode] = useState(true);
+  const [showHiddenState, setShowHiddenState] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<string>('summary');
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [cameraResolution, setCameraResolution] = useState<{
@@ -127,13 +129,16 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (ppid.trim()) {
-      onStartDefectChecker(ppid);
+      onStartDefectChecker(ppid, isTestMode);
     }
   };
 
   return (
     <div className="flex flex-col items-center max-w-xl mx-auto p-4">
-      <h1 className="text-2xl font-bold text-center my-4">
+      <h1
+        className="text-2xl font-bold text-center my-4"
+        onDoubleClick={() => setShowHiddenState((prev) => !prev)}
+      >
         Nvision AI Data Collection App
       </h1>
 
@@ -158,16 +163,33 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
         Refresh
       </button>
 
-      <div className="text-center mb-4">
-        {cameraResolution ? (
-          <p>
-            Camera Resolution: {cameraResolution.width} x{' '}
-            {cameraResolution.height}
-          </p>
-        ) : (
-          <p>Loading camera...</p>
-        )}
-      </div>
+      {showHiddenState && (
+        <>
+          <div className="text-center mb-4">
+            {cameraResolution ? (
+              <p>
+                Camera Resolution: {cameraResolution.width} x{' '}
+                {cameraResolution.height}
+              </p>
+            ) : (
+              <p>Loading camera...</p>
+            )}
+          </div>
+          <div className="flex items-center mb-6">
+            <label className="bg-gray-200 px-3 py-2 border border-gray-300 flex-shrink-0">
+              Mode
+            </label>
+            <select
+              value={isTestMode ? 'test' : 'production'}
+              onChange={(e) => setIsTestMode(e.target.value === 'test')}
+              className="flex-grow border border-gray-300 px-3 py-2"
+            >
+              <option value="test">Test</option>
+              <option value="production">Production</option>
+            </select>
+          </div>
+        </>
+      )}
 
       <div className="w-full bg-gray-200 h-64 relative mb-4">
         <div className="absolute inset-0 flex flex-col items-center justify-center">

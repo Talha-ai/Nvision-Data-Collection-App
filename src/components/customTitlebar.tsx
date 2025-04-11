@@ -3,72 +3,40 @@ import React from 'react';
 
 interface CustomTitlebarProps {
   onMinimize: () => void;
+  onMaximize: () => void;
   onClose: () => void;
 }
 
 const CustomTitlebar: React.FC<CustomTitlebarProps> = ({
   onMinimize,
+  onMaximize,
   onClose,
 }) => {
   return (
-    <div className="custom-titlebar">
-      <div className="titlebar-drag-region">
-        <span className="app-title">Nvision Data Collection App</span>
+    <div className="h-8 bg-[#2b2b2b] flex justify-between items-center select-none">
+      <div className="flex-grow pl-3 text-white text-xs font-medium -webkit-app-region-drag">
+        Nvision Data Collection App
       </div>
-      <div className="titlebar-controls">
-        <button className="titlebar-button" onClick={onMinimize}>
-          <span>&#8212;</span>
+      <div className="flex -webkit-app-region-no-drag">
+        <button
+          className="w-[46px] h-8 text-white text-xs hover:bg-white/10"
+          onClick={onMinimize}
+        >
+          &#8212;
         </button>
-        <button className="titlebar-button close-button" onClick={onClose}>
-          <span>&#10005;</span>
+        <button
+          className="w-[46px] h-8 text-white text-xs hover:bg-white/10"
+          onClick={onMaximize}
+        >
+          □
+        </button>
+        <button
+          className="w-[46px] h-8 text-white text-xs hover:bg-[#e81123]"
+          onClick={onClose}
+        >
+          &#10005;
         </button>
       </div>
-      <style jsx>{`
-        .custom-titlebar {
-          height: 32px;
-          background-color: #2b2b2b;
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          -webkit-app-region: drag;
-          user-select: none;
-        }
-
-        .titlebar-drag-region {
-          flex-grow: 1;
-          padding-left: 12px;
-        }
-
-        .app-title {
-          color: #ffffff;
-          font-size: 12px;
-          font-weight: 500;
-        }
-
-        .titlebar-controls {
-          display: flex;
-          -webkit-app-region: no-drag;
-        }
-
-        .titlebar-button {
-          width: 46px;
-          height: 32px;
-          background: transparent;
-          border: none;
-          color: #ffffff;
-          font-size: 10px;
-          outline: none;
-          cursor: pointer;
-        }
-
-        .titlebar-button:hover {
-          background-color: rgba(255, 255, 255, 0.1);
-        }
-
-        .close-button:hover {
-          background-color: #e81123;
-        }
-      `}</style>
     </div>
   );
 };
