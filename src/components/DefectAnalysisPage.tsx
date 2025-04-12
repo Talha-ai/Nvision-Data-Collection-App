@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 interface DefectAnalysisPageProps {
   ppid: string;
@@ -11,10 +11,35 @@ function DefectAnalysisPage({
   onSubmit,
   onDiscard,
 }: DefectAnalysisPageProps) {
+  const [defects, setDefects] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [rows, setRows] = useState([1, 2, 3]);
   const [selectedFaults, setSelectedFaults] = useState<Record<number, string>>(
     {}
   );
+
+  useEffect(() => {
+    // Fetch defect data
+    const fetchDefects = async () => {
+      try {
+        const response = await fetch(
+          'https://nvision.alemeno.com/data/defect/'
+        );
+        if (response.ok) {
+          const data = await response.json();
+          setDefects(data);
+        } else {
+          console.error('Failed to fetch defects');
+        }
+      } catch (error) {
+        console.error('Error fetching defects:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDefects();
+  }, []);
 
   const addRow = () => {
     if (rows.length < 10) {
@@ -34,6 +59,10 @@ function DefectAnalysisPage({
     (key) =>
       selectedFaults[parseInt(key)] && selectedFaults[parseInt(key)].length > 0
   ).length;
+
+  if (loading) {
+    return <div className="p-4 text-center">Loading defect data...</div>;
+  }
 
   return (
     <div className="flex flex-col max-w-6xl mx-auto p-4">
@@ -70,9 +99,11 @@ function DefectAnalysisPage({
                     onChange={(e) => setFault(rowId, e.target.value)}
                   >
                     <option value="">Select fault code</option>
-                    <option value="fault1">Fault 1</option>
-                    <option value="fault2">Fault 2</option>
-                    <option value="fault3">Fault 3</option>
+                    {defects.map((defect, index) => (
+                      <option key={index} value={defect.fault_code}>
+                        {defect.defect_name} - {defect.fault_code}
+                      </option>
+                    ))}
                   </select>
                 </td>
               </tr>

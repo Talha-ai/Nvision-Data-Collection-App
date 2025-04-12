@@ -23,14 +23,14 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
   const [ppid, setPpid] = useState<string>('');
   const [isTestMode, setIsTestMode] = useState(true);
   const [showHiddenState, setShowHiddenState] = useState<boolean>(false);
+  const [defects, setDefects] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<string>('summary');
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [cameraResolution, setCameraResolution] = useState<{
     width: number;
     height: number;
   } | null>(null);
-
-  const defectTypes = Array.from({ length: 13 }, (_, i) => `Defect${i + 1}`);
 
   const patternImportMap = {
     'white_AAA.bmp': white_AAA,
@@ -126,12 +126,39 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
     };
   }, []);
 
+  useEffect(() => {
+    // Fetch defect data
+    const fetchDefects = async () => {
+      try {
+        const response = await fetch(
+          'https://nvision.alemeno.com/data/defect/'
+        );
+        if (response.ok) {
+          const data = await response.json();
+          setDefects(data);
+        } else {
+          console.error('Failed to fetch defects');
+        }
+      } catch (error) {
+        console.error('Error fetching defects:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDefects();
+  }, []);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (ppid.trim()) {
       onStartDefectChecker(ppid, isTestMode);
     }
   };
+
+  if (loading) {
+    return <div className="p-4 text-center">Loading defect data...</div>;
+  }
 
   return (
     <div className="flex flex-col items-center max-w-xl mx-auto p-4">
@@ -273,9 +300,11 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
                   <td className="py-3">Total images captured</td>
                   <td className="py-3">0</td>
                 </tr>
-                {defectTypes.map((defect, i) => (
+                {defects.map((defect, i) => (
                   <tr key={i} className="border-b">
-                    <td className="py-3">Images captured for {defect}</td>
+                    <td className="py-3">
+                      Images captured for {defect.defect_name}
+                    </td>
                     <td className="py-3">0</td>
                   </tr>
                 ))}

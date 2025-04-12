@@ -29,7 +29,6 @@ function ImageCaptureProcess({
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [capturedImages, setCapturedImages] = useState<string[]>([]);
   const [isCameraReady, setIsCameraReady] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
   const [pendingUploads, setPendingUploads] = useState(0);
 
   const [isCompleted, setIsCompleted] = useState(false);
