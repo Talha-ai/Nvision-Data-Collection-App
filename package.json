@@ -4,9 +4,10 @@
   "description": "Nvision Data Collection App",
   "main": "main.js",
   "scripts": {
-    "dev": "concurrently \"vite\" \"electron .\"",
-    "build": "vite build && electron-builder",
-    "start": "electron ."
+  "dev": "concurrently \"vite\" \"npm:dev-electron\"",
+  "dev-electron": "wait-on http://localhost:5173 && cross-env NODE_ENV=development electron .",
+  "build": "vite build && electron-builder",
+  "start": "cross-env NODE_ENV=production electron ."
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.787.0",
@@ -20,12 +21,15 @@
     "@vitejs/plugin-react": "^4.2.1",
     "autoprefixer": "^10.4.17",
     "concurrently": "^8.2.2",
+    "cross-env": "^7.0.3",
     "electron": "^29.0.1",
     "electron-builder": "^26.0.12",
+    "electronmon": "^2.0.3",
     "postcss": "^8.4.35",
     "tailwindcss": "^3.4.1",
     "vite": "^5.1.4",
-    "vite-plugin-node-polyfills": "^0.23.0"
+    "vite-plugin-node-polyfills": "^0.23.0",
+    "wait-on": "^8.0.3"
   },
   "build": {
     "appId": "com.nvision.datacollection",

@@ -251,15 +251,13 @@ function ImageCaptureProcess({
                 <img
                   src={currentPattern.src}
                   alt={`Test pattern ${currentImageIndex + 1}`}
-                  className="absolute inset-0 w-full h-full object-cover"
+                  className="absolute inset-0 w-full h-full object-contain"
+                  style={{
+                    minWidth: '100%',
+                    minHeight: '100%',
+                    margin: 'auto',
+                  }}
                 />
-
-                {/* Status indicator - only visible when uploading */}
-                {/* {isUploading && (
-                  <div className="absolute top-0 right-0 bg-black bg-opacity-70 text-white px-3 py-1 m-4 rounded">
-                    Uploading {currentImageIndex + 1}/{testImagesCount}
-                  </div>
-                )} */}
               </div>
             )}
           </div>
