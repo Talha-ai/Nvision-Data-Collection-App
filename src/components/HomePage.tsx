@@ -19,13 +19,58 @@ interface HomePageProps {
   onStartDefectChecker: (ppid: string, isTestMode: boolean) => void;
 }
 
+interface Pattern {
+  pattern_name: string;
+  created_at: string;
+  order: number;
+}
+
+interface DefectStat {
+  defect_name: string;
+  fault_code: string;
+  image_count: number;
+}
+
+interface StatsData {
+  total_images_captured: number;
+  total_panels_tested: number;
+  defect_statistics: DefectStat[];
+}
+
+const patternNameToFileName = {
+  White: 'white_AAA.bmp',
+  Black: 'black_BBB.bmp',
+  Cyan: 'cyan_CCC.bmp',
+  Gray50: 'gray50_DDD.bmp',
+  Red: 'red_EEE.bmp',
+  Green: 'green_FFF.bmp',
+  Blue: 'blue_GGG.bmp',
+  Gray75: 'gray75_HHH.bmp',
+  'Gray Vertical': 'grayVertical_III.bmp',
+  'Color Bars': 'colorBars_JJJ.bmp',
+  Focus: 'focus_KKK.bmp',
+  'Black with white border': 'blackWithWhiteBorder_LLL.jpg',
+  Crosshatch: 'crossHatch_MMM.bmp',
+  '16 Bar Gray': '16BarGray_NNN.bmp',
+  'Black and White Blocks': 'black&White_OOO.bmp',
+};
+
 function HomePage({ onStartDefectChecker }: HomePageProps) {
   const [ppid, setPpid] = useState<string>('');
   const [isTestMode, setIsTestMode] = useState(true);
   const [showHiddenState, setShowHiddenState] = useState<boolean>(false);
   const [defects, setDefects] = useState([]);
+
   const [loading, setLoading] = useState(true);
+  const [statsLoading, setStatsLoading] = useState(true);
+  const [submitLoading, setSubmitLoading] = useState(false);
+
   const [activeTab, setActiveTab] = useState<string>('summary');
+  const [patterns, setPatterns] = useState<Pattern[]>([]);
+  const [statsData, setStatsData] = useState<StatsData | null>(null);
+
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [cameraResolution, setCameraResolution] = useState<{
     width: number;
@@ -50,23 +95,51 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
     'black&White_OOO.bmp': blackWhite_OOO,
   };
 
-  const testPatterns = [
-    'white_AAA.bmp',
-    'black_BBB.bmp',
-    'cyan_CCC.bmp',
-    'gray50_DDD.bmp',
-    'red_EEE.bmp',
-    'green_FFF.bmp',
-    'blue_GGG.bmp',
-    'gray75_HHH.bmp',
-    'grayVertical_III.bmp',
-    'colorBars_JJJ.bmp',
-    'focus_KKK.bmp',
-    'blackWithWhiteBorder_LLL.jpg',
-    'crossHatch_MMM.bmp',
-    '16BarGray_NNN.bmp',
-    'black&White_OOO.bmp',
-  ];
+  useEffect(() => {
+    // Fetch patterns from API
+    const fetchPatterns = async () => {
+      try {
+        const response = await fetch(
+          'https://nvision.alemeno.com/data/base-pattern/'
+        );
+        if (!response.ok) {
+          throw new Error('Failed to fetch patterns');
+        }
+        const data = await response.json();
+        // Sort patterns based on the order property
+        const sortedPatterns = data.sort(
+          (a: Pattern, b: Pattern) => a.order - b.order
+        );
+        setPatterns(sortedPatterns);
+        setLoading(false);
+      } catch (error) {
+        console.error('Error fetching patterns:', error);
+        setLoading(false);
+      }
+    };
+
+    // Fetch statistics from API
+    const fetchStats = async () => {
+      try {
+        const response = await fetch(
+          'https://nvision.alemeno.com/data/panel-image-search/stats/'
+        );
+        if (!response.ok) {
+          throw new Error('Failed to fetch statistics');
+        }
+        const data = await response.json();
+        setStatsData(data);
+        setDefects(data.defect_statistics);
+        setStatsLoading(false);
+      } catch (error) {
+        console.error('Error fetching statistics:', error);
+        setStatsLoading(false);
+      }
+    };
+
+    fetchPatterns();
+    fetchStats();
+  }, []);
 
   useEffect(() => {
     let stream: MediaStream | null = null;
@@ -126,38 +199,48 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
     };
   }, []);
 
-  useEffect(() => {
-    // Fetch defect data
-    const fetchDefects = async () => {
-      try {
-        const response = await fetch(
-          'https://nvision.alemeno.com/data/defect/'
-        );
-        if (response.ok) {
-          const data = await response.json();
-          setDefects(data);
-        } else {
-          console.error('Failed to fetch defects');
-        }
-      } catch (error) {
-        console.error('Error fetching defects:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchDefects();
-  }, []);
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (ppid.trim()) {
-      onStartDefectChecker(ppid, isTestMode);
+      setSubmitLoading(true);
+      setSubmitError(null);
+
+      try {
+        // First, make a POST request to the display-panel endpoint
+        const response = await fetch(
+          'https://nvision.alemeno.com/data/display-panel/',
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ ppid: ppid }),
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`Server responded with status: ${response.status}`);
+        }
+
+        // If the POST request was successful, call the onStartDefectChecker function
+        onStartDefectChecker(ppid, isTestMode);
+      } catch (error) {
+        console.error('Error submitting PPID:', error);
+        setSubmitError(
+          error instanceof Error ? error.message : 'An unknown error occurred'
+        );
+      } finally {
+        setSubmitLoading(false);
+      }
     }
   };
 
+  const handlePpidChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPpid(e.target.value);
+  };
+
   if (loading) {
-    return <div className="p-4 text-center">Loading defect data...</div>;
+    return <div className="p-4 text-center">Loading data...</div>;
   }
 
   return (
@@ -242,29 +325,36 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
         starting the routine
       </p>
 
-      <div className="flex justify-between items-center text-sm w-full mb-10">
-        <div className="flex items-center ">
-          <div className="bg-gray-200 px-3 py-2 border border-gray-300 flex-shrink-0">
-            Enter PPID
+      <form onSubmit={handleSubmit} className="mb-6">
+        <div className="flex justify-between items-center text-sm w-full mb-5 gap-10">
+          <div className="flex items-center ">
+            <div className="bg-gray-200 px-3 py-2 border border-gray-300 flex-shrink-0">
+              Enter PPID
+            </div>
+            <input
+              type="text"
+              value={ppid}
+              onChange={handlePpidChange}
+              className="flex-grow border border-gray-300 px-3 py-2"
+              placeholder="abcd123456789"
+            />
           </div>
-          <input
-            type="text"
-            value={ppid}
-            onChange={(e) => setPpid(e.target.value)}
-            className="flex-grow border border-gray-300 px-3 py-2"
-            placeholder="abcd123456789"
-          />
+          <button
+            type="submit"
+            className={`${
+              ppid && !submitLoading
+                ? 'bg-green-600 hover:bg-green-700'
+                : 'bg-gray-400'
+            } text-white px-6 py-2 rounded transition-colors`}
+            disabled={!ppid || submitLoading}
+          >
+            {submitLoading ? 'Processing...' : 'Start Defect Checker Routine'}
+          </button>
         </div>
-        <button
-          onClick={handleSubmit}
-          className={`${
-            ppid ? 'bg-green-600' : 'bg-gray-400'
-          } text-white px-6 py-2 rounded`}
-          disabled={!ppid}
-        >
-          Start Defect Checker Routine
-        </button>
-      </div>
+        {submitError && (
+          <div className=" text-red-600 text-sm">Error: {submitError}</div>
+        )}
+      </form>
 
       <div className="w-full">
         {/* Tabs */}
@@ -290,44 +380,79 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
         {/* Content */}
         <div className="my-6 w-full">
           {activeTab === 'summary' && (
-            <table className="w-full border-collapse">
-              <tbody>
-                <tr className="border-b">
-                  <td className="py-3">Total panels tested</td>
-                  <td className="py-3">0</td>
-                </tr>
-                <tr className="border-b">
-                  <td className="py-3">Total images captured</td>
-                  <td className="py-3">0</td>
-                </tr>
-                {defects.map((defect, i) => (
-                  <tr key={i} className="border-b">
-                    <td className="py-3">
-                      Images captured for {defect.defect_name}
-                    </td>
-                    <td className="py-3">0</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <div>
+              {statsLoading ? (
+                <p>Loading statistics...</p>
+              ) : (
+                <table className="w-full border-collapse">
+                  <tbody>
+                    <tr className="border-b">
+                      <td className="py-3">Total panels tested</td>
+                      <td className="py-3">
+                        {statsData ? statsData.total_panels_tested : 0}
+                      </td>
+                    </tr>
+                    <tr className="border-b">
+                      <td className="py-3">Total images captured</td>
+                      <td className="py-3">
+                        {statsData ? statsData.total_images_captured : 0}
+                      </td>
+                    </tr>
+                    {defects.map((defect, i) => (
+                      <tr key={i} className="border-b">
+                        <td className="py-3">
+                          Images captured for {defect.defect_name}
+                        </td>
+                        <td className="py-3">{defect.image_count}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
           )}
 
           {activeTab === 'pattern' && (
-            <table className="w-full border-collapse">
-              <tbody>
-                {testPatterns.map((pattern, index) => (
-                  <tr key={index} className="border-b">
-                    <td className="py-3 w-12 text-center">{index}</td>
-                    <td className="py-3">
-                      <div className="border border-black w-24">
-                        <img src={patternImportMap[pattern]} alt={pattern} />
-                      </div>
-                    </td>
-                    <td className="py-3">{pattern}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <div>
+              {loading ? (
+                <p>Loading patterns...</p>
+              ) : (
+                <table className="w-full border-collapse">
+                  <tbody>
+                    {patterns.map((pattern, index) => {
+                      const fileName =
+                        patternNameToFileName[pattern.pattern_name];
+                      console.log(pattern.pattern_name);
+                      return (
+                        <tr key={index} className="border-b">
+                          <td className="py-3 w-12 text-center">
+                            {pattern.order + 1}
+                          </td>
+                          <td className="py-3">
+                            <div className="border border-black w-24">
+                              {fileName && patternImportMap[fileName] ? (
+                                <img
+                                  src={patternImportMap[fileName]}
+                                  alt={pattern.pattern_name}
+                                />
+                              ) : (
+                                <div className="bg-gray-200 w-full h-12 flex items-center justify-center">
+                                  No image
+                                </div>
+                              )}
+                            </div>
+                          </td>
+                          {/* <td className="py-3">{pattern.pattern_name}</td> */}
+                          <td className="py-3 text-sm text-gray-500">
+                            {fileName || 'No file mapping'}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              )}
+            </div>
           )}
         </div>
       </div>
