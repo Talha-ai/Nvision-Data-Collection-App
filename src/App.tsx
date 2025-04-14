@@ -34,7 +34,9 @@ function App() {
   const [isCapturing, setIsCapturing] = useState<boolean>(false);
   const [ppid, setPpid] = useState<string>('');
   const [isTestMode, setIsTestMode] = useState<boolean>(true);
-  const [capturedImages, setCapturedImages] = useState<string[]>([]);
+  const [uploadedImageUrls, setUploadedImageUrls] = useState<(string | null)[]>(
+    []
+  );
 
   const handleMinimize = () => {
     window.electronAPI?.minimizeWindow();
@@ -56,13 +58,16 @@ function App() {
   };
 
   // Handle when image capture is complete
-  const handleCaptureComplete = (images: string[]) => {
-    console.log(images);
+  const handleCaptureComplete = (
+    uploadedUrls: (string | null)[]
+  ) => {
     window.electronAPI.disableFullScreen();
-    setCapturedImages(images);
+    setUploadedImageUrls(uploadedUrls);
     setIsCapturing(false);
     setCurrentPage('review');
   };
+
+  console.log(uploadedImageUrls);
 
   // Approve images and go to defect analysis
   const approveImages = () => {
@@ -77,14 +82,14 @@ function App() {
   // Submit defect analysis and go back to home page
   const submitDefectAnalysis = () => {
     setPpid('');
-    setCapturedImages([]);
+    setUploadedImageUrls([]);
     setCurrentPage('home');
   };
 
   // Discard session
   const discardSession = () => {
     setPpid('');
-    setCapturedImages([]);
+    setUploadedImageUrls([]);
     setCurrentPage('home');
   };
 
@@ -119,7 +124,7 @@ function App() {
               return (
                 <ReviewImagesPage
                   ppid={ppid}
-                  capturedImages={capturedImages}
+                  uploadedImageUrls={uploadedImageUrls}
                   onApprove={approveImages}
                   onRetake={retakeImages}
                   onDiscard={discardSession}
@@ -129,6 +134,7 @@ function App() {
               return (
                 <DefectAnalysisPage
                   ppid={ppid}
+                  uploadedImageUrls={uploadedImageUrls}
                   onSubmit={submitDefectAnalysis}
                   onDiscard={discardSession}
                 />

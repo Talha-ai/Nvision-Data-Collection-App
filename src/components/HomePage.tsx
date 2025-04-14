@@ -106,11 +106,8 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
           throw new Error('Failed to fetch patterns');
         }
         const data = await response.json();
-        // Sort patterns based on the order property
-        const sortedPatterns = data.sort(
-          (a: Pattern, b: Pattern) => a.order - b.order
-        );
-        setPatterns(sortedPatterns);
+
+        setPatterns(data);
         setLoading(false);
       } catch (error) {
         console.error('Error fetching patterns:', error);
@@ -206,9 +203,8 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
       setSubmitError(null);
 
       try {
-        // First, make a POST request to the display-panel endpoint
-        const response = await fetch(
-          'https://nvision.alemeno.com/data/display-panel/',
+        const checkResponse = await fetch(
+          'https://nvision.alemeno.com/data/display-panel/check_display_panel/',
           {
             method: 'POST',
             headers: {
@@ -218,12 +214,16 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
           }
         );
 
-        if (!response.ok) {
-          throw new Error(`Server responded with status: ${response.status}`);
+        if (!checkResponse.ok) {
+          throw new Error(
+            `Server responded with status: ${checkResponse.status}`
+          );
         }
 
-        // If the POST request was successful, call the onStartDefectChecker function
-        onStartDefectChecker(ppid, isTestMode);
+        const checkData = await checkResponse.json();
+        const finalPpid = checkData.exists ? checkData.recommended_ppid : ppid;
+
+        onStartDefectChecker(finalPpid, isTestMode);
       } catch (error) {
         console.error('Error submitting PPID:', error);
         setSubmitError(

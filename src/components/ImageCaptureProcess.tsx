@@ -16,7 +16,7 @@ import barGray_NNN from '../assets/16BarGray_NNN.bmp';
 import blackWhite_OOO from '../assets/black&White_OOO.bmp';
 
 interface ImageCaptureProcessProps {
-  onComplete: (images: string[]) => void;
+  onComplete: (uploadedUrls: (string | null)[]) => void;
   ppid: string;
   isTestMode?: boolean;
 }
@@ -27,7 +27,9 @@ function ImageCaptureProcess({
   isTestMode,
 }: ImageCaptureProcessProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [capturedImages, setCapturedImages] = useState<string[]>([]);
+  const [uploadedImageUrls, setUploadedImageUrls] = useState<(string | null)[]>(
+    []
+  );
   const [isCameraReady, setIsCameraReady] = useState(false);
   const [pendingUploads, setPendingUploads] = useState(0);
 
@@ -109,29 +111,33 @@ function ImageCaptureProcess({
   // Effect to check if we've completed processing all images
   useEffect(() => {
     // Check if we've reached the end of the process and haven't called onComplete yet
-    if (currentImageIndex >= testImagesCount && !isCompleted) {
+    if (
+      currentImageIndex >= testImagesCount &&
+      !isCompleted &&
+      pendingUploads === 15
+    ) {
       // Ensure we have the correct number of images
-      if (capturedImages.length === testImagesCount) {
+      if (uploadedImageUrls.length === testImagesCount) {
         setIsCompleted(true);
-        onComplete(capturedImages.slice(0, testImagesCount));
+        onComplete(uploadedImageUrls.slice(0, testImagesCount));
       } else {
         console.error(
           `Image capture process completed but has incorrect number of images: 
-          ${capturedImages.length} captured vs ${testImagesCount} expected`
+          ${uploadedImageUrls.length} captured vs ${testImagesCount} expected`
         );
       }
     }
   }, [
     currentImageIndex,
-    capturedImages,
+    uploadedImageUrls,
     testImagesCount,
     isCompleted,
     onComplete,
+    pendingUploads,
   ]);
 
   // Effect to handle the sequence of displaying patterns and capturing images
   useEffect(() => {
-    // Only proceed if camera is ready, we're not currently uploading, and we haven't completed all images
     if (isCameraReady && currentImageIndex < testImagesCount && !isCompleted) {
       // Give time to display the test pattern, then capture the webcam image
       const timer = setTimeout(() => {
@@ -149,12 +155,8 @@ function ImageCaptureProcess({
     }
 
     try {
-      // setIsUploading(true);
-      setPendingUploads((prev) => prev + 1);
-
       const patternName = testPatterns[index].name;
 
-      // Use the Electron API to upload through main process
       const imageUrl = await window.electronAPI.uploadImage({
         imageData,
         ppid,
@@ -164,27 +166,30 @@ function ImageCaptureProcess({
 
       console.log(`Successfully uploaded ${patternName}`);
 
-      // setIsUploading(false);
-      // setCurrentImageIndex((prev) => prev + 1);
+      // Store the uploaded URL in state
+      setUploadedImageUrls((prev) => {
+        const newUrls = [...prev];
+        newUrls[index] = imageUrl;
+        return newUrls;
+      });
 
       return imageUrl;
-      // } catch (error) {
-      //   console.error('Error uploading to DigitalOcean:', error);
-      //   setIsUploading(false);
-      //   setCurrentImageIndex((prev) => prev + 1);
-      //   return null;
-      // }
     } catch (error) {
       console.error('Error uploading to DigitalOcean:', error);
+
+      setUploadedImageUrls((prev) => {
+        const newUrls = [...prev];
+        newUrls[index] = null;
+        return newUrls;
+      });
+
       return null;
     } finally {
-      // setIsUploading(false);
-      setPendingUploads((prev) => prev - 1);
+      setPendingUploads((prev) => prev + 1);
     }
   };
 
   const captureImage = () => {
-    // Removed async
     if (!videoRef.current || !canvasRef.current || !isCameraReady) {
       return;
     }
@@ -211,15 +216,6 @@ function ImageCaptureProcess({
     // Store the current index to use in the background upload
     const imageIndex = currentImageIndex;
 
-    // Add to captured images
-    setCapturedImages((prev) => {
-      // Only add if we don't exceed the expected count
-      if (prev.length < testImagesCount) {
-        return [...prev, imageData];
-      }
-      return prev;
-    });
-
     // Increment the image index
     setCurrentImageIndex((prev) => prev + 1);
 
@@ -233,11 +229,6 @@ function ImageCaptureProcess({
 
   // Get current test pattern filename
   const currentPattern = testPatterns[currentImageIndex];
-
-  // For debugging
-  console.log('CapturedImageIndex', currentImageIndex);
-  console.log('testImagesCount', testImagesCount);
-  console.log('captures images length', capturedImages.length);
 
   return (
     <div className="fixed cursor-none inset-0 bg-black flex flex-col items-center justify-center">
