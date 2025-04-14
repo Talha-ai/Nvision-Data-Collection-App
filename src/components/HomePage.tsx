@@ -302,16 +302,14 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
       )}
 
       <div className="w-full bg-gray-200 h-64 relative mb-4">
-        <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <div className="w-full h-full flex flex-col items-center justify-center">
-            <div className="w-4/5 h-4/5 relative">
-              <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-black"></div>
-              <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-black"></div>
-              <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-black"></div>
-              <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-black"></div>
-            </div>
-          </div>
-        </div>
+        {/* Overlay guide image */}
+        <img
+          src="/camera-guides.png"
+          alt="Camera guide"
+          className="absolute inset-0 w-full h-full object-contain pointer-events-none z-10 p-2"
+        />
+
+        {/* Video preview */}
         <video
           ref={videoRef}
           autoPlay
@@ -401,7 +399,7 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
                     {defects.map((defect, i) => (
                       <tr key={i} className="border-b">
                         <td className="py-3">
-                          Images captured for {defect.defect_name}
+                          Panels with {defect.defect_name}
                         </td>
                         <td className="py-3">{defect.image_count}</td>
                       </tr>
