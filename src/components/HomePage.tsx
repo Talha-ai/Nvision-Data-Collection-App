@@ -301,7 +301,7 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
         </>
       )}
 
-      <div className="aspect-video bg-gray-200 relative mb-4">
+      <div className="aspect-video w-full h-full bg-gray-200 relative mb-4">
         {/* Overlay guide image */}
         <img
           src="/camera-guides.png"
@@ -310,7 +310,7 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
         />
 
         {/* Video preview */}
-        <video ref={videoRef} autoPlay playsInline className="object-cover" />
+        <video ref={videoRef} autoPlay playsInline className=" object-cover" />
       </div>
 
       <p className="text-xs mb-8">
@@ -338,7 +338,7 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
               ppid && !submitLoading
                 ? 'bg-green-600 hover:bg-green-700'
                 : 'bg-gray-400'
-            } text-white px-6 py-2 rounded transition-colors`}
+            } text-white px-6 py-2 rounded transition-colors min-w-[220px] text-center`}
             disabled={!ppid || submitLoading}
           >
             {submitLoading ? 'Processing...' : 'Start Defect Checker Routine'}
