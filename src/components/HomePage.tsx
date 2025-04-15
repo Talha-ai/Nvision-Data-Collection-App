@@ -60,7 +60,7 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
   const [ppid, setPpid] = useState<string>('');
   const [isTestMode, setIsTestMode] = useState(() => {
     const savedMode = localStorage.getItem('appMode');
-    return savedMode ? savedMode === 'test' : true;
+    return savedMode ? savedMode === 'test' : false;
   });
   const [showHiddenState, setShowHiddenState] = useState<boolean>(false);
   const [defects, setDefects] = useState([]);
