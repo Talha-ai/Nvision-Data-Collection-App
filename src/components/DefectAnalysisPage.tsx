@@ -144,11 +144,11 @@ function DefectAnalysisPage({
         ppid: ppid,
         defects: selectedDefectIds,
         panel_images: panel_images,
-        test_type: isTestMode ? 'test-images' : 'production-images',
+        test_type: isTestMode ? 'test' : 'production',
       };
       console.log('isTestMode:', isTestMode);
       console.log('Payload:', payload);
-      
+
       const response = await fetch(
         'https://nvision.alemeno.com/data/display-panel/',
         {
