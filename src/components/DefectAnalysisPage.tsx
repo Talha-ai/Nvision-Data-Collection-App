@@ -94,11 +94,6 @@ function DefectAnalysisPage({
 
   // Handle form submission
   const handleSubmit = async () => {
-    if (!showUploadFailure) {
-      setShowUploadFailure(true); // This will make the error message appear
-      return; // Stop here to show the error and "Retry uploading" button
-    }
-
     // If recovering from API failure, handle retry
     if (apiSubmissionFailed) {
       setRetryingApiSubmission(true);
@@ -108,7 +103,13 @@ function DefectAnalysisPage({
 
     // If there are upload failures, handle retry
     if (hasUploadFailures) {
-      handleRetryUploads();
+      // If we're showing the upload failure message, retry the uploads
+      if (showUploadFailure) {
+        handleRetryUploads();
+      } else {
+        // Otherwise, show the error message first
+        setShowUploadFailure(true);
+      }
       return;
     }
 
@@ -117,6 +118,7 @@ function DefectAnalysisPage({
       return;
     }
 
+    // If everything is good, submit the data
     await submitData();
   };
 

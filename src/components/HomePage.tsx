@@ -58,7 +58,10 @@ const patternNameToFileName = {
 
 function HomePage({ onStartDefectChecker }: HomePageProps) {
   const [ppid, setPpid] = useState<string>('');
-  const [isTestMode, setIsTestMode] = useState(true);
+  const [isTestMode, setIsTestMode] = useState(() => {
+    const savedMode = localStorage.getItem('appMode');
+    return savedMode ? savedMode === 'test' : true;
+  });
   const [showHiddenState, setShowHiddenState] = useState<boolean>(false);
   const [defects, setDefects] = useState([]);
 
@@ -71,6 +74,8 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
   const [statsData, setStatsData] = useState<StatsData | null>(null);
 
   const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const isFirstRender = useRef(true);
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [cameraResolution, setCameraResolution] = useState<{
@@ -97,27 +102,66 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
   };
 
   useEffect(() => {
-    // Fetch patterns from API
-    const fetchPatterns = async () => {
-      try {
-        const response = await fetch(
-          'https://nvision.alemeno.com/data/base-pattern/'
-        );
-        if (!response.ok) {
-          throw new Error('Failed to fetch patterns');
-        }
-        const data = await response.json();
+    localStorage.setItem('appMode', isTestMode ? 'test' : 'production');
+  }, [isTestMode]);
 
-        setPatterns(data);
-        setLoading(false);
-      } catch (error) {
-        console.error('Error fetching patterns:', error);
-        setLoading(false);
-      }
-    };
+  // Combined function to fetch both patterns and statistics
+  const fetchData = async () => {
+    setLoading(true);
+    setStatsLoading(true);
 
-    // Fetch statistics from API
-    const fetchStats = async () => {
+    try {
+      // Fetch patterns
+      const patternsPromise = fetch(
+        'https://nvision.alemeno.com/data/base-pattern/'
+      )
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error('Failed to fetch patterns');
+          }
+          return response.json();
+        })
+        .then((data) => {
+          setPatterns(data);
+          setLoading(false);
+        });
+
+      // Fetch statistics
+      const statsPromise = fetch(
+        'https://nvision.alemeno.com/data/panel-image-search/stats/'
+      )
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error('Failed to fetch statistics');
+          }
+          return response.json();
+        })
+        .then((data) => {
+          const modeData = isTestMode ? data.test : data.production;
+
+          setStatsData(modeData);
+          setDefects(modeData.defect_statistics);
+          setStatsLoading(false);
+        });
+
+      // Wait for both requests to complete
+      await Promise.all([patternsPromise, statsPromise]);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      setLoading(false);
+      setStatsLoading(false);
+    }
+  };
+
+  // Initial data load
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  useEffect(() => {
+    // Only fetch stats data, not patterns
+    const fetchStatsForMode = async () => {
+      setStatsLoading(true);
       try {
         const response = await fetch(
           'https://nvision.alemeno.com/data/panel-image-search/stats/'
@@ -126,18 +170,24 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
           throw new Error('Failed to fetch statistics');
         }
         const data = await response.json();
-        setStatsData(data);
-        setDefects(data.defect_statistics);
-        setStatsLoading(false);
+        const modeData = isTestMode ? data.test : data.production;
+
+        setStatsData(modeData);
+        setDefects(modeData.defect_statistics);
       } catch (error) {
         console.error('Error fetching statistics:', error);
+      } finally {
         setStatsLoading(false);
       }
     };
 
-    fetchPatterns();
-    fetchStats();
-  }, []);
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+
+    fetchStatsForMode();
+  }, [isTestMode]);
 
   useEffect(() => {
     let stream: MediaStream | null = null;
@@ -255,7 +305,7 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
 
       <button
         className="rounded-full border border-green-500 text-green-500 px-4 py-1 mb-6 flex items-center"
-        onClick={() => setPpid('')}
+        onClick={fetchData}
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"

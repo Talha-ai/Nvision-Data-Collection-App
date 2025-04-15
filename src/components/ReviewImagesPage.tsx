@@ -53,34 +53,6 @@ function ReviewImagesPage({
       <div className="max-w-xl mx-auto w-full">
         <h2 className="text-md font-medium mb-4">Review captured images</h2>
 
-        {/* <div className="grid grid-cols-2 gap-4 mb-8">
-          {uploadedImageUrls.map((imageUrl, index) => {
-            // Extract filename from the URL
-            let filename = imageUrl ? imageUrl.split('/').pop() || '' : '';
-
-            // Remove last underscore section before .png or .jpg etc
-            const match = filename.match(/^(.*)_[^_]+(\.\w+)$/);
-            if (match) {
-              filename = match[1] + match[2]; // e.g., 123_ZQ6Y_white_AAA + .png
-            }
-
-            return (
-              <div key={index} className="flex flex-col">
-                <div className="h-40 w-full mb-1 overflow-hidden">
-                  <img
-                    src={imageUrl}
-                    alt={`Captured image ${index + 1}`}
-                    className="h-full w-full object-cover"
-                  />
-                </div>
-                <span className="text-sm">
-                  {filename || `Image ${index + 1}`}
-                </span>
-              </div>
-            );
-          })}
-        </div> */}
-
         <div className="grid grid-cols-2 gap-4 mb-8">
           {capturedImages.map((image, index) => (
             <div key={index} className="flex flex-col">
