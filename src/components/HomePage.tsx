@@ -66,6 +66,7 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
   const [defects, setDefects] = useState([]);
 
   const [loading, setLoading] = useState(true);
+  const [fullStatsData, setFullStatsData] = useState(null);
   const [statsLoading, setStatsLoading] = useState(true);
   const [submitLoading, setSubmitLoading] = useState(false);
 
@@ -74,8 +75,6 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
   const [statsData, setStatsData] = useState<StatsData | null>(null);
 
   const [submitError, setSubmitError] = useState<string | null>(null);
-
-  const isFirstRender = useRef(true);
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [cameraResolution, setCameraResolution] = useState<{
@@ -137,6 +136,8 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
           return response.json();
         })
         .then((data) => {
+          setFullStatsData(data);
+
           const modeData = isTestMode ? data.test : data.production;
 
           setStatsData(modeData);
@@ -159,35 +160,14 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
   }, []);
 
   useEffect(() => {
-    // Only fetch stats data, not patterns
-    const fetchStatsForMode = async () => {
-      setStatsLoading(true);
-      try {
-        const response = await fetch(
-          'https://nvision.alemeno.com/data/panel-image-search/stats/'
-        );
-        if (!response.ok) {
-          throw new Error('Failed to fetch statistics');
-        }
-        const data = await response.json();
-        const modeData = isTestMode ? data.test : data.production;
-
-        setStatsData(modeData);
-        setDefects(modeData.defect_statistics);
-      } catch (error) {
-        console.error('Error fetching statistics:', error);
-      } finally {
-        setStatsLoading(false);
-      }
-    };
-
-    if (isFirstRender.current) {
-      isFirstRender.current = false;
-      return;
+    if (fullStatsData) {
+      const modeData = isTestMode
+        ? fullStatsData.test
+        : fullStatsData.production;
+      setStatsData(modeData);
+      setDefects(modeData.defect_statistics);
     }
-
-    fetchStatsForMode();
-  }, [isTestMode]);
+  }, [isTestMode, fullStatsData]);
 
   useEffect(() => {
     let stream: MediaStream | null = null;
