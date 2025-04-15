@@ -52,7 +52,7 @@ function App() {
   const [currentPage, setCurrentPage] = useState<string>('home');
   const [isCapturing, setIsCapturing] = useState<boolean>(false);
   const [ppid, setPpid] = useState<string>('');
-  const [isTestMode, setIsTestMode] = useState<boolean>(true);
+  const [isTestMode, setIsTestMode] = useState<boolean>(false);
   const [capturedImages, setCapturedImages] = useState<string[]>([]);
 
   // Track upload progress
