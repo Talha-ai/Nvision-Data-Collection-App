@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import HomePage from './components/HomePage';
 import ReviewImagesPage from './components/ReviewImagesPage';
 import DefectAnalysisPage from './components/DefectAnalysisPage';
@@ -29,14 +29,40 @@ declare global {
   }
 }
 
+// Define test patterns for consistency across components
+const testPatterns = [
+  { name: 'white_AAA' },
+  { name: 'black_BBB' },
+  { name: 'cyan_CCC' },
+  { name: 'gray50_DDD' },
+  { name: 'red_EEE' },
+  { name: 'green_FFF' },
+  { name: 'blue_GGG' },
+  { name: 'gray75_HHH' },
+  { name: 'grayVertical_III' },
+  { name: 'colorBars_JJJ' },
+  { name: 'focus_KKK' },
+  { name: 'blackWithWhiteBorder_LLL' },
+  { name: 'crossHatch_MMM' },
+  { name: '16BarGray_NNN' },
+  { name: 'black&White_OOO' },
+];
+
 function App() {
   const [currentPage, setCurrentPage] = useState<string>('home');
   const [isCapturing, setIsCapturing] = useState<boolean>(false);
   const [ppid, setPpid] = useState<string>('');
   const [isTestMode, setIsTestMode] = useState<boolean>(true);
+  const [capturedImages, setCapturedImages] = useState<string[]>([]);
+
+  // Track upload progress
   const [uploadedImageUrls, setUploadedImageUrls] = useState<(string | null)[]>(
     []
   );
+  const [totalUploads, setTotalUploads] = useState<number>(0);
+  const [completedUploads, setCompletedUploads] = useState<number>(0);
+  const [isUploading, setIsUploading] = useState<boolean>(false);
+  const [failedUploadIndices, setFailedUploadIndices] = useState<number[]>([]);
 
   const handleMinimize = () => {
     window.electronAPI?.minimizeWindow();
@@ -57,17 +83,72 @@ function App() {
     setIsCapturing(true);
   };
 
-  // Handle when image capture is complete
-  const handleCaptureComplete = (
-    uploadedUrls: (string | null)[]
-  ) => {
+  // Handle when image capture is complete and uploads have started
+  const handleCaptureComplete = (images: string[], totalToUpload: number) => {
     window.electronAPI.disableFullScreen();
-    setUploadedImageUrls(uploadedUrls);
+    setCapturedImages(images);
+    setTotalUploads(totalToUpload);
+    setIsUploading(true);
     setIsCapturing(false);
     setCurrentPage('review');
   };
 
-  console.log(uploadedImageUrls);
+  // Update upload progress
+  const handleUploadProgress = (imageUrl: string | null, index: number) => {
+    setUploadedImageUrls((prev) => {
+      const newUrls = [...prev];
+      newUrls[index] = imageUrl;
+      return newUrls;
+    });
+
+    // Track failed uploads
+    if (imageUrl === null) {
+      setFailedUploadIndices((prev) => [...prev, index]);
+    }
+
+    setCompletedUploads((prev) => prev + 1);
+  };
+
+  // Function to retry failed uploads
+  const retryFailedUploads = async () => {
+    if (failedUploadIndices.length === 0) return;
+
+    // Reset uploading state
+    setIsUploading(true);
+
+    // Process each failed upload
+    for (const index of failedUploadIndices) {
+      if (index < capturedImages.length) {
+        try {
+          const imageData = capturedImages[index];
+          const patternName = testPatterns[index].name;
+
+          const imageUrl = await window.electronAPI.uploadImage({
+            imageData,
+            ppid,
+            patternName,
+            isTestMode,
+          });
+
+          // Update success
+          setUploadedImageUrls((prev) => {
+            const newUrls = [...prev];
+            newUrls[index] = imageUrl;
+            return newUrls;
+          });
+
+          console.log(`Successfully re-uploaded ${patternName}`);
+        } catch (error) {
+          console.error(`Failed to re-upload image at index ${index}:`, error);
+          // Leave as null in the array
+        }
+      }
+    }
+
+    // Clear failed indices as we've attempted them all
+    setFailedUploadIndices([]);
+    setIsUploading(false);
+  };
 
   // Approve images and go to defect analysis
   const approveImages = () => {
@@ -76,22 +157,45 @@ function App() {
 
   // Retake images
   const retakeImages = () => {
+    // Reset upload states
+    setUploadedImageUrls([]);
+    setCompletedUploads(0);
+    setTotalUploads(0);
+    setIsUploading(false);
+    setFailedUploadIndices([]);
     setIsCapturing(true);
   };
 
   // Submit defect analysis and go back to home page
   const submitDefectAnalysis = () => {
     setPpid('');
+    setCapturedImages([]);
     setUploadedImageUrls([]);
+    setCompletedUploads(0);
+    setTotalUploads(0);
+    setIsUploading(false);
+    setFailedUploadIndices([]);
     setCurrentPage('home');
   };
 
   // Discard session
   const discardSession = () => {
     setPpid('');
+    setCapturedImages([]);
     setUploadedImageUrls([]);
+    setCompletedUploads(0);
+    setTotalUploads(0);
+    setIsUploading(false);
+    setFailedUploadIndices([]);
     setCurrentPage('home');
   };
+
+  // Check if all uploads are complete
+  useEffect(() => {
+    if (isUploading && completedUploads === totalUploads && totalUploads > 0) {
+      setIsUploading(false);
+    }
+  }, [completedUploads, totalUploads, isUploading]);
 
   // Determine which page to render
   if (isCapturing) {
@@ -99,6 +203,7 @@ function App() {
     return (
       <ImageCaptureProcess
         onComplete={handleCaptureComplete}
+        onUploadProgress={handleUploadProgress}
         ppid={ppid}
         isTestMode={isTestMode}
       />
@@ -124,7 +229,7 @@ function App() {
               return (
                 <ReviewImagesPage
                   ppid={ppid}
-                  uploadedImageUrls={uploadedImageUrls}
+                  capturedImages={capturedImages}
                   onApprove={approveImages}
                   onRetake={retakeImages}
                   onDiscard={discardSession}
@@ -134,9 +239,15 @@ function App() {
               return (
                 <DefectAnalysisPage
                   ppid={ppid}
+                  isTestMode={isTestMode}
                   uploadedImageUrls={uploadedImageUrls}
                   onSubmit={submitDefectAnalysis}
                   onDiscard={discardSession}
+                  uploadProgress={completedUploads}
+                  totalUploads={totalUploads}
+                  isUploading={isUploading}
+                  failedUploadCount={failedUploadIndices.length}
+                  onRetryUploads={retryFailedUploads}
                 />
               );
             default:

@@ -2,15 +2,33 @@ import React from 'react';
 
 interface ReviewImagesPageProps {
   ppid: string;
-  uploadedImageUrls: string[];
+  capturedImages: string[];
   onApprove: () => void;
   onRetake: () => void;
   onDiscard: () => void;
 }
 
+const testPatterns = [
+  'white_AAA.png',
+  'black_BBB.png',
+  'cyan_CCC.png',
+  'gray50_DDD.png',
+  'red_EEE.png',
+  'green_FFF.png',
+  'blue_GGG.png',
+  'gray75_HHH.png',
+  'grayVertical_III.png',
+  'colorBars_JJJ.png',
+  'focus_KKK.png',
+  'blackWithWhiteBorder_LLL.png',
+  'crossHatch_MMM.png',
+  '16BarGray_NNN.png',
+  'black&White_OOO.png',
+];
+
 function ReviewImagesPage({
   ppid,
-  uploadedImageUrls,
+  capturedImages,
   onApprove,
   onRetake,
   onDiscard,
@@ -35,7 +53,7 @@ function ReviewImagesPage({
       <div className="max-w-xl mx-auto w-full">
         <h2 className="text-md font-medium mb-4">Review captured images</h2>
 
-        <div className="grid grid-cols-2 gap-4 mb-8">
+        {/* <div className="grid grid-cols-2 gap-4 mb-8">
           {uploadedImageUrls.map((imageUrl, index) => {
             // Extract filename from the URL
             let filename = imageUrl ? imageUrl.split('/').pop() || '' : '';
@@ -61,6 +79,23 @@ function ReviewImagesPage({
               </div>
             );
           })}
+        </div> */}
+
+        <div className="grid grid-cols-2 gap-4 mb-8">
+          {capturedImages.map((image, index) => (
+            <div key={index} className="flex flex-col">
+              <div className="h-40 w-full mb-1 overflow-hidden">
+                <img
+                  src={image}
+                  alt={`Captured image ${index + 1}`}
+                  className="h-full w-full object-cover"
+                />
+              </div>
+              <span className="text-sm">
+                {ppid}_{testPatterns[index]}
+              </span>
+            </div>
+          ))}
         </div>
 
         <div className="flex justify-between items-center gap-3 text-sm">

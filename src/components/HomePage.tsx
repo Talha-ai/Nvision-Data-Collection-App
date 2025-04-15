@@ -301,21 +301,16 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
         </>
       )}
 
-      <div className="w-full bg-gray-200 h-64 relative mb-4">
+      <div className="aspect-video bg-gray-200 relative mb-4">
         {/* Overlay guide image */}
         <img
           src="/camera-guides.png"
           alt="Camera guide"
-          className="absolute inset-0 w-full h-full object-contain pointer-events-none z-10 p-2"
+          className="absolute w-[90%] m-auto inset-0 object-contain pointer-events-none z-10"
         />
 
         {/* Video preview */}
-        <video
-          ref={videoRef}
-          autoPlay
-          playsInline
-          className="w-full h-full object-cover"
-        />
+        <video ref={videoRef} autoPlay playsInline className="object-cover" />
       </div>
 
       <p className="text-xs mb-8">
@@ -401,7 +396,7 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
                         <td className="py-3">
                           Panels with {defect.defect_name}
                         </td>
-                        <td className="py-3">{defect.image_count}</td>
+                        <td className="py-3">{defect.panel_count}</td>
                       </tr>
                     ))}
                   </tbody>

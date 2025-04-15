@@ -16,23 +16,21 @@ import barGray_NNN from '../assets/16BarGray_NNN.bmp';
 import blackWhite_OOO from '../assets/black&White_OOO.bmp';
 
 interface ImageCaptureProcessProps {
-  onComplete: (uploadedUrls: (string | null)[]) => void;
+  onComplete: (images: string[], totalToUpload: number) => void;
+  onUploadProgress: (imageUrl: string | null, index: number) => void;
   ppid: string;
   isTestMode?: boolean;
 }
 
 function ImageCaptureProcess({
   onComplete,
+  onUploadProgress,
   ppid,
   isTestMode,
 }: ImageCaptureProcessProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [uploadedImageUrls, setUploadedImageUrls] = useState<(string | null)[]>(
-    []
-  );
+  const [capturedImages, setCapturedImages] = useState<string[]>([]);
   const [isCameraReady, setIsCameraReady] = useState(false);
-  const [pendingUploads, setPendingUploads] = useState(0);
-
   const [isCompleted, setIsCompleted] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -108,32 +106,27 @@ function ImageCaptureProcess({
     };
   }, []);
 
-  // Effect to check if we've completed processing all images
+  // Effect to check if we've completed capturing all images
   useEffect(() => {
     // Check if we've reached the end of the process and haven't called onComplete yet
-    if (
-      currentImageIndex >= testImagesCount &&
-      !isCompleted &&
-      pendingUploads === 15
-    ) {
+    if (currentImageIndex >= testImagesCount && !isCompleted) {
       // Ensure we have the correct number of images
-      if (uploadedImageUrls.length === testImagesCount) {
+      if (capturedImages.length === testImagesCount) {
         setIsCompleted(true);
-        onComplete(uploadedImageUrls.slice(0, testImagesCount));
+        onComplete(capturedImages.slice(0, testImagesCount), testImagesCount);
       } else {
         console.error(
           `Image capture process completed but has incorrect number of images: 
-          ${uploadedImageUrls.length} captured vs ${testImagesCount} expected`
+          ${capturedImages.length} captured vs ${testImagesCount} expected`
         );
       }
     }
   }, [
     currentImageIndex,
-    uploadedImageUrls,
+    capturedImages,
     testImagesCount,
     isCompleted,
     onComplete,
-    pendingUploads,
   ]);
 
   // Effect to handle the sequence of displaying patterns and capturing images
@@ -155,6 +148,7 @@ function ImageCaptureProcess({
     }
 
     try {
+      // throw new Error('Uplaod fialed');
       const patternName = testPatterns[index].name;
 
       const imageUrl = await window.electronAPI.uploadImage({
@@ -166,26 +160,17 @@ function ImageCaptureProcess({
 
       console.log(`Successfully uploaded ${patternName}`);
 
-      // Store the uploaded URL in state
-      setUploadedImageUrls((prev) => {
-        const newUrls = [...prev];
-        newUrls[index] = imageUrl;
-        return newUrls;
-      });
+      // Notify parent component about the completed upload
+      onUploadProgress(imageUrl, index);
 
       return imageUrl;
     } catch (error) {
       console.error('Error uploading to DigitalOcean:', error);
 
-      setUploadedImageUrls((prev) => {
-        const newUrls = [...prev];
-        newUrls[index] = null;
-        return newUrls;
-      });
+      // Notify parent component about the failed upload
+      onUploadProgress(null, index);
 
       return null;
-    } finally {
-      setPendingUploads((prev) => prev + 1);
     }
   };
 
@@ -216,6 +201,14 @@ function ImageCaptureProcess({
     // Store the current index to use in the background upload
     const imageIndex = currentImageIndex;
 
+    setCapturedImages((prev) => {
+      // Only add if we don't exceed the expected count
+      if (prev.length < testImagesCount) {
+        return [...prev, imageData];
+      }
+      return prev;
+    });
+
     // Increment the image index
     setCurrentImageIndex((prev) => prev + 1);
 
@@ -241,11 +234,9 @@ function ImageCaptureProcess({
                 <img
                   src={currentPattern.src}
                   alt={`Test pattern ${currentImageIndex + 1}`}
-                  className="absolute inset-0 w-full h-full object-contain"
+                  className="absolute inset-0 w-full h-full"
                   style={{
-                    minWidth: '100%',
-                    minHeight: '100%',
-                    margin: 'auto',
+                    objectFit: 'fill',
                   }}
                 />
               </div>
@@ -257,16 +248,15 @@ function ImageCaptureProcess({
       )}
 
       {/* Hidden video element for camera capture */}
-      <div className="hidden">
+      <div className="aspect-video max-w-xl hidden">
         <video
           ref={videoRef}
           autoPlay
           playsInline
           style={{
-            width: '320px',
-            height: '240px',
             border: isCameraReady ? '2px solid green' : '2px solid yellow',
           }}
+          className="object-cover"
         />
         <canvas ref={canvasRef} style={{ display: 'none' }} />
       </div>
