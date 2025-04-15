@@ -14,6 +14,7 @@ import blackWithWhiteBorder_LLL from '../assets/blackWithWhiteBorder_LLL.jpg';
 import crossHatch_MMM from '../assets/crossHatch_MMM.bmp';
 import barGray_NNN from '../assets/16BarGray_NNN.bmp';
 import blackWhite_OOO from '../assets/black&White_OOO.bmp';
+import cameraGuide from '../assets/camera-guides.png';
 
 interface HomePageProps {
   onStartDefectChecker: (ppid: string, isTestMode: boolean) => void;
@@ -304,7 +305,7 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
       <div className="aspect-video w-full h-full bg-gray-200 relative mb-4">
         {/* Overlay guide image */}
         <img
-          src="/camera-guides.png"
+          src={cameraGuide}
           alt="Camera guide"
           className="absolute w-[90%] m-auto inset-0 object-contain pointer-events-none z-10"
         />
