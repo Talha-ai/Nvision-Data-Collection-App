@@ -29,7 +29,7 @@ interface Pattern {
 interface DefectStat {
   defect_name: string;
   fault_code: string;
-  image_count: number;
+  panel_count: number;
 }
 
 interface StatsData {
@@ -75,8 +75,10 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
   const [statsData, setStatsData] = useState<StatsData | null>(null);
 
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [cameraRefreshTrigger, setCameraRefreshTrigger] = useState<number>(0);
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
   const [cameraResolution, setCameraResolution] = useState<{
     width: number;
     height: number;
@@ -147,6 +149,9 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
 
       // Wait for both requests to complete
       await Promise.all([patternsPromise, statsPromise]);
+
+      // Trigger camera refresh after data is loaded
+      setCameraRefreshTrigger((prev) => prev + 1);
     } catch (error) {
       console.error('Error fetching data:', error);
       setLoading(false);
@@ -170,9 +175,13 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
   }, [isTestMode, fullStatsData]);
 
   useEffect(() => {
-    let stream: MediaStream | null = null;
-
     const setupCamera = async () => {
+      // If there's an existing stream, stop all tracks
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop());
+        streamRef.current = null;
+      }
+
       try {
         const devices = await navigator.mediaDevices.enumerateDevices();
         const videoDevices = devices.filter((d) => d.kind === 'videoinput');
@@ -191,14 +200,10 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
             height: { ideal: 1080 },
           },
         };
-        // navigator.mediaDevices.enumerateDevices().then((devices) => {
-        //   const videoDevices = devices.filter(
-        //     (device) => device.kind === 'videoinput'
-        //   );
-        //   console.log('Available video devices:', videoDevices);
-        // });
 
-        stream = await navigator.mediaDevices.getUserMedia(constraints);
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        streamRef.current = stream;
+
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
         }
@@ -206,11 +211,6 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
         const videoTrack = stream.getVideoTracks()[0];
         const settings = videoTrack.getSettings();
         setCameraResolution({ width: settings.width, height: settings.height });
-
-        // const videoTracks = stream.getVideoTracks();
-        // console.log(videoTracks);
-        // const capab = videoTracks[0].getCapabilities();
-        // console.log(capab);
       } catch (error) {
         console.error('Error accessing camera:', error);
       }
@@ -221,11 +221,12 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
     }
 
     return () => {
-      if (stream) {
-        stream.getTracks().forEach((track) => track.stop());
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop());
+        streamRef.current = null;
       }
     };
-  }, []);
+  }, [cameraRefreshTrigger]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -339,9 +340,13 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
           alt="Camera guide"
           className="absolute w-[90%] m-auto inset-0 object-contain pointer-events-none z-10"
         />
-
         {/* Video preview */}
-        <video ref={videoRef} autoPlay playsInline className=" object-cover" />
+        <video
+          ref={videoRef}
+          autoPlay
+          playsInline
+          className="w-full h-full object-cover"
+        />
       </div>
 
       <p className="text-xs mb-8">
