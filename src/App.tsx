@@ -52,6 +52,8 @@ function App() {
   const [currentPage, setCurrentPage] = useState<string>('home');
   const [isCapturing, setIsCapturing] = useState<boolean>(false);
   const [ppid, setPpid] = useState<string>('');
+  const [darkexposure, setDarkexposure] = useState();
+  const [lightexposure, setLightexposure] = useState();
   const [isTestMode, setIsTestMode] = useState<boolean>(false);
   const [capturedImages, setCapturedImages] = useState<string[]>([]);
 
@@ -77,9 +79,16 @@ function App() {
   };
 
   // Start the defect checker routine
-  const startDefectChecker = (enteredPpid: string, mode: boolean) => {
+  const startDefectChecker = (
+    enteredPpid: string,
+    mode: boolean,
+    darkexposure: number,
+    lightexposure: number
+  ) => {
     setPpid(enteredPpid);
     setIsTestMode(mode);
+    setDarkexposure(darkexposure);
+    setLightexposure(lightexposure);
     setIsCapturing(true);
   };
 
@@ -206,6 +215,8 @@ function App() {
         onUploadProgress={handleUploadProgress}
         ppid={ppid}
         isTestMode={isTestMode}
+        darkexposure={darkexposure}
+        lightexposure={lightexposure}
       />
     );
   }

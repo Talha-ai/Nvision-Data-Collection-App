@@ -17,7 +17,12 @@ import blackWhite_OOO from '../assets/black&White_OOO.bmp';
 import cameraGuide from '../assets/camera-guides.png';
 
 interface HomePageProps {
-  onStartDefectChecker: (ppid: string, isTestMode: boolean) => void;
+  onStartDefectChecker: (
+    ppid: string,
+    isTestMode: boolean,
+    darkexposure: number,
+    lightexposure: number
+  ) => void;
 }
 
 interface Pattern {
@@ -77,6 +82,19 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [cameraRefreshTrigger, setCameraRefreshTrigger] = useState<number>(0);
 
+  const [brightness, setBrightness] = useState(128);
+  const [exposureCompensation, setExposureCompensation] = useState(128);
+
+  const [lightexposure, setLightexposure] = useState(() => {
+    const savedLight = localStorage.getItem('lightexposure');
+    return savedLight ? Number(savedLight) : 80;
+  });
+
+  const [darkexposure, setDarkexposure] = useState(() => {
+    const savedDark = localStorage.getItem('darkexposure');
+    return savedDark ? Number(savedDark) : 200;
+  });
+
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const [cameraResolution, setCameraResolution] = useState<{
@@ -101,6 +119,33 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
     '16BarGray_NNN.bmp': barGray_NNN,
     'black&White_OOO.bmp': blackWhite_OOO,
   };
+
+  const [fullscreenPattern, setFullscreenPattern] = useState<string | null>(
+    null
+  );
+
+  // Function to toggle fullscreen for a pattern
+  const handlePatternClick = (patternFileName: string) => {
+    setCameraRefreshTrigger((prev) => prev + 1);
+    if (fullscreenPattern === null) {
+      setFullscreenPattern(patternFileName);
+      window.electronAPI.enableFullScreen();
+    }
+  };
+
+  // Function to exit fullscreen
+  const handleExitFullscreen = () => {
+    setFullscreenPattern(null);
+    window.electronAPI.disableFullScreen();
+  };
+
+  useEffect(() => {
+    localStorage.setItem('lightexposure', lightexposure.toString());
+  }, [lightexposure]);
+
+  useEffect(() => {
+    localStorage.setItem('darkexposure', darkexposure.toString());
+  }, [darkexposure]);
 
   useEffect(() => {
     localStorage.setItem('appMode', isTestMode ? 'test' : 'production');
@@ -174,6 +219,38 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
     }
   }, [isTestMode, fullStatsData]);
 
+  const videoTrackRef = useRef<MediaStreamTrack | null>(null);
+
+  const applyCameraSettings = async () => {
+    if (!videoTrackRef.current) return;
+
+    const videoTrack = videoTrackRef.current;
+    const capabilities = videoTrack.getCapabilities();
+    const constraints: any = {};
+
+    if ('brightness' in capabilities) {
+      constraints.brightness = brightness;
+    }
+
+    if ('exposureCompensation' in capabilities) {
+      constraints.exposureCompensation = exposureCompensation;
+    }
+
+    try {
+      await videoTrack.applyConstraints(constraints);
+      console.log('Applied settings:', constraints);
+      console.log('Current settings:', videoTrack.getSettings());
+    } catch (error) {
+      console.error('Failed to apply camera settings:', error);
+    }
+  };
+
+  useEffect(() => {
+    if (videoTrackRef.current) {
+      applyCameraSettings();
+    }
+  }, [brightness, exposureCompensation]);
+
   useEffect(() => {
     const setupCamera = async () => {
       // If there's an existing stream, stop all tracks
@@ -193,7 +270,7 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
         const deviceId =
           physicalCameras.length > 0 ? physicalCameras[0].deviceId : undefined;
 
-        const constraints = {
+        const constraintsDevice = {
           video: {
             deviceId: deviceId ? { exact: deviceId } : undefined,
             width: { ideal: 1920 },
@@ -201,7 +278,9 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
           },
         };
 
-        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        const stream = await navigator.mediaDevices.getUserMedia(
+          constraintsDevice
+        );
         streamRef.current = stream;
 
         if (videoRef.current) {
@@ -209,6 +288,41 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
         }
 
         const videoTrack = stream.getVideoTracks()[0];
+        const capabilities = videoTrack.getCapabilities();
+        videoTrackRef.current = videoTrack;
+
+        // console.log('before', capabilities);
+        // // Apply only the constraints that exist in capabilities
+        const constraints: any = {};
+
+        // if ('focusMode' in capabilities) {
+        //   constraints.focusMode = 'manual';
+        // }
+
+        // if ('focusDistance' in capabilities) {
+        //   constraints.focusDistance = 128;
+        // }
+
+        if ('exposureMode' in capabilities) {
+          constraints.exposureMode = 'manual';
+        }
+        // if ('exposureCompensation' in capabilities) {
+        //   constraints.exposureCompensation = 15;
+        // }
+
+        // if ('whiteBalanceMode' in capabilities) {
+        //   constraints.whiteBalanceMode = 'manual';
+        // }
+
+        // if ('brightness' in capabilities) {
+        //   constraints.brightness = 128;
+        // }
+
+        await videoTrack.applyConstraints(constraints);
+        // await new Promise((resolve) => setTimeout(resolve, 500));
+
+        console.log('After settings:', videoTrack.getSettings());
+        // console.log('Applied constraints:', constraints);
         const settings = videoTrack.getSettings();
         setCameraResolution({ width: settings.width, height: settings.height });
       } catch (error) {
@@ -255,7 +369,12 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
         const checkData = await checkResponse.json();
         const finalPpid = checkData.exists ? checkData.recommended_ppid : ppid;
 
-        onStartDefectChecker(finalPpid, isTestMode);
+        onStartDefectChecker(
+          finalPpid,
+          isTestMode,
+          darkexposure,
+          lightexposure
+        );
       } catch (error) {
         console.error('Error submitting PPID:', error);
         setSubmitError(
@@ -317,6 +436,7 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
               <p>Loading camera...</p>
             )}
           </div>
+
           <div className="flex items-center mb-6">
             <label className="bg-gray-200 px-3 py-2 border border-gray-300 flex-shrink-0">
               Mode
@@ -330,6 +450,84 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
               <option value="production">Production</option>
             </select>
           </div>
+
+          {/* Camera settings sliders */}
+          <div className="space-y-4 mb-6">
+            {/* <div>
+              <div className="flex justify-between">
+                <label className="font-medium">Brightness: {brightness}</label>
+                <span className="text-gray-500 text-sm">(Range: 0 - 255)</span>
+              </div>
+              <input
+                type="range"
+                min="0"
+                max="255"
+                value={brightness}
+                onChange={(e) => setBrightness(Number(e.target.value))}
+                className="w-full"
+              />
+            </div>
+
+            <div>
+              <div className="flex justify-between">
+                <label className="font-medium">
+                  Exposure Compensation: {exposureCompensation}
+                </label>
+                <span className="text-gray-500 text-sm">(Range: 0 - 255)</span>
+              </div>
+              <input
+                type="range"
+                min="0"
+                max="255"
+                value={exposureCompensation}
+                onChange={(e) =>
+                  setExposureCompensation(Number(e.target.value))
+                }
+                className="w-full"
+              />
+            </div> */}
+
+            <div>
+              <div className="flex justify-between">
+                <label className="font-medium">
+                  Light Image Exposure: {lightexposure}
+                </label>
+                <span className="text-gray-500 text-sm">(Range: 0 - 255)</span>
+              </div>
+              <input
+                type="range"
+                min="0"
+                max="255"
+                value={lightexposure}
+                onChange={(e) => setLightexposure(Number(e.target.value))}
+                className="w-full"
+              />
+            </div>
+
+            <div>
+              <div className="flex justify-between">
+                <label className="font-medium">
+                  Dark Images Exposure: {darkexposure}
+                </label>
+                <span className="text-gray-500 text-sm">(Range: 0 - 255)</span>
+              </div>
+              <input
+                type="range"
+                min="0"
+                max="255"
+                value={darkexposure}
+                onChange={(e) => setDarkexposure(Number(e.target.value))}
+                className="w-full"
+              />
+            </div>
+
+            {/* <button
+              onClick={applyCameraSettings}
+              className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
+            >
+              Apply Settings
+            </button> */}
+          </div>
         </>
       )}
 
@@ -338,7 +536,7 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
         <img
           src={cameraGuide}
           alt="Camera guide"
-          className="absolute w-[90%] m-auto inset-0 object-contain pointer-events-none z-10"
+          className="absolute w-[90%] m-auto inset-0 object-contain pointer-events-none z-10 hidden"
         />
         {/* Video preview */}
         <video
@@ -443,7 +641,44 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
 
           {activeTab === 'pattern' && (
             <div>
-              {loading ? (
+              {fullscreenPattern ? (
+                // Fullscreen pattern view
+                <div
+                  className="fixed inset-0 bg-black flex items-center justify-center cursor-pointer"
+                  onDoubleClick={handleExitFullscreen}
+                >
+                  {patternImportMap[fullscreenPattern] ? (
+                    <img
+                      src={patternImportMap[fullscreenPattern]}
+                      alt={fullscreenPattern}
+                      className="max-h-full max-w-full object-contain"
+                    />
+                  ) : (
+                    <div className="text-white text-xl">No image available</div>
+                  )}
+
+                  <div className="w-96 h-40 bg-gray-800 absolute bottom-10">
+                    {/* Overlay guide image */}
+                    <img
+                      src={cameraGuide}
+                      alt="Camera guide"
+                      className="absolute w-[90%] m-auto inset-0 object-contain pointer-events-none z-10"
+                    />
+                    {/* Video preview */}
+                    <video
+                      ref={videoRef}
+                      autoPlay
+                      playsInline
+                      className="w-96 h-full object-cover"
+                    />
+                  </div>
+
+                  <div className="absolute top-4 right-4 text-white bg-black bg-opacity-50 px-3 py-2 rounded">
+                    Double-click to exit fullscreen
+                  </div>
+                </div>
+              ) : // Regular pattern table view
+              loading ? (
                 <p>Loading patterns...</p>
               ) : (
                 <table className="w-full border-collapse">
@@ -451,14 +686,18 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
                     {patterns.map((pattern, index) => {
                       const fileName =
                         patternNameToFileName[pattern.pattern_name];
-                      console.log(pattern.pattern_name);
                       return (
                         <tr key={index} className="border-b">
                           <td className="py-3 w-12 text-center">
                             {pattern.order + 1}
                           </td>
                           <td className="py-3">
-                            <div className="border border-black w-24">
+                            <div
+                              className="border border-black w-24 cursor-pointer"
+                              onClick={() =>
+                                fileName && handlePatternClick(fileName)
+                              }
+                            >
                               {fileName && patternImportMap[fileName] ? (
                                 <img
                                   src={patternImportMap[fileName]}
@@ -471,7 +710,6 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
                               )}
                             </div>
                           </td>
-                          {/* <td className="py-3">{pattern.pattern_name}</td> */}
                           <td className="py-3 text-sm text-gray-500">
                             {fileName || 'No file mapping'}
                           </td>

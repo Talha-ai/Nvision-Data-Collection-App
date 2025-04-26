@@ -20,6 +20,8 @@ interface ImageCaptureProcessProps {
   onUploadProgress: (imageUrl: string | null, index: number) => void;
   ppid: string;
   isTestMode?: boolean;
+  darkexposure: number;
+  lightexposure: number;
 }
 
 function ImageCaptureProcess({
@@ -27,6 +29,8 @@ function ImageCaptureProcess({
   onUploadProgress,
   ppid,
   isTestMode,
+  darkexposure,
+  lightexposure,
 }: ImageCaptureProcessProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [capturedImages, setCapturedImages] = useState<string[]>([]);
@@ -34,6 +38,7 @@ function ImageCaptureProcess({
   const [isCompleted, setIsCompleted] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const videoTrackRef = useRef<MediaStreamTrack | null>(null);
 
   const testPatterns = [
     { name: 'white_AAA', src: white_AAA },
@@ -54,6 +59,45 @@ function ImageCaptureProcess({
   ];
 
   const testImagesCount = testPatterns.length;
+
+  useEffect(() => {
+    // Apply cursor hiding to multiple elements
+    const elements = [
+      document.body,
+      document.documentElement,
+      document.getElementById('root'),
+    ];
+
+    // Hide cursor on all elements
+    elements.forEach((el) => {
+      if (el) el.style.cursor = 'none';
+    });
+
+    // Also add a mousemove listener to ensure cursor stays hidden
+    const hideOnMove = () => {
+      elements.forEach((el) => {
+        if (el) el.style.cursor = 'none';
+      });
+    };
+
+    document.addEventListener('mousemove', hideOnMove);
+    document.addEventListener('mouseenter', hideOnMove);
+
+    // CSS override to be double-sure
+    const style = document.createElement('style');
+    style.innerHTML = '* {cursor: none !important;}';
+    document.head.appendChild(style);
+
+    return () => {
+      // Cleanup
+      elements.forEach((el) => {
+        if (el) el.style.cursor = 'auto';
+      });
+      document.removeEventListener('mousemove', hideOnMove);
+      document.removeEventListener('mouseenter', hideOnMove);
+      document.head.removeChild(style);
+    };
+  }, []);
 
   useEffect(() => {
     let stream: MediaStream;
@@ -81,7 +125,39 @@ function ImageCaptureProcess({
         stream = await navigator.mediaDevices.getUserMedia(constraints);
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
-          // Add event listener to check when video is actually playing
+          const videoTrack = stream.getVideoTracks()[0];
+
+          videoTrackRef.current = videoTrack;
+
+          const capabilities = videoTrack.getCapabilities();
+          console.log('Camera capabilities:', capabilities);
+
+          // const advancedConstraints: any = {};
+
+          // if ('exposureMode' in capabilities) {
+          //   advancedConstraints.exposureMode = 'manual';
+          // }
+
+          // if ('exposureCompensation' in capabilities) {
+          //   advancedConstraints.exposureCompensation = 250;
+          // }
+
+          // if (Object.keys(advancedConstraints).length > 0) {
+          //   try {
+          //     await videoTrack.applyConstraints({
+          //       advanced: [advancedConstraints],
+          //     });
+          //     console.log(
+          //       'Applied initial camera settings:',
+          //       advancedConstraints
+          //     );
+          //     // await new Promise((resolve) => setTimeout(resolve, 500));
+          //     console.log('Current settings:', videoTrack.getSettings());
+          //   } catch (error) {
+          //     console.error('Error applying initial camera settings:', error);
+          //   }
+          // }
+
           videoRef.current.onloadedmetadata = () => {
             videoRef.current?.play();
           };
@@ -105,6 +181,73 @@ function ImageCaptureProcess({
       }
     };
   }, []);
+
+  const exposureClusters: { [key: string]: number } = {
+    dark: darkexposure,
+    light: lightexposure,
+  };
+
+  const clusterMapping: {
+    [key: string]: 'dark' | 'light';
+  } = {
+    black_BBB: 'dark',
+    blackWithWhiteBorder_LLL: 'dark',
+    crossHatch_MMM: 'dark',
+
+    'black&White_OOO': 'light',
+    white_AAA: 'light',
+
+    gray50_DDD: 'light',
+    gray75_HHH: 'light',
+    grayVertical_III: 'light',
+    '16BarGray_NNN': 'light',
+
+    cyan_CCC: 'light',
+    red_EEE: 'light',
+    green_FFF: 'light',
+    blue_GGG: 'light',
+    colorBars_JJJ: 'light',
+    focus_KKK: 'light',
+  };
+
+  const adjustCameraSettings = (patternName: string) => {
+    const track = videoTrackRef.current;
+    if (!track) return;
+
+    // Default settings
+    // const defaultSettings = {
+    //   exposureMode: 'continuous',
+    //   // exposureCompensation: 128,
+    //   // whiteBalanceMode: 'manual',
+    //   // brightness: 128,
+    //   // exposureCompensation: 0,
+    //   // exposureTime: 100,
+    // };
+
+    // Pattern-specific settings
+    const patternSettings: { [key: string]: any } = {};
+
+    testPatterns.forEach((pattern) => {
+      const cluster = clusterMapping[pattern.name];
+      const exposureCompensation = exposureClusters[cluster];
+
+      patternSettings[pattern.name] = {
+        exposureMode: 'manual',
+        exposureTime: 50,
+        exposureCompensation: exposureCompensation,
+      };
+    });
+
+    const settings = patternSettings[patternName];
+
+    try {
+      track.applyConstraints({ advanced: [settings] });
+      console.log(`Applied settings for pattern: ${patternName}`, settings);
+      // console.log('After settings:', track.getSettings());
+    } catch (error) {
+      console.error('Error applying camera constraints:', error);
+    }
+  };
 
   // Effect to check if we've completed capturing all images
   useEffect(() => {
@@ -132,10 +275,14 @@ function ImageCaptureProcess({
   // Effect to handle the sequence of displaying patterns and capturing images
   useEffect(() => {
     if (isCameraReady && currentImageIndex < testImagesCount && !isCompleted) {
+      if (currentImageIndex < testPatterns.length) {
+        adjustCameraSettings(testPatterns[currentImageIndex].name);
+      }
+
       // Give time to display the test pattern, then capture the webcam image
       const timer = setTimeout(() => {
         captureImage();
-      }, 1000); // Increased delay to ensure test pattern is fully displayed
+      }, 2000); // Increased delay to ensure test pattern is fully displayed
 
       return () => clearTimeout(timer);
     }
@@ -226,7 +373,7 @@ function ImageCaptureProcess({
   return (
     <div className="fixed cursor-none inset-0 bg-black flex flex-col items-center justify-center">
       {currentImageIndex < testImagesCount ? (
-        <div className="w-full h-full">
+        <div className="w-full h-full cursor-none">
           {/* Full screen test pattern image */}
           <div className="w-full h-full flex items-center justify-center overflow-hidden">
             {currentPattern && (
@@ -248,7 +395,7 @@ function ImageCaptureProcess({
       )}
 
       {/* Hidden video element for camera capture */}
-      <div className="aspect-video max-w-xl hidden">
+      <div className="aspect-video max-w-md hidden cursor-none">
         <video
           ref={videoRef}
           autoPlay
