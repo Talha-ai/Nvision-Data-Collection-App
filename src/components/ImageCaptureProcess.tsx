@@ -22,6 +22,7 @@ interface ImageCaptureProcessProps {
   isTestMode?: boolean;
   darkexposure: number;
   lightexposure: number;
+  focusDistance: number;
 }
 
 function ImageCaptureProcess({
@@ -31,6 +32,7 @@ function ImageCaptureProcess({
   isTestMode,
   darkexposure,
   lightexposure,
+  focusDistance,
 }: ImageCaptureProcessProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [capturedImages, setCapturedImages] = useState<string[]>([]);
@@ -235,6 +237,8 @@ function ImageCaptureProcess({
         exposureMode: 'manual',
         exposureTime: 50,
         exposureCompensation: exposureCompensation,
+        focusMode: 'manual',
+        focusDistance: focusDistance,
       };
     });
 

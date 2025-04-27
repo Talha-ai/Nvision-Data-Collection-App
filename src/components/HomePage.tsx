@@ -21,7 +21,8 @@ interface HomePageProps {
     ppid: string,
     isTestMode: boolean,
     darkexposure: number,
-    lightexposure: number
+    lightexposure: number,
+    focusDistance: number
   ) => void;
 }
 
@@ -63,10 +64,25 @@ const patternNameToFileName = {
 
 function HomePage({ onStartDefectChecker }: HomePageProps) {
   const [ppid, setPpid] = useState<string>('');
+
   const [isTestMode, setIsTestMode] = useState(() => {
     const savedMode = localStorage.getItem('appMode');
     return savedMode ? savedMode === 'test' : false;
   });
+  const [lightexposure, setLightexposure] = useState(() => {
+    const savedLight = localStorage.getItem('lightexposure');
+    return savedLight ? Number(savedLight) : 80;
+  });
+
+  const [darkexposure, setDarkexposure] = useState(() => {
+    const savedDark = localStorage.getItem('darkexposure');
+    return savedDark ? Number(savedDark) : 200;
+  });
+  const [focusDistance, setFocusDistance] = useState(() => {
+    const savedDistance = localStorage.getItem('focusDistance');
+    return savedDistance ? Number(savedDistance) : 125;
+  });
+
   const [showHiddenState, setShowHiddenState] = useState<boolean>(false);
   const [defects, setDefects] = useState([]);
 
@@ -82,18 +98,8 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [cameraRefreshTrigger, setCameraRefreshTrigger] = useState<number>(0);
 
-  const [brightness, setBrightness] = useState(128);
-  const [exposureCompensation, setExposureCompensation] = useState(128);
-
-  const [lightexposure, setLightexposure] = useState(() => {
-    const savedLight = localStorage.getItem('lightexposure');
-    return savedLight ? Number(savedLight) : 80;
-  });
-
-  const [darkexposure, setDarkexposure] = useState(() => {
-    const savedDark = localStorage.getItem('darkexposure');
-    return savedDark ? Number(savedDark) : 200;
-  });
+  // const [brightness, setBrightness] = useState(128);
+  // const [exposureCompensation, setExposureCompensation] = useState(128);
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -140,6 +146,10 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
   };
 
   useEffect(() => {
+    localStorage.setItem('appMode', isTestMode ? 'test' : 'production');
+  }, [isTestMode]);
+
+  useEffect(() => {
     localStorage.setItem('lightexposure', lightexposure.toString());
   }, [lightexposure]);
 
@@ -148,8 +158,8 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
   }, [darkexposure]);
 
   useEffect(() => {
-    localStorage.setItem('appMode', isTestMode ? 'test' : 'production');
-  }, [isTestMode]);
+    localStorage.setItem('focusDistance', focusDistance.toString());
+  }, [focusDistance]);
 
   // Combined function to fetch both patterns and statistics
   const fetchData = async () => {
@@ -221,35 +231,36 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
 
   const videoTrackRef = useRef<MediaStreamTrack | null>(null);
 
-  const applyCameraSettings = async () => {
-    if (!videoTrackRef.current) return;
+  // const applyCameraSettings = async () => {
+  //   if (!videoTrackRef.current) return;
 
-    const videoTrack = videoTrackRef.current;
-    const capabilities = videoTrack.getCapabilities();
-    const constraints: any = {};
+  //   const videoTrack = videoTrackRef.current;
+  //   const capabilities = videoTrack.getCapabilities();
+  //   console.log(capabilities);
+  //   // const constraints: any = {};
 
-    if ('brightness' in capabilities) {
-      constraints.brightness = brightness;
-    }
+  //   // if ('brightness' in capabilities) {
+  //   //   constraints.brightness = brightness;
+  //   // }
 
-    if ('exposureCompensation' in capabilities) {
-      constraints.exposureCompensation = exposureCompensation;
-    }
+  //   // if ('exposureCompensation' in capabilities) {
+  //   //   constraints.exposureCompensation = exposureCompensation;
+  //   // }
 
-    try {
-      await videoTrack.applyConstraints(constraints);
-      console.log('Applied settings:', constraints);
-      console.log('Current settings:', videoTrack.getSettings());
-    } catch (error) {
-      console.error('Failed to apply camera settings:', error);
-    }
-  };
+  //   try {
+  //     // await videoTrack.applyConstraints(constraints);
+  //     // console.log('Applied settings:', constraints);
+  //     // console.log('Current settings:', videoTrack.getSettings());
+  //   } catch (error) {
+  //     console.error('Failed to apply camera settings:', error);
+  //   }
+  // };
 
-  useEffect(() => {
-    if (videoTrackRef.current) {
-      applyCameraSettings();
-    }
-  }, [brightness, exposureCompensation]);
+  // useEffect(() => {
+  //   if (videoTrackRef.current) {
+  //     applyCameraSettings();
+  //   }
+  // }, [brightness, exposureCompensation]);
 
   useEffect(() => {
     const setupCamera = async () => {
@@ -373,7 +384,8 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
           finalPpid,
           isTestMode,
           darkexposure,
-          lightexposure
+          lightexposure,
+          focusDistance
         );
       } catch (error) {
         console.error('Error submitting PPID:', error);
@@ -517,6 +529,23 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
                 max="255"
                 value={darkexposure}
                 onChange={(e) => setDarkexposure(Number(e.target.value))}
+                className="w-full"
+              />
+            </div>
+
+            <div>
+              <div className="flex justify-between">
+                <label className="font-medium">
+                  Focus Distance: {focusDistance}
+                </label>
+                <span className="text-gray-500 text-sm">(Range: 0 - 250)</span>
+              </div>
+              <input
+                type="range"
+                min="0"
+                max="250"
+                value={focusDistance}
+                onChange={(e) => setFocusDistance(Number(e.target.value))}
                 className="w-full"
               />
             </div>

@@ -54,6 +54,7 @@ function App() {
   const [ppid, setPpid] = useState<string>('');
   const [darkexposure, setDarkexposure] = useState();
   const [lightexposure, setLightexposure] = useState();
+  const [focusDistance, setFocusDistance] = useState();
   const [isTestMode, setIsTestMode] = useState<boolean>(false);
   const [capturedImages, setCapturedImages] = useState<string[]>([]);
 
@@ -83,12 +84,15 @@ function App() {
     enteredPpid: string,
     mode: boolean,
     darkexposure: number,
-    lightexposure: number
+    lightexposure: number,
+    focusDistance: number
   ) => {
     setPpid(enteredPpid);
     setIsTestMode(mode);
     setDarkexposure(darkexposure);
     setLightexposure(lightexposure);
+    setLightexposure(lightexposure);
+    setFocusDistance(focusDistance);
     setIsCapturing(true);
   };
 
@@ -217,6 +221,7 @@ function App() {
         isTestMode={isTestMode}
         darkexposure={darkexposure}
         lightexposure={lightexposure}
+        focusDistance={focusDistance}
       />
     );
   }
