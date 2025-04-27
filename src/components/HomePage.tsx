@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import white_AAA from '../assets/white_AAA.bmp';
 import black_BBB from '../assets/black_BBB.bmp';
 import cyan_CCC from '../assets/cyan_CCC.bmp';
@@ -15,6 +15,7 @@ import crossHatch_MMM from '../assets/crossHatch_MMM.bmp';
 import barGray_NNN from '../assets/16BarGray_NNN.bmp';
 import blackWhite_OOO from '../assets/black&White_OOO.bmp';
 import cameraGuide from '../assets/camera-guides.png';
+import { useCamera } from '../contexts/cameraContext';
 
 interface HomePageProps {
   onStartDefectChecker: (
@@ -84,7 +85,6 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
   });
 
   const [showHiddenState, setShowHiddenState] = useState<boolean>(false);
-  const [defects, setDefects] = useState([]);
 
   const [loading, setLoading] = useState(true);
   const [fullStatsData, setFullStatsData] = useState(null);
@@ -93,20 +93,25 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
 
   const [activeTab, setActiveTab] = useState<string>('summary');
   const [patterns, setPatterns] = useState<Pattern[]>([]);
+  const [defects, setDefects] = useState([]);
   const [statsData, setStatsData] = useState<StatsData | null>(null);
 
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [cameraRefreshTrigger, setCameraRefreshTrigger] = useState<number>(0);
-
+  const [fullscreenPattern, setFullscreenPattern] = useState<string | null>(
+    null
+  );
   // const [brightness, setBrightness] = useState(128);
   // const [exposureCompensation, setExposureCompensation] = useState(128);
 
-  const videoRef = useRef<HTMLVideoElement | null>(null);
-  const streamRef = useRef<MediaStream | null>(null);
-  const [cameraResolution, setCameraResolution] = useState<{
-    width: number;
-    height: number;
-  } | null>(null);
+  const {
+    setupCamera,
+    stopCamera,
+    isCameraReady,
+    cameraResolution,
+    adjustCameraSettings,
+    videoRef,
+  } = useCamera();
 
   const patternImportMap = {
     'white_AAA.bmp': white_AAA,
@@ -125,10 +130,6 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
     '16BarGray_NNN.bmp': barGray_NNN,
     'black&White_OOO.bmp': blackWhite_OOO,
   };
-
-  const [fullscreenPattern, setFullscreenPattern] = useState<string | null>(
-    null
-  );
 
   // Function to toggle fullscreen for a pattern
   const handlePatternClick = (patternFileName: string) => {
@@ -229,129 +230,30 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
     }
   }, [isTestMode, fullStatsData]);
 
-  const videoTrackRef = useRef<MediaStreamTrack | null>(null);
-
-  // const applyCameraSettings = async () => {
-  //   if (!videoTrackRef.current) return;
-
-  //   const videoTrack = videoTrackRef.current;
-  //   const capabilities = videoTrack.getCapabilities();
-  //   console.log(capabilities);
-  //   // const constraints: any = {};
-
-  //   // if ('brightness' in capabilities) {
-  //   //   constraints.brightness = brightness;
-  //   // }
-
-  //   // if ('exposureCompensation' in capabilities) {
-  //   //   constraints.exposureCompensation = exposureCompensation;
-  //   // }
-
-  //   try {
-  //     // await videoTrack.applyConstraints(constraints);
-  //     // console.log('Applied settings:', constraints);
-  //     // console.log('Current settings:', videoTrack.getSettings());
-  //   } catch (error) {
-  //     console.error('Failed to apply camera settings:', error);
-  //   }
-  // };
-
-  // useEffect(() => {
-  //   if (videoTrackRef.current) {
-  //     applyCameraSettings();
-  //   }
-  // }, [brightness, exposureCompensation]);
+  useEffect(() => {
+    setupCamera();
+  }, []);
 
   useEffect(() => {
-    const setupCamera = async () => {
-      // If there's an existing stream, stop all tracks
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach((track) => track.stop());
-        streamRef.current = null;
-      }
-
-      try {
-        const devices = await navigator.mediaDevices.enumerateDevices();
-        const videoDevices = devices.filter((d) => d.kind === 'videoinput');
-        const physicalCameras = videoDevices.filter(
-          (device) =>
-            !device.label.includes('OBS') && !device.label.includes('Virtual')
-        );
-
-        const deviceId =
-          physicalCameras.length > 0 ? physicalCameras[0].deviceId : undefined;
-
-        const constraintsDevice = {
-          video: {
-            deviceId: deviceId ? { exact: deviceId } : undefined,
-            width: { ideal: 1920 },
-            height: { ideal: 1080 },
-          },
-        };
-
-        const stream = await navigator.mediaDevices.getUserMedia(
-          constraintsDevice
-        );
-        streamRef.current = stream;
-
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-        }
-
-        const videoTrack = stream.getVideoTracks()[0];
-        const capabilities = videoTrack.getCapabilities();
-        videoTrackRef.current = videoTrack;
-
-        // console.log('before', capabilities);
-        // // Apply only the constraints that exist in capabilities
-        const constraints: any = {};
-
-        // if ('focusMode' in capabilities) {
-        //   constraints.focusMode = 'manual';
-        // }
-
-        // if ('focusDistance' in capabilities) {
-        //   constraints.focusDistance = 128;
-        // }
-
-        if ('exposureMode' in capabilities) {
-          constraints.exposureMode = 'manual';
-        }
-        // if ('exposureCompensation' in capabilities) {
-        //   constraints.exposureCompensation = 15;
-        // }
-
-        // if ('whiteBalanceMode' in capabilities) {
-        //   constraints.whiteBalanceMode = 'manual';
-        // }
-
-        // if ('brightness' in capabilities) {
-        //   constraints.brightness = 128;
-        // }
-
-        await videoTrack.applyConstraints(constraints);
-        // await new Promise((resolve) => setTimeout(resolve, 500));
-
-        console.log('After settings:', videoTrack.getSettings());
-        // console.log('Applied constraints:', constraints);
-        const settings = videoTrack.getSettings();
-        setCameraResolution({ width: settings.width, height: settings.height });
-      } catch (error) {
-        console.error('Error accessing camera:', error);
-      }
+    const initCamera = async () => {
+      await setupCamera();
     };
 
-    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-      setupCamera();
-    }
+    initCamera();
 
     return () => {
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach((track) => track.stop());
-        streamRef.current = null;
-      }
+      stopCamera();
     };
   }, [cameraRefreshTrigger]);
+
+  useEffect(() => {
+    if (isCameraReady) {
+      adjustCameraSettings({
+        focusMode: 'manual',
+        focusDistance: focusDistance,
+      });
+    }
+  }, [isCameraReady, focusDistance]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -544,30 +446,22 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
                 type="range"
                 min="0"
                 max="250"
+                step="5"
                 value={focusDistance}
                 onChange={(e) => setFocusDistance(Number(e.target.value))}
                 className="w-full"
               />
             </div>
-
-            {/* <button
-              onClick={applyCameraSettings}
-              className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
-            >
-              Apply Settings
-            </button> */}
           </div>
         </>
       )}
 
       <div className="aspect-video w-full h-full bg-gray-200 relative mb-4">
-        {/* Overlay guide image */}
         <img
           src={cameraGuide}
           alt="Camera guide"
           className="absolute w-[90%] m-auto inset-0 object-contain pointer-events-none z-10 hidden"
         />
-        {/* Video preview */}
         <video
           ref={videoRef}
           autoPlay
@@ -687,13 +581,11 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
                   )}
 
                   <div className="w-96 h-40 bg-gray-800 absolute bottom-10">
-                    {/* Overlay guide image */}
                     <img
                       src={cameraGuide}
                       alt="Camera guide"
                       className="absolute w-[90%] m-auto inset-0 object-contain pointer-events-none z-10"
                     />
-                    {/* Video preview */}
                     <video
                       ref={videoRef}
                       autoPlay

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import white_AAA from '../assets/white_AAA.bmp';
 import black_BBB from '../assets/black_BBB.bmp';
 import cyan_CCC from '../assets/cyan_CCC.bmp';
@@ -14,6 +14,7 @@ import blackWithWhiteBorder_LLL from '../assets/blackWithWhiteBorder_LLL.jpg';
 import crossHatch_MMM from '../assets/crossHatch_MMM.bmp';
 import barGray_NNN from '../assets/16BarGray_NNN.bmp';
 import blackWhite_OOO from '../assets/black&White_OOO.bmp';
+import { useCamera } from '../contexts/cameraContext';
 
 interface ImageCaptureProcessProps {
   onComplete: (images: string[], totalToUpload: number) => void;
@@ -36,11 +37,20 @@ function ImageCaptureProcess({
 }: ImageCaptureProcessProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [capturedImages, setCapturedImages] = useState<string[]>([]);
-  const [isCameraReady, setIsCameraReady] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
-  const videoRef = useRef<HTMLVideoElement | null>(null);
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const videoTrackRef = useRef<MediaStreamTrack | null>(null);
+  // const [isCameraReady, setIsCameraReady] = useState(false);
+  // const videoRef = useRef<HTMLVideoElement | null>(null);
+  // const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  // const videoTrackRef = useRef<MediaStreamTrack | null>(null);
+
+  const {
+    setupCamera,
+    isCameraReady,
+    adjustCameraSettings,
+    captureImage,
+    videoRef,
+    canvasRef,
+  } = useCamera();
 
   const testPatterns = [
     { name: 'white_AAA', src: white_AAA },
@@ -62,126 +72,47 @@ function ImageCaptureProcess({
 
   const testImagesCount = testPatterns.length;
 
+  // useEffect(() => {
+  //   // Apply cursor hiding to multiple elements
+  //   const elements = [
+  //     document.body,
+  //     document.documentElement,
+  //     document.getElementById('root'),
+  //   ];
+
+  //   // Hide cursor on all elements
+  //   elements.forEach((el) => {
+  //     if (el) el.style.cursor = 'none';
+  //   });
+
+  //   // Also add a mousemove listener to ensure cursor stays hidden
+  //   const hideOnMove = () => {
+  //     elements.forEach((el) => {
+  //       if (el) el.style.cursor = 'none';
+  //     });
+  //   };
+
+  //   document.addEventListener('mousemove', hideOnMove);
+  //   document.addEventListener('mouseenter', hideOnMove);
+
+  //   // CSS override to be double-sure
+  //   const style = document.createElement('style');
+  //   style.innerHTML = '* {cursor: none !important;}';
+  //   document.head.appendChild(style);
+
+  //   return () => {
+  //     // Cleanup
+  //     elements.forEach((el) => {
+  //       if (el) el.style.cursor = 'auto';
+  //     });
+  //     document.removeEventListener('mousemove', hideOnMove);
+  //     document.removeEventListener('mouseenter', hideOnMove);
+  //     document.head.removeChild(style);
+  //   };
+  // }, []);
+
   useEffect(() => {
-    // Apply cursor hiding to multiple elements
-    const elements = [
-      document.body,
-      document.documentElement,
-      document.getElementById('root'),
-    ];
-
-    // Hide cursor on all elements
-    elements.forEach((el) => {
-      if (el) el.style.cursor = 'none';
-    });
-
-    // Also add a mousemove listener to ensure cursor stays hidden
-    const hideOnMove = () => {
-      elements.forEach((el) => {
-        if (el) el.style.cursor = 'none';
-      });
-    };
-
-    document.addEventListener('mousemove', hideOnMove);
-    document.addEventListener('mouseenter', hideOnMove);
-
-    // CSS override to be double-sure
-    const style = document.createElement('style');
-    style.innerHTML = '* {cursor: none !important;}';
-    document.head.appendChild(style);
-
-    return () => {
-      // Cleanup
-      elements.forEach((el) => {
-        if (el) el.style.cursor = 'auto';
-      });
-      document.removeEventListener('mousemove', hideOnMove);
-      document.removeEventListener('mouseenter', hideOnMove);
-      document.head.removeChild(style);
-    };
-  }, []);
-
-  useEffect(() => {
-    let stream: MediaStream;
-
-    const setupCamera = async () => {
-      try {
-        const devices = await navigator.mediaDevices.enumerateDevices();
-        const videoDevices = devices.filter((d) => d.kind === 'videoinput');
-        const physicalCameras = videoDevices.filter(
-          (device) =>
-            !device.label.includes('OBS') && !device.label.includes('Virtual')
-        );
-
-        const deviceId =
-          physicalCameras.length > 0 ? physicalCameras[0].deviceId : undefined;
-
-        const constraints = {
-          video: {
-            deviceId: deviceId ? { exact: deviceId } : undefined,
-            width: { ideal: 1920 },
-            height: { ideal: 1080 },
-          },
-        };
-
-        stream = await navigator.mediaDevices.getUserMedia(constraints);
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          const videoTrack = stream.getVideoTracks()[0];
-
-          videoTrackRef.current = videoTrack;
-
-          const capabilities = videoTrack.getCapabilities();
-          console.log('Camera capabilities:', capabilities);
-
-          // const advancedConstraints: any = {};
-
-          // if ('exposureMode' in capabilities) {
-          //   advancedConstraints.exposureMode = 'manual';
-          // }
-
-          // if ('exposureCompensation' in capabilities) {
-          //   advancedConstraints.exposureCompensation = 250;
-          // }
-
-          // if (Object.keys(advancedConstraints).length > 0) {
-          //   try {
-          //     await videoTrack.applyConstraints({
-          //       advanced: [advancedConstraints],
-          //     });
-          //     console.log(
-          //       'Applied initial camera settings:',
-          //       advancedConstraints
-          //     );
-          //     // await new Promise((resolve) => setTimeout(resolve, 500));
-          //     console.log('Current settings:', videoTrack.getSettings());
-          //   } catch (error) {
-          //     console.error('Error applying initial camera settings:', error);
-          //   }
-          // }
-
-          videoRef.current.onloadedmetadata = () => {
-            videoRef.current?.play();
-          };
-
-          videoRef.current.onplaying = () => {
-            setIsCameraReady(true);
-          };
-        }
-      } catch (error) {
-        console.error('Error accessing camera:', error);
-      }
-    };
-
-    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-      setupCamera();
-    }
-
-    return () => {
-      if (stream) {
-        stream.getTracks().forEach((track) => track.stop());
-      }
-    };
+    setupCamera();
   }, []);
 
   const exposureClusters: { [key: string]: number } = {
@@ -212,45 +143,19 @@ function ImageCaptureProcess({
     focus_KKK: 'light',
   };
 
-  const adjustCameraSettings = (patternName: string) => {
-    const track = videoTrackRef.current;
-    if (!track) return;
+  const adjustPatternCameraSettings = (patternName: string) => {
+    if (!isCameraReady) return;
 
-    // Default settings
-    // const defaultSettings = {
-    //   exposureMode: 'continuous',
-    //   // exposureCompensation: 128,
-    //   // whiteBalanceMode: 'manual',
-    //   // brightness: 128,
-    //   // exposureCompensation: 0,
-    //   // exposureTime: 100,
-    // };
+    const cluster = clusterMapping[patternName];
+    const exposureCompensation = exposureClusters[cluster];
 
-    // Pattern-specific settings
-    const patternSettings: { [key: string]: any } = {};
-
-    testPatterns.forEach((pattern) => {
-      const cluster = clusterMapping[pattern.name];
-      const exposureCompensation = exposureClusters[cluster];
-
-      patternSettings[pattern.name] = {
-        exposureMode: 'manual',
-        exposureTime: 50,
-        exposureCompensation: exposureCompensation,
-        focusMode: 'manual',
-        focusDistance: focusDistance,
-      };
+    adjustCameraSettings({
+      exposureMode: 'manual',
+      exposureTime: 50,
+      exposureCompensation: exposureCompensation,
+      focusMode: 'manual',
+      focusDistance: focusDistance,
     });
-
-    const settings = patternSettings[patternName];
-
-    try {
-      track.applyConstraints({ advanced: [settings] });
-      console.log(`Applied settings for pattern: ${patternName}`, settings);
-      // console.log('After settings:', track.getSettings());
-    } catch (error) {
-      console.error('Error applying camera constraints:', error);
-    }
   };
 
   // Effect to check if we've completed capturing all images
@@ -325,51 +230,50 @@ function ImageCaptureProcess({
     }
   };
 
-  const captureImage = () => {
-    if (!videoRef.current || !canvasRef.current || !isCameraReady) {
-      return;
+  const processCurrentImage = () => {
+    if (!isCameraReady) return;
+
+    // Capture image using the context's method
+    const imageData = captureImage();
+
+    if (imageData) {
+      // Store the current index to use in the background upload
+      const imageIndex = currentImageIndex;
+
+      setCapturedImages((prev) => {
+        // Only add if we don't exceed the expected count
+        if (prev.length < testImagesCount) {
+          return [...prev, imageData];
+        }
+        return prev;
+      });
+
+      // Increment the image index
+      setCurrentImageIndex((prev) => prev + 1);
+
+      // Start the upload in the background
+      setTimeout(() => {
+        uploadToDigitalOcean(imageData, imageIndex).catch((error) =>
+          console.error('Error during upload:', error)
+        );
+      }, 0);
     }
-
-    const canvas = canvasRef.current;
-    const context = canvas.getContext('2d');
-
-    // Get the actual video dimensions
-    const videoWidth = videoRef.current.videoWidth;
-    const videoHeight = videoRef.current.videoHeight;
-
-    // Set canvas dimensions to match video's actual dimensions
-    canvas.width = videoWidth;
-    canvas.height = videoHeight;
-
-    // Draw the current video frame to the canvas
-    if (context) {
-      context.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
-    }
-
-    // Get the image data as a data URL
-    const imageData = canvas.toDataURL('image/png', 1.0);
-
-    // Store the current index to use in the background upload
-    const imageIndex = currentImageIndex;
-
-    setCapturedImages((prev) => {
-      // Only add if we don't exceed the expected count
-      if (prev.length < testImagesCount) {
-        return [...prev, imageData];
-      }
-      return prev;
-    });
-
-    // Increment the image index
-    setCurrentImageIndex((prev) => prev + 1);
-
-    // Start the upload in the background
-    setTimeout(() => {
-      uploadToDigitalOcean(imageData, imageIndex).catch((error) =>
-        console.error('Error during upload:', error)
-      );
-    }, 0);
   };
+
+  useEffect(() => {
+    if (isCameraReady && currentImageIndex < testImagesCount && !isCompleted) {
+      if (currentImageIndex < testPatterns.length) {
+        adjustPatternCameraSettings(testPatterns[currentImageIndex].name);
+      }
+
+      // Give time to display the test pattern, then capture the webcam image
+      const timer = setTimeout(() => {
+        processCurrentImage();
+      }, 2000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [currentImageIndex, testImagesCount, isCameraReady, isCompleted]);
 
   // Get current test pattern filename
   const currentPattern = testPatterns[currentImageIndex];

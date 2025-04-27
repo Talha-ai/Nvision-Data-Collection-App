@@ -4,6 +4,7 @@ import ReviewImagesPage from './components/ReviewImagesPage';
 import DefectAnalysisPage from './components/DefectAnalysisPage';
 import ImageCaptureProcess from './components/ImageCaptureProcess';
 import CustomTitlebar from './components/customTitlebar';
+import { CameraProvider } from './contexts/cameraContext';
 
 declare global {
   interface Window {
@@ -211,80 +212,94 @@ function App() {
   }, [completedUploads, totalUploads, isUploading]);
 
   // Determine which page to render
-  if (isCapturing) {
-    window.electronAPI.enableFullScreen();
-    return (
-      <ImageCaptureProcess
-        onComplete={handleCaptureComplete}
-        onUploadProgress={handleUploadProgress}
-        ppid={ppid}
-        isTestMode={isTestMode}
-        darkexposure={darkexposure}
-        lightexposure={lightexposure}
-        focusDistance={focusDistance}
-      />
-    );
-  }
+  // if (isCapturing) {
+  //   window.electronAPI.enableFullScreen();
+  //   return (
+  //     <ImageCaptureProcess
+  //       onComplete={handleCaptureComplete}
+  //       onUploadProgress={handleUploadProgress}
+  //       ppid={ppid}
+  //       isTestMode={isTestMode}
+  //       darkexposure={darkexposure}
+  //       lightexposure={lightexposure}
+  //       focusDistance={focusDistance}
+  //     />
+  //   );
+  // }
 
   return (
-    <div className="app-container">
-      {/* Only render the titlebar when not in capture mode */}
-      {!isCapturing && (
-        <CustomTitlebar
-          onMinimize={handleMinimize}
-          onMaximize={handleMaximize}
-          onClose={handleClose}
-        />
-      )}
-      <div className="content-area">
-        {(() => {
-          switch (currentPage) {
-            case 'home':
-              return <HomePage onStartDefectChecker={startDefectChecker} />;
-            case 'review':
-              return (
-                <ReviewImagesPage
-                  ppid={ppid}
-                  capturedImages={capturedImages}
-                  onApprove={approveImages}
-                  onRetake={retakeImages}
-                  onDiscard={discardSession}
-                />
-              );
-            case 'defect-analysis':
-              return (
-                <DefectAnalysisPage
-                  ppid={ppid}
-                  isTestMode={isTestMode}
-                  uploadedImageUrls={uploadedImageUrls}
-                  onSubmit={submitDefectAnalysis}
-                  onDiscard={discardSession}
-                  uploadProgress={completedUploads}
-                  totalUploads={totalUploads}
-                  isUploading={isUploading}
-                  failedUploadCount={failedUploadIndices.length}
-                  onRetryUploads={retryFailedUploads}
-                />
-              );
-            default:
-              return <HomePage onStartDefectChecker={startDefectChecker} />;
+    <CameraProvider>
+      <div className="app-container">
+        {/* Only render the titlebar when not in capture mode */}
+        {!isCapturing && (
+          <CustomTitlebar
+            onMinimize={handleMinimize}
+            onMaximize={handleMaximize}
+            onClose={handleClose}
+          />
+        )}
+        <div className="content-area">
+          {isCapturing ? (
+            <ImageCaptureProcess
+              onComplete={handleCaptureComplete}
+              onUploadProgress={handleUploadProgress}
+              ppid={ppid}
+              isTestMode={isTestMode}
+              darkexposure={darkexposure}
+              lightexposure={lightexposure}
+              focusDistance={focusDistance}
+            />
+          ) : (
+            (() => {
+              switch (currentPage) {
+                case 'home':
+                  return <HomePage onStartDefectChecker={startDefectChecker} />;
+                case 'review':
+                  return (
+                    <ReviewImagesPage
+                      ppid={ppid}
+                      capturedImages={capturedImages}
+                      onApprove={approveImages}
+                      onRetake={retakeImages}
+                      onDiscard={discardSession}
+                    />
+                  );
+                case 'defect-analysis':
+                  return (
+                    <DefectAnalysisPage
+                      ppid={ppid}
+                      isTestMode={isTestMode}
+                      uploadedImageUrls={uploadedImageUrls}
+                      onSubmit={submitDefectAnalysis}
+                      onDiscard={discardSession}
+                      uploadProgress={completedUploads}
+                      totalUploads={totalUploads}
+                      isUploading={isUploading}
+                      failedUploadCount={failedUploadIndices.length}
+                      onRetryUploads={retryFailedUploads}
+                    />
+                  );
+                default:
+                  return <HomePage onStartDefectChecker={startDefectChecker} />;
+              }
+            })()
+          )}
+        </div>
+
+        <style jsx>{`
+          .app-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
           }
-        })()}
+
+          .content-area {
+            flex-grow: 1;
+            overflow: auto;
+          }
+        `}</style>
       </div>
-
-      <style jsx>{`
-        .app-container {
-          display: flex;
-          flex-direction: column;
-          height: 100vh;
-        }
-
-        .content-area {
-          flex-grow: 1;
-          overflow: auto;
-        }
-      `}</style>
-    </div>
+    </CameraProvider>
   );
 }
 
