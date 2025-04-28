@@ -55,6 +55,7 @@ function App() {
   const [ppid, setPpid] = useState<string>('');
   const [darkexposure, setDarkexposure] = useState();
   const [lightexposure, setLightexposure] = useState();
+  const [medexposure, setMedexposure] = useState();
   const [focusDistance, setFocusDistance] = useState();
   const [isTestMode, setIsTestMode] = useState<boolean>(false);
   const [capturedImages, setCapturedImages] = useState<string[]>([]);
@@ -86,12 +87,13 @@ function App() {
     mode: boolean,
     darkexposure: number,
     lightexposure: number,
+    medexposure: number,
     focusDistance: number
   ) => {
     setPpid(enteredPpid);
     setIsTestMode(mode);
     setDarkexposure(darkexposure);
-    setLightexposure(lightexposure);
+    setMedexposure(medexposure);
     setLightexposure(lightexposure);
     setFocusDistance(focusDistance);
     setIsCapturing(true);
@@ -227,6 +229,12 @@ function App() {
   //   );
   // }
 
+  useEffect(() => {
+    if (isCapturing) {
+      window.electronAPI.enableFullScreen();
+    }
+  }, [isCapturing]);
+
   return (
     <CameraProvider>
       <div className="app-container">
@@ -247,6 +255,7 @@ function App() {
               isTestMode={isTestMode}
               darkexposure={darkexposure}
               lightexposure={lightexposure}
+              medexposure={medexposure}
               focusDistance={focusDistance}
             />
           ) : (

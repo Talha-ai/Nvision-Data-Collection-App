@@ -86,11 +86,7 @@ export const CameraProvider: React.FC<{ children: React.ReactNode }> = ({
         const advancedConstraints: any = {};
 
         if ('exposureMode' in capabilities) {
-          advancedConstraints.exposureMode = 'manual';
-        }
-
-        if ('exposureCompensation' in capabilities) {
-          advancedConstraints.exposureCompensation = 128;
+          advancedConstraints.exposureMode = 'continuous';
         }
 
         if (Object.keys(advancedConstraints).length > 0) {

@@ -23,7 +23,9 @@ interface ImageCaptureProcessProps {
   isTestMode?: boolean;
   darkexposure: number;
   lightexposure: number;
+  medexposure: number;
   focusDistance: number;
+
 }
 
 function ImageCaptureProcess({
@@ -33,6 +35,7 @@ function ImageCaptureProcess({
   isTestMode,
   darkexposure,
   lightexposure,
+  medexposure,
   focusDistance,
 }: ImageCaptureProcessProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -118,10 +121,11 @@ function ImageCaptureProcess({
   const exposureClusters: { [key: string]: number } = {
     dark: darkexposure,
     light: lightexposure,
+    med: medexposure,
   };
 
   const clusterMapping: {
-    [key: string]: 'dark' | 'light';
+    [key: string]: 'dark' | 'light' | 'med';
   } = {
     black_BBB: 'dark',
     blackWithWhiteBorder_LLL: 'dark',
@@ -130,15 +134,15 @@ function ImageCaptureProcess({
     'black&White_OOO': 'light',
     white_AAA: 'light',
 
-    gray50_DDD: 'light',
-    gray75_HHH: 'light',
+    gray50_DDD: 'med',
+    gray75_HHH: 'med',
     grayVertical_III: 'light',
     '16BarGray_NNN': 'light',
 
     cyan_CCC: 'light',
     red_EEE: 'light',
     green_FFF: 'light',
-    blue_GGG: 'light',
+    blue_GGG: 'med',
     colorBars_JJJ: 'light',
     focus_KKK: 'light',
   };
@@ -182,20 +186,20 @@ function ImageCaptureProcess({
   ]);
 
   // Effect to handle the sequence of displaying patterns and capturing images
-  useEffect(() => {
-    if (isCameraReady && currentImageIndex < testImagesCount && !isCompleted) {
-      if (currentImageIndex < testPatterns.length) {
-        adjustCameraSettings(testPatterns[currentImageIndex].name);
-      }
+  // useEffect(() => {
+  //   if (isCameraReady && currentImageIndex < testImagesCount && !isCompleted) {
+  //     if (currentImageIndex < testPatterns.length) {
+  //       adjustCameraSettings(testPatterns[currentImageIndex].name);
+  //     }
 
-      // Give time to display the test pattern, then capture the webcam image
-      const timer = setTimeout(() => {
-        captureImage();
-      }, 2000); // Increased delay to ensure test pattern is fully displayed
+  //     // Give time to display the test pattern, then capture the webcam image
+  //     const timer = setTimeout(() => {
+  //       captureImage();
+  //     }, 2000); // Increased delay to ensure test pattern is fully displayed
 
-      return () => clearTimeout(timer);
-    }
-  }, [currentImageIndex, testImagesCount, isCameraReady, isCompleted]);
+  //     return () => clearTimeout(timer);
+  //   }
+  // }, [currentImageIndex, testImagesCount, isCameraReady, isCompleted]);
 
   const uploadToDigitalOcean = async (imageData: string, index: number) => {
     if (index >= testImagesCount) {

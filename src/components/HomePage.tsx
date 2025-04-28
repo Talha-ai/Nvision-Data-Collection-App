@@ -22,6 +22,7 @@ interface HomePageProps {
     ppid: string,
     isTestMode: boolean,
     darkexposure: number,
+    medexposure: number,
     lightexposure: number,
     focusDistance: number
   ) => void;
@@ -78,6 +79,11 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
   const [darkexposure, setDarkexposure] = useState(() => {
     const savedDark = localStorage.getItem('darkexposure');
     return savedDark ? Number(savedDark) : 200;
+  });
+
+  const [medexposure, setMedexposure] = useState(() => {
+    const savedMed = localStorage.getItem('medexposure');
+    return savedMed ? Number(savedMed) : 45;
   });
   const [focusDistance, setFocusDistance] = useState(() => {
     const savedDistance = localStorage.getItem('focusDistance');
@@ -157,6 +163,10 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
   useEffect(() => {
     localStorage.setItem('darkexposure', darkexposure.toString());
   }, [darkexposure]);
+
+  useEffect(() => {
+    localStorage.setItem('medexposure', medexposure.toString());
+  }, [medexposure]);
 
   useEffect(() => {
     localStorage.setItem('focusDistance', focusDistance.toString());
@@ -249,6 +259,7 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
   useEffect(() => {
     if (isCameraReady) {
       adjustCameraSettings({
+        exposureMode: 'continuous',
         focusMode: 'manual',
         focusDistance: focusDistance,
       });
@@ -287,6 +298,7 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
           isTestMode,
           darkexposure,
           lightexposure,
+          medexposure,
           focusDistance
         );
       } catch (error) {
@@ -414,6 +426,23 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
                 max="255"
                 value={lightexposure}
                 onChange={(e) => setLightexposure(Number(e.target.value))}
+                className="w-full"
+              />
+            </div>
+
+            <div>
+              <div className="flex justify-between">
+                <label className="font-medium">
+                  Medium Image Exposure: {medexposure}
+                </label>
+                <span className="text-gray-500 text-sm">(Range: 0 - 255)</span>
+              </div>
+              <input
+                type="range"
+                min="0"
+                max="255"
+                value={medexposure}
+                onChange={(e) => setMedexposure(Number(e.target.value))}
                 className="w-full"
               />
             </div>
