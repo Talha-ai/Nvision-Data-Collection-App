@@ -5,6 +5,8 @@ import DefectAnalysisPage from './components/DefectAnalysisPage';
 import ImageCaptureProcess from './components/ImageCaptureProcess';
 import CustomTitlebar from './components/customTitlebar';
 import { CameraProvider } from './contexts/cameraContext';
+import { LoginPage } from './components/LoginPage';
+import SignupPage from './components/SignUpPage';
 
 declare global {
   interface Window {
@@ -50,7 +52,10 @@ const testPatterns = [
 ];
 
 function App() {
-  const [currentPage, setCurrentPage] = useState<string>('home');
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [currentPage, setCurrentPage] = useState<string>(
+    isAuthenticated ? 'home' : 'login'
+  );
   const [isCapturing, setIsCapturing] = useState<boolean>(false);
   const [ppid, setPpid] = useState<string>('');
   const [darkexposure, setDarkexposure] = useState();
@@ -68,6 +73,14 @@ function App() {
   const [completedUploads, setCompletedUploads] = useState<number>(0);
   const [isUploading, setIsUploading] = useState<boolean>(false);
   const [failedUploadIndices, setFailedUploadIndices] = useState<number[]>([]);
+
+  const navigateToSignup = () => {
+    setCurrentPage('signup');
+  };
+
+  const navigateToLogin = () => {
+    setCurrentPage('login');
+  };
 
   const handleMinimize = () => {
     window.electronAPI?.minimizeWindow();
@@ -213,21 +226,17 @@ function App() {
     }
   }, [completedUploads, totalUploads, isUploading]);
 
-  // Determine which page to render
-  // if (isCapturing) {
-  //   window.electronAPI.enableFullScreen();
-  //   return (
-  //     <ImageCaptureProcess
-  //       onComplete={handleCaptureComplete}
-  //       onUploadProgress={handleUploadProgress}
-  //       ppid={ppid}
-  //       isTestMode={isTestMode}
-  //       darkexposure={darkexposure}
-  //       lightexposure={lightexposure}
-  //       focusDistance={focusDistance}
-  //     />
-  //   );
-  // }
+  const handleLogin = (token: string) => {
+    localStorage.setItem('token', token);
+    setIsAuthenticated(true);
+    setCurrentPage('home');
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    setIsAuthenticated(false);
+    setCurrentPage('login');
+  };
 
   useEffect(() => {
     if (isCapturing) {
@@ -262,7 +271,27 @@ function App() {
             (() => {
               switch (currentPage) {
                 case 'home':
-                  return <HomePage onStartDefectChecker={startDefectChecker} />;
+                  return (
+                    <HomePage
+                      onStartDefectChecker={startDefectChecker}
+                      handleLogout={handleLogout}
+                      isAuthenticated={isAuthenticated}
+                    />
+                  );
+                case 'login':
+                  return (
+                    <LoginPage
+                      onLogin={handleLogin}
+                      navigateToSignup={navigateToSignup}
+                    />
+                  );
+                case 'signup':
+                  return (
+                    <SignupPage
+                      onSignup={handleLogin}
+                      navigateToLogin={navigateToLogin}
+                    />
+                  );
                 case 'review':
                   return (
                     <ReviewImagesPage
@@ -289,7 +318,18 @@ function App() {
                     />
                   );
                 default:
-                  return <HomePage onStartDefectChecker={startDefectChecker} />;
+                  return isAuthenticated ? (
+                    <HomePage
+                      onStartDefectChecker={startDefectChecker}
+                      handleLogout={handleLogout}
+                      isAuthenticated={isAuthenticated}
+                    />
+                  ) : (
+                    <LoginPage
+                      onLogin={handleLogin}
+                      navigateToSignup={navigateToSignup}
+                    />
+                  );
               }
             })()
           )}

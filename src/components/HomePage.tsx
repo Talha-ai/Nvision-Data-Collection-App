@@ -16,6 +16,8 @@ import barGray_NNN from '../assets/16BarGray_NNN.bmp';
 import blackWhite_OOO from '../assets/black&White_OOO.bmp';
 import cameraGuide from '../assets/camera-guides.png';
 import { useCamera } from '../contexts/cameraContext';
+import ImageBrightnessAnalyzer from './ImageBrightnessAnalyzer';
+import { useImageBrightness } from './useImageBrightness';
 
 interface HomePageProps {
   onStartDefectChecker: (
@@ -26,6 +28,8 @@ interface HomePageProps {
     lightexposure: number,
     focusDistance: number
   ) => void;
+  handleLogout: () => void;
+  isAuthenticated: boolean;
 }
 
 interface Pattern {
@@ -64,7 +68,11 @@ const patternNameToFileName = {
   'Black and White Blocks': 'black&White_OOO.bmp',
 };
 
-function HomePage({ onStartDefectChecker }: HomePageProps) {
+function HomePage({
+  onStartDefectChecker,
+  handleLogout,
+  isAuthenticated,
+}: HomePageProps) {
   const [ppid, setPpid] = useState<string>('');
 
   const [isTestMode, setIsTestMode] = useState(() => {
@@ -75,7 +83,6 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
     const savedLight = localStorage.getItem('lightexposure');
     return savedLight ? Number(savedLight) : 80;
   });
-
   const [darkexposure, setDarkexposure] = useState(() => {
     const savedDark = localStorage.getItem('darkexposure');
     return savedDark ? Number(savedDark) : 200;
@@ -316,6 +323,19 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
     setPpid(e.target.value);
   };
 
+  const imageSrcMap = Object.fromEntries(
+    patterns
+      .map((pattern) => {
+        const fileName = patternNameToFileName[pattern.pattern_name];
+        return fileName && patternImportMap[fileName]
+          ? [fileName, patternImportMap[fileName]]
+          : [];
+      })
+      .filter(Boolean)
+  );
+
+  const brightnessMap = useImageBrightness(imageSrcMap);
+
   if (loading) {
     return <div className="p-4 text-center">Loading data...</div>;
   }
@@ -323,10 +343,18 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
   return (
     <div className="flex flex-col items-center max-w-xl mx-auto p-4">
       <h1
-        className="text-2xl font-bold text-center my-4"
+        className="text-2xl font-bold text-center my-4 flex justify-between items-center px-4"
         onDoubleClick={() => setShowHiddenState((prev) => !prev)}
       >
         Nvision AI Data Collection App
+        {isAuthenticated && (
+          <button
+            onClick={handleLogout}
+            className="ml-4 text-sm text-red-500 border border-red-500 px-2 py-1 rounded hover:bg-red-100"
+          >
+            Logout
+          </button>
+        )}
       </h1>
 
       <button
@@ -363,6 +391,8 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
             )}
           </div>
 
+          <ImageBrightnessAnalyzer />
+
           <div className="flex items-center mb-6">
             <label className="bg-gray-200 px-3 py-2 border border-gray-300 flex-shrink-0">
               Mode
@@ -379,40 +409,6 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
 
           {/* Camera settings sliders */}
           <div className="space-y-4 mb-6">
-            {/* <div>
-              <div className="flex justify-between">
-                <label className="font-medium">Brightness: {brightness}</label>
-                <span className="text-gray-500 text-sm">(Range: 0 - 255)</span>
-              </div>
-              <input
-                type="range"
-                min="0"
-                max="255"
-                value={brightness}
-                onChange={(e) => setBrightness(Number(e.target.value))}
-                className="w-full"
-              />
-            </div>
-
-            <div>
-              <div className="flex justify-between">
-                <label className="font-medium">
-                  Exposure Compensation: {exposureCompensation}
-                </label>
-                <span className="text-gray-500 text-sm">(Range: 0 - 255)</span>
-              </div>
-              <input
-                type="range"
-                min="0"
-                max="255"
-                value={exposureCompensation}
-                onChange={(e) =>
-                  setExposureCompensation(Number(e.target.value))
-                }
-                className="w-full"
-              />
-            </div> */}
-
             <div>
               <div className="flex justify-between">
                 <label className="font-medium">
@@ -636,6 +632,8 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
                     {patterns.map((pattern, index) => {
                       const fileName =
                         patternNameToFileName[pattern.pattern_name];
+                      const brightness = brightnessMap[fileName];
+
                       return (
                         <tr key={index} className="border-b">
                           <td className="py-3 w-12 text-center">
@@ -662,6 +660,11 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
                           </td>
                           <td className="py-3 text-sm text-gray-500">
                             {fileName || 'No file mapping'}
+                          </td>
+                          <td className="py-3 text-sm font-mono text-right pr-4">
+                            {brightness !== undefined
+                              ? `${brightness} / 255`
+                              : 'Loading...'}
                           </td>
                         </tr>
                       );

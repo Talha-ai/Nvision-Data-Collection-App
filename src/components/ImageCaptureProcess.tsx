@@ -25,7 +25,6 @@ interface ImageCaptureProcessProps {
   lightexposure: number;
   medexposure: number;
   focusDistance: number;
-
 }
 
 function ImageCaptureProcess({
@@ -184,22 +183,6 @@ function ImageCaptureProcess({
     isCompleted,
     onComplete,
   ]);
-
-  // Effect to handle the sequence of displaying patterns and capturing images
-  // useEffect(() => {
-  //   if (isCameraReady && currentImageIndex < testImagesCount && !isCompleted) {
-  //     if (currentImageIndex < testPatterns.length) {
-  //       adjustCameraSettings(testPatterns[currentImageIndex].name);
-  //     }
-
-  //     // Give time to display the test pattern, then capture the webcam image
-  //     const timer = setTimeout(() => {
-  //       captureImage();
-  //     }, 2000); // Increased delay to ensure test pattern is fully displayed
-
-  //     return () => clearTimeout(timer);
-  //   }
-  // }, [currentImageIndex, testImagesCount, isCameraReady, isCompleted]);
 
   const uploadToDigitalOcean = async (imageData: string, index: number) => {
     if (index >= testImagesCount) {
