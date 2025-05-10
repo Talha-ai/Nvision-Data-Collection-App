@@ -57,7 +57,7 @@ function App() {
     localStorage.getItem('token') !== null
   );
   const [currentPage, setCurrentPage] = useState<string>(
-    isAuthenticated ? 'config-selection' : 'login'
+    isAuthenticated ? 'home' : 'login'
   );
   const [isCapturing, setIsCapturing] = useState<boolean>(false);
   const [ppid, setPpid] = useState<string>('');
