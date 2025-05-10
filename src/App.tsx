@@ -53,9 +53,10 @@ function App() {
   const [currentPage, setCurrentPage] = useState<string>('home');
   const [isCapturing, setIsCapturing] = useState<boolean>(false);
   const [ppid, setPpid] = useState<string>('');
-  const [darkexposure, setDarkexposure] = useState();
-  const [lightexposure, setLightexposure] = useState();
-  const [medexposure, setMedexposure] = useState();
+  const [cluster1, setCluster1] = useState<number>();
+  const [cluster2, setCluster2] = useState<number>();
+  const [cluster3, setCluster3] = useState<number>();
+  const [cluster4, setCluster4] = useState<number>();
   const [focusDistance, setFocusDistance] = useState();
   const [isTestMode, setIsTestMode] = useState<boolean>(false);
   const [capturedImages, setCapturedImages] = useState<string[]>([]);
@@ -85,17 +86,19 @@ function App() {
   const startDefectChecker = (
     enteredPpid: string,
     mode: boolean,
-    darkexposure: number,
-    lightexposure: number,
-    medexposure: number,
-    focusDistance: number
+    cluster1Val: number,
+    cluster2Val: number,
+    cluster3Val: number,
+    cluster4Val: number,
+    focusDistanceVal: number
   ) => {
     setPpid(enteredPpid);
     setIsTestMode(mode);
-    setDarkexposure(darkexposure);
-    setMedexposure(medexposure);
-    setLightexposure(lightexposure);
-    setFocusDistance(focusDistance);
+    setCluster1(cluster1Val);
+    setCluster2(cluster2Val);
+    setCluster3(cluster3Val);
+    setCluster4(cluster4Val);
+    setFocusDistance(focusDistanceVal);
     setIsCapturing(true);
   };
 
@@ -253,9 +256,10 @@ function App() {
               onUploadProgress={handleUploadProgress}
               ppid={ppid}
               isTestMode={isTestMode}
-              darkexposure={darkexposure}
-              lightexposure={lightexposure}
-              medexposure={medexposure}
+              cluster1={cluster1}
+              cluster2={cluster2}
+              cluster3={cluster3}
+              cluster4={cluster4}
               focusDistance={focusDistance}
             />
           ) : (

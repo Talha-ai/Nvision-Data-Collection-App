@@ -21,11 +21,11 @@ interface ImageCaptureProcessProps {
   onUploadProgress: (imageUrl: string | null, index: number) => void;
   ppid: string;
   isTestMode?: boolean;
-  darkexposure: number;
-  lightexposure: number;
-  medexposure: number;
+  cluster1?: number;
+  cluster2?: number;
+  cluster3?: number;
+  cluster4?: number;
   focusDistance: number;
-
 }
 
 function ImageCaptureProcess({
@@ -33,9 +33,10 @@ function ImageCaptureProcess({
   onUploadProgress,
   ppid,
   isTestMode,
-  darkexposure,
-  lightexposure,
-  medexposure,
+  cluster1 = 20,
+  cluster2 = 60,
+  cluster3 = 100,
+  cluster4 = 140,
   focusDistance,
 }: ImageCaptureProcessProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -56,103 +57,70 @@ function ImageCaptureProcess({
   } = useCamera();
 
   const testPatterns = [
+    // Cluster 1
     { name: 'white_AAA', src: white_AAA },
-    { name: 'black_BBB', src: black_BBB },
+    { name: 'black&White_OOO', src: blackWhite_OOO },
+    { name: 'colorBars_JJJ', src: colorBars_JJJ },
+    // Cluster 2
+    { name: 'focus_KKK', src: focus_KKK },
+    { name: 'gray75_HHH', src: gray75_HHH },
+    { name: 'green_FFF', src: green_FFF },
     { name: 'cyan_CCC', src: cyan_CCC },
     { name: 'gray50_DDD', src: gray50_DDD },
+    // Cluster 3
     { name: 'red_EEE', src: red_EEE },
-    { name: 'green_FFF', src: green_FFF },
-    { name: 'blue_GGG', src: blue_GGG },
-    { name: 'gray75_HHH', src: gray75_HHH },
     { name: 'grayVertical_III', src: grayVertical_III },
-    { name: 'colorBars_JJJ', src: colorBars_JJJ },
-    { name: 'focus_KKK', src: focus_KKK },
-    { name: 'blackWithWhiteBorder_LLL', src: blackWithWhiteBorder_LLL },
-    { name: 'crossHatch_MMM', src: crossHatch_MMM },
     { name: '16BarGray_NNN', src: barGray_NNN },
-    { name: 'black&White_OOO', src: blackWhite_OOO },
+    // Cluster 4
+    { name: 'blue_GGG', src: blue_GGG },
+    { name: 'crossHatch_MMM', src: crossHatch_MMM },
+    { name: 'blackWithWhiteBorder_LLL', src: blackWithWhiteBorder_LLL },
+    { name: 'black_BBB', src: black_BBB },
   ];
 
   const testImagesCount = testPatterns.length;
-
-  // useEffect(() => {
-  //   // Apply cursor hiding to multiple elements
-  //   const elements = [
-  //     document.body,
-  //     document.documentElement,
-  //     document.getElementById('root'),
-  //   ];
-
-  //   // Hide cursor on all elements
-  //   elements.forEach((el) => {
-  //     if (el) el.style.cursor = 'none';
-  //   });
-
-  //   // Also add a mousemove listener to ensure cursor stays hidden
-  //   const hideOnMove = () => {
-  //     elements.forEach((el) => {
-  //       if (el) el.style.cursor = 'none';
-  //     });
-  //   };
-
-  //   document.addEventListener('mousemove', hideOnMove);
-  //   document.addEventListener('mouseenter', hideOnMove);
-
-  //   // CSS override to be double-sure
-  //   const style = document.createElement('style');
-  //   style.innerHTML = '* {cursor: none !important;}';
-  //   document.head.appendChild(style);
-
-  //   return () => {
-  //     // Cleanup
-  //     elements.forEach((el) => {
-  //       if (el) el.style.cursor = 'auto';
-  //     });
-  //     document.removeEventListener('mousemove', hideOnMove);
-  //     document.removeEventListener('mouseenter', hideOnMove);
-  //     document.head.removeChild(style);
-  //   };
-  // }, []);
 
   useEffect(() => {
     setupCamera();
   }, []);
 
+  // Exposure values for each cluster
   const exposureClusters: { [key: string]: number } = {
-    dark: darkexposure,
-    light: lightexposure,
-    med: medexposure,
+    cluster1,
+    cluster2,
+    cluster3,
+    cluster4,
   };
 
+  // Map each pattern to its cluster
   const clusterMapping: {
-    [key: string]: 'dark' | 'light' | 'med';
+    [key: string]: 'cluster1' | 'cluster2' | 'cluster3' | 'cluster4';
   } = {
-    black_BBB: 'dark',
-    blackWithWhiteBorder_LLL: 'dark',
-    crossHatch_MMM: 'dark',
-
-    'black&White_OOO': 'light',
-    white_AAA: 'light',
-
-    gray50_DDD: 'med',
-    gray75_HHH: 'med',
-    grayVertical_III: 'light',
-    '16BarGray_NNN': 'light',
-
-    cyan_CCC: 'light',
-    red_EEE: 'light',
-    green_FFF: 'light',
-    blue_GGG: 'med',
-    colorBars_JJJ: 'light',
-    focus_KKK: 'light',
+    // Cluster 1
+    white_AAA: 'cluster1',
+    'black&White_OOO': 'cluster1',
+    colorBars_JJJ: 'cluster1',
+    // Cluster 2
+    focus_KKK: 'cluster2',
+    gray75_HHH: 'cluster2',
+    green_FFF: 'cluster2',
+    cyan_CCC: 'cluster2',
+    gray50_DDD: 'cluster2',
+    // Cluster 3
+    red_EEE: 'cluster3',
+    grayVertical_III: 'cluster3',
+    '16BarGray_NNN': 'cluster3',
+    // Cluster 4
+    blue_GGG: 'cluster4',
+    crossHatch_MMM: 'cluster4',
+    blackWithWhiteBorder_LLL: 'cluster4',
+    black_BBB: 'cluster4',
   };
 
   const adjustPatternCameraSettings = (patternName: string) => {
     if (!isCameraReady) return;
-
     const cluster = clusterMapping[patternName];
     const exposureCompensation = exposureClusters[cluster];
-
     adjustCameraSettings({
       exposureMode: 'manual',
       exposureTime: 50,

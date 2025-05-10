@@ -21,9 +21,10 @@ interface HomePageProps {
   onStartDefectChecker: (
     ppid: string,
     isTestMode: boolean,
-    darkexposure: number,
-    medexposure: number,
-    lightexposure: number,
+    cluster1: number,
+    cluster2: number,
+    cluster3: number,
+    cluster4: number,
     focusDistance: number
   ) => void;
 }
@@ -71,19 +72,21 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
     const savedMode = localStorage.getItem('appMode');
     return savedMode ? savedMode === 'test' : false;
   });
-  const [lightexposure, setLightexposure] = useState(() => {
-    const savedLight = localStorage.getItem('lightexposure');
-    return savedLight ? Number(savedLight) : 80;
+  const [cluster1, setCluster1] = useState(() => {
+    const saved = localStorage.getItem('cluster1');
+    return saved ? Number(saved) : 20;
   });
-
-  const [darkexposure, setDarkexposure] = useState(() => {
-    const savedDark = localStorage.getItem('darkexposure');
-    return savedDark ? Number(savedDark) : 200;
+  const [cluster2, setCluster2] = useState(() => {
+    const saved = localStorage.getItem('cluster2');
+    return saved ? Number(saved) : 60;
   });
-
-  const [medexposure, setMedexposure] = useState(() => {
-    const savedMed = localStorage.getItem('medexposure');
-    return savedMed ? Number(savedMed) : 45;
+  const [cluster3, setCluster3] = useState(() => {
+    const saved = localStorage.getItem('cluster3');
+    return saved ? Number(saved) : 100;
+  });
+  const [cluster4, setCluster4] = useState(() => {
+    const saved = localStorage.getItem('cluster4');
+    return saved ? Number(saved) : 140;
   });
   const [focusDistance, setFocusDistance] = useState(() => {
     const savedDistance = localStorage.getItem('focusDistance');
@@ -157,16 +160,20 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
   }, [isTestMode]);
 
   useEffect(() => {
-    localStorage.setItem('lightexposure', lightexposure.toString());
-  }, [lightexposure]);
+    localStorage.setItem('cluster1', cluster1.toString());
+  }, [cluster1]);
 
   useEffect(() => {
-    localStorage.setItem('darkexposure', darkexposure.toString());
-  }, [darkexposure]);
+    localStorage.setItem('cluster2', cluster2.toString());
+  }, [cluster2]);
 
   useEffect(() => {
-    localStorage.setItem('medexposure', medexposure.toString());
-  }, [medexposure]);
+    localStorage.setItem('cluster3', cluster3.toString());
+  }, [cluster3]);
+
+  useEffect(() => {
+    localStorage.setItem('cluster4', cluster4.toString());
+  }, [cluster4]);
 
   useEffect(() => {
     localStorage.setItem('focusDistance', focusDistance.toString());
@@ -296,9 +303,10 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
         onStartDefectChecker(
           finalPpid,
           isTestMode,
-          darkexposure,
-          lightexposure,
-          medexposure,
+          cluster1,
+          cluster2,
+          cluster3,
+          cluster4,
           focusDistance
         );
       } catch (error) {
@@ -377,27 +385,12 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
             </select>
           </div>
 
-          {/* Camera settings sliders */}
+          {/* Cluster exposure sliders */}
           <div className="space-y-4 mb-6">
-            {/* <div>
-              <div className="flex justify-between">
-                <label className="font-medium">Brightness: {brightness}</label>
-                <span className="text-gray-500 text-sm">(Range: 0 - 255)</span>
-              </div>
-              <input
-                type="range"
-                min="0"
-                max="255"
-                value={brightness}
-                onChange={(e) => setBrightness(Number(e.target.value))}
-                className="w-full"
-              />
-            </div>
-
             <div>
               <div className="flex justify-between">
                 <label className="font-medium">
-                  Exposure Compensation: {exposureCompensation}
+                  Cluster 1 Exposure: {cluster1}
                 </label>
                 <span className="text-gray-500 text-sm">(Range: 0 - 255)</span>
               </div>
@@ -405,18 +398,15 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
                 type="range"
                 min="0"
                 max="255"
-                value={exposureCompensation}
-                onChange={(e) =>
-                  setExposureCompensation(Number(e.target.value))
-                }
+                value={cluster1}
+                onChange={(e) => setCluster1(Number(e.target.value))}
                 className="w-full"
               />
-            </div> */}
-
+            </div>
             <div>
               <div className="flex justify-between">
                 <label className="font-medium">
-                  Light Image Exposure: {lightexposure}
+                  Cluster 2 Exposure: {cluster2}
                 </label>
                 <span className="text-gray-500 text-sm">(Range: 0 - 255)</span>
               </div>
@@ -424,16 +414,15 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
                 type="range"
                 min="0"
                 max="255"
-                value={lightexposure}
-                onChange={(e) => setLightexposure(Number(e.target.value))}
+                value={cluster2}
+                onChange={(e) => setCluster2(Number(e.target.value))}
                 className="w-full"
               />
             </div>
-
             <div>
               <div className="flex justify-between">
                 <label className="font-medium">
-                  Medium Image Exposure: {medexposure}
+                  Cluster 3 Exposure: {cluster3}
                 </label>
                 <span className="text-gray-500 text-sm">(Range: 0 - 255)</span>
               </div>
@@ -441,16 +430,15 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
                 type="range"
                 min="0"
                 max="255"
-                value={medexposure}
-                onChange={(e) => setMedexposure(Number(e.target.value))}
+                value={cluster3}
+                onChange={(e) => setCluster3(Number(e.target.value))}
                 className="w-full"
               />
             </div>
-
             <div>
               <div className="flex justify-between">
                 <label className="font-medium">
-                  Dark Images Exposure: {darkexposure}
+                  Cluster 4 Exposure: {cluster4}
                 </label>
                 <span className="text-gray-500 text-sm">(Range: 0 - 255)</span>
               </div>
@@ -458,12 +446,11 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
                 type="range"
                 min="0"
                 max="255"
-                value={darkexposure}
-                onChange={(e) => setDarkexposure(Number(e.target.value))}
+                value={cluster4}
+                onChange={(e) => setCluster4(Number(e.target.value))}
                 className="w-full"
               />
             </div>
-
             <div>
               <div className="flex justify-between">
                 <label className="font-medium">
@@ -678,3 +665,4 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
 }
 
 export default HomePage;
+  
