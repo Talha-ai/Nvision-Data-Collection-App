@@ -160,6 +160,14 @@ function HomePage({
   };
 
   useEffect(() => {
+    adjustCameraSettings({
+      exposureMode: 'continuous',
+      exposureCompensation: lightexposure,
+      exposureTime: 50,
+    });
+  }, [lightexposure]);
+
+  useEffect(() => {
     localStorage.setItem('appMode', isTestMode ? 'test' : 'production');
   }, [isTestMode]);
 
@@ -391,7 +399,7 @@ function HomePage({
             )}
           </div>
 
-          <ImageBrightnessAnalyzer />
+          {/* <ImageBrightnessAnalyzer /> */}
 
           <div className="flex items-center mb-6">
             <label className="bg-gray-200 px-3 py-2 border border-gray-300 flex-shrink-0">

@@ -7,6 +7,7 @@ import CustomTitlebar from './components/customTitlebar';
 import { CameraProvider } from './contexts/cameraContext';
 import { LoginPage } from './components/LoginPage';
 import SignupPage from './components/SignUpPage';
+import ConfigSelectionPage from './components/ConfigSelectionPage';
 
 declare global {
   interface Window {
@@ -52,9 +53,11 @@ const testPatterns = [
 ];
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(
+    localStorage.getItem('token') !== null
+  );
   const [currentPage, setCurrentPage] = useState<string>(
-    isAuthenticated ? 'home' : 'login'
+    isAuthenticated ? 'config-selection' : 'login'
   );
   const [isCapturing, setIsCapturing] = useState<boolean>(false);
   const [ppid, setPpid] = useState<string>('');
@@ -73,6 +76,10 @@ function App() {
   const [completedUploads, setCompletedUploads] = useState<number>(0);
   const [isUploading, setIsUploading] = useState<boolean>(false);
   const [failedUploadIndices, setFailedUploadIndices] = useState<number[]>([]);
+
+  const [configSelection, setConfigSelection] = useState<
+    null | 'auto' | 'manual'
+  >(null);
 
   const navigateToSignup = () => {
     setCurrentPage('signup');
@@ -109,7 +116,9 @@ function App() {
     setMedexposure(medexposure);
     setLightexposure(lightexposure);
     setFocusDistance(focusDistance);
-    setIsCapturing(true);
+    setConfigSelection(null);
+    setIsCapturing(false);
+    setCurrentPage('config-selection');
   };
 
   // Handle when image capture is complete and uploads have started
@@ -256,83 +265,99 @@ function App() {
           />
         )}
         <div className="content-area">
-          {isCapturing ? (
-            <ImageCaptureProcess
-              onComplete={handleCaptureComplete}
-              onUploadProgress={handleUploadProgress}
-              ppid={ppid}
-              isTestMode={isTestMode}
-              darkexposure={darkexposure}
-              lightexposure={lightexposure}
-              medexposure={medexposure}
-              focusDistance={focusDistance}
-            />
-          ) : (
-            (() => {
-              switch (currentPage) {
-                case 'home':
-                  return (
-                    <HomePage
-                      onStartDefectChecker={startDefectChecker}
-                      handleLogout={handleLogout}
-                      isAuthenticated={isAuthenticated}
-                    />
-                  );
-                case 'login':
-                  return (
-                    <LoginPage
-                      onLogin={handleLogin}
-                      navigateToSignup={navigateToSignup}
-                    />
-                  );
-                case 'signup':
-                  return (
-                    <SignupPage
-                      onSignup={handleLogin}
-                      navigateToLogin={navigateToLogin}
-                    />
-                  );
-                case 'review':
-                  return (
-                    <ReviewImagesPage
-                      ppid={ppid}
-                      capturedImages={capturedImages}
-                      onApprove={approveImages}
-                      onRetake={retakeImages}
-                      onDiscard={discardSession}
-                    />
-                  );
-                case 'defect-analysis':
-                  return (
-                    <DefectAnalysisPage
-                      ppid={ppid}
-                      isTestMode={isTestMode}
-                      uploadedImageUrls={uploadedImageUrls}
-                      onSubmit={submitDefectAnalysis}
-                      onDiscard={discardSession}
-                      uploadProgress={completedUploads}
-                      totalUploads={totalUploads}
-                      isUploading={isUploading}
-                      failedUploadCount={failedUploadIndices.length}
-                      onRetryUploads={retryFailedUploads}
-                    />
-                  );
-                default:
-                  return isAuthenticated ? (
-                    <HomePage
-                      onStartDefectChecker={startDefectChecker}
-                      handleLogout={handleLogout}
-                      isAuthenticated={isAuthenticated}
-                    />
-                  ) : (
-                    <LoginPage
-                      onLogin={handleLogin}
-                      navigateToSignup={navigateToSignup}
-                    />
-                  );
-              }
-            })()
-          )}
+          {(() => {
+            if (currentPage === 'config-selection') {
+              return (
+                <ConfigSelectionPage
+                  ppid={ppid}
+                  onSelectConfig={(config) => {
+                    setConfigSelection(config);
+                    setIsCapturing(true);
+                    setCurrentPage('capture');
+                  }}
+                  onDiscard={discardSession}
+                  focusDistance={focusDistance}
+                />
+              );
+            }
+            if (isCapturing) {
+              return (
+                <ImageCaptureProcess
+                  onComplete={handleCaptureComplete}
+                  onUploadProgress={handleUploadProgress}
+                  ppid={ppid}
+                  isTestMode={isTestMode}
+                  darkexposure={darkexposure}
+                  lightexposure={lightexposure}
+                  medexposure={medexposure}
+                  focusDistance={focusDistance}
+                  configSelection={configSelection}
+                />
+              );
+            }
+            switch (currentPage) {
+              case 'home':
+                return (
+                  <HomePage
+                    onStartDefectChecker={startDefectChecker}
+                    handleLogout={handleLogout}
+                    isAuthenticated={isAuthenticated}
+                  />
+                );
+              case 'login':
+                return (
+                  <LoginPage
+                    onLogin={handleLogin}
+                    navigateToSignup={navigateToSignup}
+                  />
+                );
+              case 'signup':
+                return (
+                  <SignupPage
+                    onSignup={handleLogin}
+                    navigateToLogin={navigateToLogin}
+                  />
+                );
+              case 'review':
+                return (
+                  <ReviewImagesPage
+                    ppid={ppid}
+                    capturedImages={capturedImages}
+                    onApprove={approveImages}
+                    onRetake={retakeImages}
+                    onDiscard={discardSession}
+                  />
+                );
+              case 'defect-analysis':
+                return (
+                  <DefectAnalysisPage
+                    ppid={ppid}
+                    isTestMode={isTestMode}
+                    uploadedImageUrls={uploadedImageUrls}
+                    onSubmit={submitDefectAnalysis}
+                    onDiscard={discardSession}
+                    uploadProgress={completedUploads}
+                    totalUploads={totalUploads}
+                    isUploading={isUploading}
+                    failedUploadCount={failedUploadIndices.length}
+                    onRetryUploads={retryFailedUploads}
+                  />
+                );
+              default:
+                return isAuthenticated ? (
+                  <HomePage
+                    onStartDefectChecker={startDefectChecker}
+                    handleLogout={handleLogout}
+                    isAuthenticated={isAuthenticated}
+                  />
+                ) : (
+                  <LoginPage
+                    onLogin={handleLogin}
+                    navigateToSignup={navigateToSignup}
+                  />
+                );
+            }
+          })()}
         </div>
 
         <style jsx>{`

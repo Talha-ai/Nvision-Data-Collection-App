@@ -32,8 +32,8 @@
     "wait-on": "^8.0.3"
   },
   "build": {
-    "appId": "com.nvision.datacollection",
-    "productName": "Nvision Data Collection",
+    "appId": "com.nvision.datacollection.testing",
+    "productName": "Nvision Data Collection Testing",
     "directories": {
       "buildResources": "assets",
       "output": "dist_electron"
