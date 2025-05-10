@@ -300,8 +300,8 @@ function App() {
                 return (
                   <HomePage
                     onStartDefectChecker={startDefectChecker}
-                    handleLogout={handleLogout}
-                    isAuthenticated={isAuthenticated}
+                    // handleLogout={handleLogout}
+                    // isAuthenticated={isAuthenticated}
                   />
                 );
               case 'login':
@@ -347,8 +347,8 @@ function App() {
                 return isAuthenticated ? (
                   <HomePage
                     onStartDefectChecker={startDefectChecker}
-                    handleLogout={handleLogout}
-                    isAuthenticated={isAuthenticated}
+                    // handleLogout={handleLogout}
+                    // isAuthenticated={isAuthenticated}
                   />
                 ) : (
                   <LoginPage

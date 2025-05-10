@@ -16,8 +16,8 @@ const patternOrder = [
 ];
 
 const manualExposureMap = {
-  black_BBB: 140, 
-  cyan_CCC: 60, 
+  black_BBB: 140,
+  cyan_CCC: 60,
 };
 
 const ConfigSelectionPage: React.FC<ConfigSelectionPageProps> = ({
@@ -113,7 +113,7 @@ const ConfigSelectionPage: React.FC<ConfigSelectionPageProps> = ({
             setIndex((i) => i + 1);
           }
         }, 400);
-      }, 1000);
+      }, 2000);
 
       return () => clearTimeout(timer);
     }
