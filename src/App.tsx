@@ -280,7 +280,7 @@ function App() {
                 />
               );
             }
-            if (isCapturing) {
+            if (isCapturing && currentPage === 'capture') {
               return (
                 <ImageCaptureProcess
                   onComplete={handleCaptureComplete}

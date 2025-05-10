@@ -100,7 +100,6 @@ function ImageCaptureProcess({
 
   // Adjust camera settings for each pattern based on configSelection
   const adjustPatternCameraSettings = (pattern, configType) => {
-    if (!isCameraReady) return;
     if (configType === 'auto') {
       adjustCameraSettings({
         exposureMode: 'continuous',
@@ -117,6 +116,16 @@ function ImageCaptureProcess({
       });
     }
   };
+
+  // Effect to handle camera settings when camera becomes ready
+  useEffect(() => {
+    if (isCameraReady && currentImageIndex < testPatterns.length) {
+      adjustPatternCameraSettings(
+        testPatterns[currentImageIndex],
+        configSelection
+      );
+    }
+  }, [isCameraReady, currentImageIndex, configSelection]);
 
   // Effect to check if we've completed capturing all images
   useEffect(() => {
@@ -198,26 +207,13 @@ function ImageCaptureProcess({
 
   useEffect(() => {
     if (isCameraReady && currentImageIndex < testImagesCount && !isCompleted) {
-      if (currentImageIndex < testPatterns.length) {
-        adjustPatternCameraSettings(
-          testPatterns[currentImageIndex],
-          configSelection
-        );
-      }
-
       // Give time to display the test pattern, then capture the webcam image
       const timer = setTimeout(() => {
         processCurrentImage();
       }, 2000);
       return () => clearTimeout(timer);
     }
-  }, [
-    currentImageIndex,
-    testImagesCount,
-    isCameraReady,
-    isCompleted,
-    configSelection,
-  ]);
+  }, [currentImageIndex, testImagesCount, isCameraReady, isCompleted]);
 
   const currentPattern = testPatterns[currentImageIndex];
 

@@ -128,13 +128,16 @@ function DefectAnalysisPage({
 
     try {
       // throw new Error('api fialed');
+      const basePatternOrder = [
+        1, 15, 10, 11, 8, 6, 3, 4, 5, 9, 14, 7, 13, 12, 2,
+      ];
 
       const panel_images = uploadedImageUrls
         .filter((url) => url !== null)
         .map((url, index) => ({
           panel: ppid,
           image_url: url,
-          base_pattern: index + 1,
+          base_pattern: basePatternOrder[index],
         }));
 
       // Get selected defect IDs (converting from string to number)
