@@ -21,9 +21,10 @@ interface ImageCaptureProcessProps {
   onUploadProgress: (imageUrl: string | null, index: number) => void;
   ppid: string;
   isTestMode?: boolean;
-  darkexposure: number;
-  lightexposure: number;
-  medexposure: number;
+  cluster1?: number;
+  cluster2?: number;
+  cluster3?: number;
+  cluster4?: number;
   focusDistance: number;
   configSelection?: 'auto' | 'manual' | null;
 }
@@ -69,6 +70,10 @@ function ImageCaptureProcess({
   onUploadProgress,
   ppid,
   isTestMode,
+  cluster1 = 20,
+  cluster2 = 60,
+  cluster3 = 100,
+  cluster4 = 140,
   focusDistance,
   configSelection = 'manual',
 }: ImageCaptureProcessProps) {
@@ -91,14 +96,14 @@ function ImageCaptureProcess({
     exposure: p.exposure,
     cluster: p.cluster,
   }));
-  
+
   const testImagesCount = testPatterns.length;
 
   useEffect(() => {
     setupCamera();
   }, []);
 
-  // Adjust camera settings for each pattern based on configSelection
+  // Adjust camera settings for each pattern based on configSelection and cluster
   const adjustPatternCameraSettings = (pattern, configType) => {
     if (configType === 'auto') {
       adjustCameraSettings({
@@ -107,9 +112,28 @@ function ImageCaptureProcess({
         focusDistance: focusDistance,
       });
     } else {
+      // Use cluster-based exposure settings
+      let exposureValue;
+      switch (pattern.cluster) {
+        case 1:
+          exposureValue = cluster1;
+          break;
+        case 2:
+          exposureValue = cluster2;
+          break;
+        case 3:
+          exposureValue = cluster3;
+          break;
+        case 4:
+          exposureValue = cluster4;
+          break;
+        default:
+          exposureValue = pattern.exposure;
+      }
+
       adjustCameraSettings({
         exposureMode: 'manual',
-        exposureCompensation: pattern.exposure,
+        exposureCompensation: exposureValue,
         exposureTime: 50,
         focusMode: 'manual',
         focusDistance: focusDistance,
@@ -125,13 +149,19 @@ function ImageCaptureProcess({
         configSelection
       );
     }
-  }, [isCameraReady, currentImageIndex, configSelection]);
+  }, [
+    isCameraReady,
+    currentImageIndex,
+    configSelection,
+    cluster1,
+    cluster2,
+    cluster3,
+    cluster4,
+  ]);
 
   // Effect to check if we've completed capturing all images
   useEffect(() => {
-    // Check if we've reached the end of the process and haven't called onComplete yet
     if (currentImageIndex >= testImagesCount && !isCompleted) {
-      // Ensure we have the correct number of images
       if (capturedImages.length === testImagesCount) {
         setIsCompleted(true);
         onComplete(capturedImages.slice(0, testImagesCount), testImagesCount);
@@ -165,13 +195,10 @@ function ImageCaptureProcess({
 
       console.log(`Successfully uploaded ${patternName}`);
 
-      // Notify parent component about the completed upload
       onUploadProgress(imageUrl, index);
       return imageUrl;
     } catch (error) {
       console.error('Error uploading to DigitalOcean:', error);
-
-      // Notify parent component about the failed upload
       onUploadProgress(null, index);
       return null;
     }
@@ -180,23 +207,18 @@ function ImageCaptureProcess({
   const processCurrentImage = () => {
     if (!isCameraReady) return;
 
-    // Capture image using the context's method
     const imageData = captureImage();
     if (imageData) {
-      // Store the current index to use in the background upload
       const imageIndex = currentImageIndex;
       setCapturedImages((prev) => {
-        // Only add if we don't exceed the expected count
         if (prev.length < testImagesCount) {
           return [...prev, imageData];
         }
         return prev;
       });
 
-      // Increment the image index
       setCurrentImageIndex((prev) => prev + 1);
 
-      // Start the upload in the background
       setTimeout(() => {
         uploadToDigitalOcean(imageData, imageIndex).catch((error) =>
           console.error('Error during upload:', error)
@@ -207,7 +229,6 @@ function ImageCaptureProcess({
 
   useEffect(() => {
     if (isCameraReady && currentImageIndex < testImagesCount && !isCompleted) {
-      // Give time to display the test pattern, then capture the webcam image
       const timer = setTimeout(() => {
         processCurrentImage();
       }, 2000);
@@ -221,7 +242,6 @@ function ImageCaptureProcess({
     <div className="fixed cursor-none inset-0 bg-black flex flex-col items-center justify-center">
       {currentImageIndex < testImagesCount ? (
         <div className="w-full h-full cursor-none">
-          {/* Full screen test pattern image */}
           <div className="w-full h-full flex items-center justify-center overflow-hidden">
             {currentPattern && (
               <div className="relative w-full h-full">
@@ -241,7 +261,6 @@ function ImageCaptureProcess({
         <div className="text-white text-2xl">Processing images...</div>
       )}
 
-      {/* Hidden video element for camera capture */}
       <div className="aspect-video max-w-md hidden cursor-none">
         <video
           ref={videoRef}

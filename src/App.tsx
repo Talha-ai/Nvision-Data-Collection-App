@@ -5,8 +5,6 @@ import DefectAnalysisPage from './components/DefectAnalysisPage';
 import ImageCaptureProcess from './components/ImageCaptureProcess';
 import CustomTitlebar from './components/customTitlebar';
 import { CameraProvider } from './contexts/cameraContext';
-import { LoginPage } from './components/LoginPage';
-import SignupPage from './components/SignUpPage';
 import ConfigSelectionPage from './components/ConfigSelectionPage';
 
 declare global {
@@ -53,17 +51,13 @@ const testPatterns = [
 ];
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(
-    localStorage.getItem('token') !== null
-  );
-  const [currentPage, setCurrentPage] = useState<string>(
-    isAuthenticated ? 'home' : 'login'
-  );
+  const [currentPage, setCurrentPage] = useState<string>('home');
   const [isCapturing, setIsCapturing] = useState<boolean>(false);
   const [ppid, setPpid] = useState<string>('');
-  const [darkexposure, setDarkexposure] = useState();
-  const [lightexposure, setLightexposure] = useState();
-  const [medexposure, setMedexposure] = useState();
+  const [cluster1, setCluster1] = useState<number>();
+  const [cluster2, setCluster2] = useState<number>();
+  const [cluster3, setCluster3] = useState<number>();
+  const [cluster4, setCluster4] = useState<number>();
   const [focusDistance, setFocusDistance] = useState();
   const [isTestMode, setIsTestMode] = useState<boolean>(false);
   const [capturedImages, setCapturedImages] = useState<string[]>([]);
@@ -81,14 +75,6 @@ function App() {
     null | 'auto' | 'manual'
   >(null);
 
-  const navigateToSignup = () => {
-    setCurrentPage('signup');
-  };
-
-  const navigateToLogin = () => {
-    setCurrentPage('login');
-  };
-
   const handleMinimize = () => {
     window.electronAPI?.minimizeWindow();
   };
@@ -105,16 +91,18 @@ function App() {
   const startDefectChecker = (
     enteredPpid: string,
     mode: boolean,
-    darkexposure: number,
-    lightexposure: number,
-    medexposure: number,
+    cluster1Val: number,
+    cluster2Val: number,
+    cluster3Val: number,
+    cluster4Val: number,
     focusDistance: number
   ) => {
     setPpid(enteredPpid);
     setIsTestMode(mode);
-    setDarkexposure(darkexposure);
-    setMedexposure(medexposure);
-    setLightexposure(lightexposure);
+    setCluster1(cluster1Val);
+    setCluster2(cluster2Val);
+    setCluster3(cluster3Val);
+    setCluster4(cluster4Val);
     setFocusDistance(focusDistance);
     setConfigSelection(null);
     setIsCapturing(false);
@@ -202,6 +190,7 @@ function App() {
     setIsUploading(false);
     setFailedUploadIndices([]);
     setIsCapturing(true);
+    setCurrentPage('capture');
   };
 
   // Submit defect analysis and go back to home page
@@ -234,18 +223,6 @@ function App() {
       setIsUploading(false);
     }
   }, [completedUploads, totalUploads, isUploading]);
-
-  const handleLogin = (token: string) => {
-    localStorage.setItem('token', token);
-    setIsAuthenticated(true);
-    setCurrentPage('home');
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    setIsAuthenticated(false);
-    setCurrentPage('login');
-  };
 
   useEffect(() => {
     if (isCapturing) {
@@ -287,9 +264,10 @@ function App() {
                   onUploadProgress={handleUploadProgress}
                   ppid={ppid}
                   isTestMode={isTestMode}
-                  darkexposure={darkexposure}
-                  lightexposure={lightexposure}
-                  medexposure={medexposure}
+                  cluster1={cluster1}
+                  cluster2={cluster2}
+                  cluster3={cluster3}
+                  cluster4={cluster4}
                   focusDistance={focusDistance}
                   configSelection={configSelection}
                 />
@@ -297,27 +275,7 @@ function App() {
             }
             switch (currentPage) {
               case 'home':
-                return (
-                  <HomePage
-                    onStartDefectChecker={startDefectChecker}
-                    // handleLogout={handleLogout}
-                    // isAuthenticated={isAuthenticated}
-                  />
-                );
-              case 'login':
-                return (
-                  <LoginPage
-                    onLogin={handleLogin}
-                    navigateToSignup={navigateToSignup}
-                  />
-                );
-              case 'signup':
-                return (
-                  <SignupPage
-                    onSignup={handleLogin}
-                    navigateToLogin={navigateToLogin}
-                  />
-                );
+                return <HomePage onStartDefectChecker={startDefectChecker} />;
               case 'review':
                 return (
                   <ReviewImagesPage
@@ -344,18 +302,7 @@ function App() {
                   />
                 );
               default:
-                return isAuthenticated ? (
-                  <HomePage
-                    onStartDefectChecker={startDefectChecker}
-                    // handleLogout={handleLogout}
-                    // isAuthenticated={isAuthenticated}
-                  />
-                ) : (
-                  <LoginPage
-                    onLogin={handleLogin}
-                    navigateToSignup={navigateToSignup}
-                  />
-                );
+                return <HomePage onStartDefectChecker={startDefectChecker} />;
             }
           })()}
         </div>
