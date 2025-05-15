@@ -85,23 +85,24 @@ export const CameraProvider: React.FC<{ children: React.ReactNode }> = ({
         const capabilities = videoTrack.getCapabilities();
         const advancedConstraints: any = {};
 
-        if ('exposureMode' in capabilities) {
-          advancedConstraints.exposureMode = 'continuous';
-        }
+        // if ('exposureMode' in capabilities) {
+        //   advancedConstraints.exposureMode = 'manual';
+        // }
 
-        if (Object.keys(advancedConstraints).length > 0) {
-          try {
-            await videoTrack.applyConstraints({
-              advanced: [advancedConstraints],
-            });
-            console.log(
-              'Applied initial camera settings:',
-              advancedConstraints
-            );
-          } catch (error) {
-            console.error('Error applying initial camera settings:', error);
-          }
-        }
+        // if (Object.keys(advancedConstraints).length > 0) {
+        //   try {
+        //     await videoTrack.applyConstraints({
+        //       advanced: [advancedConstraints],
+        //     });
+        //     console.log(
+        //       'Applied initial camera settings:',
+        //       advancedConstraints
+        //     );
+        //   } catch (error) {
+        //     console.error('Error applying initial camera settings:', error);
+        //   }
+        // }
+
         // Set up event handlers for video element
         videoRef.current.onloadedmetadata = () => {
           videoRef.current?.play();

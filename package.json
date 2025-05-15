@@ -1,13 +1,19 @@
 {
   "name": "nvision-data-collection",
-  "version": "1.0.0",
+  "version": "2.1.0",
   "description": "Nvision Data Collection App",
   "main": "main.js",
   "scripts": {
-  "dev": "concurrently \"vite\" \"npm:dev-electron\"",
-  "dev-electron": "wait-on http://localhost:5173 && cross-env NODE_ENV=development electron .",
-  "build": "vite build && electron-builder",
-  "start": "cross-env NODE_ENV=production electron ."
+    "dev": "concurrently \"vite\" \"npm:dev-electron\"",
+    "dev-electron": "wait-on http://localhost:5173 && cross-env NODE_ENV=development electron .",
+    "version:major": "node scripts/version-bump.js major",
+    "version:minor": "node scripts/version-bump.js minor",
+    "version:patch": "node scripts/version-bump.js patch",
+    "build:major": "npm run version:major && npm run build",
+    "build:minor": "npm run version:minor && npm run build",
+    "build:patch": "npm run version:patch && npm run build",
+    "build": "vite build && electron-builder",
+    "start": "cross-env NODE_ENV=production electron ."
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.787.0",
@@ -36,7 +42,7 @@
     "productName": "Nvision Data Collection",
     "directories": {
       "buildResources": "assets",
-      "output": "dist_electron"
+      "output": "dist_electron/${version}"
     },
     "files": [
       "dist/**/*",
@@ -45,7 +51,8 @@
       "package.json"
     ],
     "win": {
-      "target": "nsis"
+      "target": "nsis",
+      "artifactName": "${productName}-${version}-setup.${ext}"
     }
   }
 }

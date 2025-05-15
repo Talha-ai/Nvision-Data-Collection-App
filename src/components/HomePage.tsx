@@ -110,12 +110,9 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
   const [fullscreenPattern, setFullscreenPattern] = useState<string | null>(
     null
   );
-  // const [brightness, setBrightness] = useState(128);
-  // const [exposureCompensation, setExposureCompensation] = useState(128);
 
   const {
     setupCamera,
-    stopCamera,
     isCameraReady,
     cameraResolution,
     adjustCameraSettings,
@@ -142,7 +139,6 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
 
   // Function to toggle fullscreen for a pattern
   const handlePatternClick = (patternFileName: string) => {
-    setCameraRefreshTrigger((prev) => prev + 1);
     if (fullscreenPattern === null) {
       setFullscreenPattern(patternFileName);
       window.electronAPI.enableFullScreen();
@@ -257,10 +253,6 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
     };
 
     initCamera();
-
-    return () => {
-      stopCamera();
-    };
   }, [cameraRefreshTrigger]);
 
   useEffect(() => {
@@ -596,7 +588,7 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
                     <div className="text-white text-xl">No image available</div>
                   )}
 
-                  <div className="w-96 h-40 bg-gray-800 absolute bottom-10">
+                  {/* <div className="w-96 h-40 bg-gray-800 absolute bottom-10">
                     <img
                       src={cameraGuide}
                       alt="Camera guide"
@@ -608,7 +600,7 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
                       playsInline
                       className="w-96 h-full object-cover"
                     />
-                  </div>
+                  </div> */}
 
                   <div className="absolute top-4 right-4 text-white bg-black bg-opacity-50 px-3 py-2 rounded">
                     Double-click to exit fullscreen
@@ -665,4 +657,3 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
 }
 
 export default HomePage;
-  

@@ -216,22 +216,6 @@ function App() {
     }
   }, [completedUploads, totalUploads, isUploading]);
 
-  // Determine which page to render
-  // if (isCapturing) {
-  //   window.electronAPI.enableFullScreen();
-  //   return (
-  //     <ImageCaptureProcess
-  //       onComplete={handleCaptureComplete}
-  //       onUploadProgress={handleUploadProgress}
-  //       ppid={ppid}
-  //       isTestMode={isTestMode}
-  //       darkexposure={darkexposure}
-  //       lightexposure={lightexposure}
-  //       focusDistance={focusDistance}
-  //     />
-  //   );
-  // }
-
   useEffect(() => {
     if (isCapturing) {
       window.electronAPI.enableFullScreen();

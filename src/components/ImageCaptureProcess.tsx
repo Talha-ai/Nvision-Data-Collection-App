@@ -42,10 +42,6 @@ function ImageCaptureProcess({
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [capturedImages, setCapturedImages] = useState<string[]>([]);
   const [isCompleted, setIsCompleted] = useState(false);
-  // const [isCameraReady, setIsCameraReady] = useState(false);
-  // const videoRef = useRef<HTMLVideoElement | null>(null);
-  // const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  // const videoTrackRef = useRef<MediaStreamTrack | null>(null);
 
   const {
     setupCamera,
@@ -80,10 +76,6 @@ function ImageCaptureProcess({
 
   const testImagesCount = testPatterns.length;
 
-  useEffect(() => {
-    setupCamera();
-  }, []);
-
   // Exposure values for each cluster
   const exposureClusters: { [key: string]: number } = {
     cluster1,
@@ -92,7 +84,6 @@ function ImageCaptureProcess({
     cluster4,
   };
 
-  // Map each pattern to its cluster
   const clusterMapping: {
     [key: string]: 'cluster1' | 'cluster2' | 'cluster3' | 'cluster4';
   } = {
@@ -117,18 +108,29 @@ function ImageCaptureProcess({
     black_BBB: 'cluster4',
   };
 
-  const adjustPatternCameraSettings = (patternName: string) => {
-    if (!isCameraReady) return;
-    const cluster = clusterMapping[patternName];
-    const exposureCompensation = exposureClusters[cluster];
-    adjustCameraSettings({
-      exposureMode: 'manual',
-      exposureTime: 50,
-      exposureCompensation: exposureCompensation,
-      focusMode: 'manual',
-      focusDistance: focusDistance,
-    });
-  };
+  useEffect(() => {
+    setupCamera();
+  }, []);
+
+  useEffect(() => {
+    console.log(isCameraReady);
+  }, [isCameraReady]);
+
+  useEffect(() => {
+    if (isCameraReady && currentImageIndex < testImagesCount && !isCompleted) {
+      
+      adjustPatternCameraSettings(testPatterns[currentImageIndex].name);
+
+      // Give time to display the test pattern, then capture the webcam image
+      const captureTimer = setTimeout(() => {
+        processCurrentImage();
+      }, 2000);
+
+      return () => {
+        clearTimeout(captureTimer);
+      };
+    }
+  }, [currentImageIndex, testImagesCount, isCameraReady, isCompleted]);
 
   // Effect to check if we've completed capturing all images
   useEffect(() => {
@@ -153,21 +155,48 @@ function ImageCaptureProcess({
     onComplete,
   ]);
 
-  // Effect to handle the sequence of displaying patterns and capturing images
-  // useEffect(() => {
-  //   if (isCameraReady && currentImageIndex < testImagesCount && !isCompleted) {
-  //     if (currentImageIndex < testPatterns.length) {
-  //       adjustCameraSettings(testPatterns[currentImageIndex].name);
-  //     }
+  const adjustPatternCameraSettings = async (patternName: string) => {
+    if (!isCameraReady) return;
+    const cluster = clusterMapping[patternName];
+    const exposureCompensation = exposureClusters[cluster];
 
-  //     // Give time to display the test pattern, then capture the webcam image
-  //     const timer = setTimeout(() => {
-  //       captureImage();
-  //     }, 2000); // Increased delay to ensure test pattern is fully displayed
+    await adjustCameraSettings({
+      exposureMode: 'manual',
+      exposureTime: 50,
+      exposureCompensation: exposureCompensation,
+      focusMode: 'manual',
+      focusDistance: focusDistance,
+    });
+  };
 
-  //     return () => clearTimeout(timer);
-  //   }
-  // }, [currentImageIndex, testImagesCount, isCameraReady, isCompleted]);
+  const processCurrentImage = () => {
+    if (!isCameraReady) return;
+
+    // Capture image using the context's method
+    const imageData = captureImage();
+
+    if (imageData) {
+      // Store the current index to use in the background upload
+      const imageIndex = currentImageIndex;
+
+      setCapturedImages((prev) => {
+        if (prev.length < testImagesCount) {
+          return [...prev, imageData];
+        }
+        return prev;
+      });
+
+      // Increment the image index
+      setCurrentImageIndex((prev) => prev + 1);
+
+      // Start the upload in the background
+      setTimeout(() => {
+        uploadToDigitalOcean(imageData, imageIndex).catch((error) =>
+          console.error('Error during upload:', error)
+        );
+      }, 0);
+    }
+  };
 
   const uploadToDigitalOcean = async (imageData: string, index: number) => {
     if (index >= testImagesCount) {
@@ -201,51 +230,6 @@ function ImageCaptureProcess({
       return null;
     }
   };
-
-  const processCurrentImage = () => {
-    if (!isCameraReady) return;
-
-    // Capture image using the context's method
-    const imageData = captureImage();
-
-    if (imageData) {
-      // Store the current index to use in the background upload
-      const imageIndex = currentImageIndex;
-
-      setCapturedImages((prev) => {
-        // Only add if we don't exceed the expected count
-        if (prev.length < testImagesCount) {
-          return [...prev, imageData];
-        }
-        return prev;
-      });
-
-      // Increment the image index
-      setCurrentImageIndex((prev) => prev + 1);
-
-      // Start the upload in the background
-      setTimeout(() => {
-        uploadToDigitalOcean(imageData, imageIndex).catch((error) =>
-          console.error('Error during upload:', error)
-        );
-      }, 0);
-    }
-  };
-
-  useEffect(() => {
-    if (isCameraReady && currentImageIndex < testImagesCount && !isCompleted) {
-      if (currentImageIndex < testPatterns.length) {
-        adjustPatternCameraSettings(testPatterns[currentImageIndex].name);
-      }
-
-      // Give time to display the test pattern, then capture the webcam image
-      const timer = setTimeout(() => {
-        processCurrentImage();
-      }, 2000);
-
-      return () => clearTimeout(timer);
-    }
-  }, [currentImageIndex, testImagesCount, isCameraReady, isCompleted]);
 
   // Get current test pattern filename
   const currentPattern = testPatterns[currentImageIndex];
