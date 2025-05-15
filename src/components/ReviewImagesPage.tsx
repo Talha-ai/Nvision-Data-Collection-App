@@ -9,22 +9,23 @@ interface ReviewImagesPageProps {
   onDiscard: () => void;
 }
 
+
 const testPatterns = [
   'white_AAA.png',
-  'black_BBB.png',
+  'black&White_OOO.png',
+  'colorBars_JJJ.png',
+  'focus_KKK.png',
+  'gray75_HHH.png',
+  'green_FFF.png',
   'cyan_CCC.png',
   'gray50_DDD.png',
   'red_EEE.png',
-  'green_FFF.png',
-  'blue_GGG.png',
-  'gray75_HHH.png',
   'grayVertical_III.png',
-  'colorBars_JJJ.png',
-  'focus_KKK.png',
-  'blackWithWhiteBorder_LLL.png',
-  'crossHatch_MMM.png',
   '16BarGray_NNN.png',
-  'black&White_OOO.png',
+  'blue_GGG.png',
+  'crossHatch_MMM.png',
+  'blackWithWhiteBorder_LLL.png',
+  'black_BBB.png',
 ];
 
 function ReviewImagesPage({
