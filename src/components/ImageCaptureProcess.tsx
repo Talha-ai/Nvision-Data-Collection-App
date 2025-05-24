@@ -52,27 +52,67 @@ function ImageCaptureProcess({
     canvasRef,
   } = useCamera();
 
-  const testPatterns = [
-    // Cluster 1
-    { name: 'white_AAA', src: white_AAA },
-    { name: 'black&White_OOO', src: blackWhite_OOO },
-    { name: 'colorBars_JJJ', src: colorBars_JJJ },
-    // Cluster 2
-    { name: 'focus_KKK', src: focus_KKK },
-    { name: 'gray75_HHH', src: gray75_HHH },
-    { name: 'green_FFF', src: green_FFF },
-    { name: 'cyan_CCC', src: cyan_CCC },
-    { name: 'gray50_DDD', src: gray50_DDD },
-    // Cluster 3
-    { name: 'red_EEE', src: red_EEE },
-    { name: 'grayVertical_III', src: grayVertical_III },
-    { name: '16BarGray_NNN', src: barGray_NNN },
-    // Cluster 4
-    { name: 'blue_GGG', src: blue_GGG },
-    { name: 'crossHatch_MMM', src: crossHatch_MMM },
-    { name: 'blackWithWhiteBorder_LLL', src: blackWithWhiteBorder_LLL },
-    { name: 'black_BBB', src: black_BBB },
+  // const testPatterns = [
+  //   // Cluster 1
+  //   { name: 'white_AAA', src: white_AAA },
+  //   { name: 'black&White_OOO', src: blackWhite_OOO },
+  //   { name: 'colorBars_JJJ', src: colorBars_JJJ },
+  //   // Cluster 2
+  //   { name: 'focus_KKK', src: focus_KKK },
+  //   { name: 'gray75_HHH', src: gray75_HHH },
+  //   { name: 'green_FFF', src: green_FFF },
+  //   { name: 'cyan_CCC', src: cyan_CCC },
+  //   { name: 'gray50_DDD', src: gray50_DDD },
+  //   // Cluster 3
+  //   { name: 'red_EEE', src: red_EEE },
+  //   { name: 'grayVertical_III', src: grayVertical_III },
+  //   { name: '16BarGray_NNN', src: barGray_NNN },
+  //   // Cluster 4
+  //   { name: 'blue_GGG', src: blue_GGG },
+  //   { name: 'crossHatch_MMM', src: crossHatch_MMM },
+  //   { name: 'blackWith WhiteBorder_LLL', src: blackWithWhiteBorder_LLL },
+  //   { name: 'black_BBB', src: black_BBB },
+  // ];
+
+    const testPatterns = [
+    { name: 'white_AAA', src: white_AAA, settings: { exposure: 0, brightness: 145, contrast: 145 } },
+    { name: 'black_BBB', src: black_BBB, settings: { exposure: 0, brightness: 100, contrast: 145 } },
+    { name: 'cyan_CCC', src: cyan_CCC, settings: { exposure: 0, brightness: 145, contrast: 145 } },
+    // { name: 'gray50_DDD', src: gray50_DDD, settings: { exposure: 45, brightness: 85, contrast: 125 } },
+    { name: 'gray50_DDD', src: gray50_DDD, settings: { exposure: 20, brightness: 125, contrast: 125 } },
+    { name: 'red_EEE', src: red_EEE, settings: { exposure: 45, brightness: 85, contrast: 125 } },
+    { name: 'green_FFF', src: green_FFF, settings: { exposure: 45, brightness: 85, contrast: 145 } },
+    { name: 'blue_GGG', src: blue_GGG, settings: { exposure: 100, brightness: 125, contrast: 145 } },
+    { name: 'gray75_HHH', src: gray75_HHH, settings: { exposure: 45, brightness: 85, contrast: 145 } },
+    { name: 'grayVertical_III', src: grayVertical_III, settings: { exposure: 20, brightness: 125, contrast: 145 } },
+    { name: 'colorBars_JJJ', src: colorBars_JJJ, settings: { exposure: 45, brightness: 85, contrast: 125 } },
+    // { name: 'focus_KKK', src: focus_KKK, settings: { exposure: 45, brightness: 85, contrast: 125 } },
+    { name: 'focus_KKK', src: focus_KKK, settings: { exposure: 10, brightness: 80, contrast: 125 } },
+    // { name: 'blackWithWhiteBorder_LLL', src: blackWithWhiteBorder_LLL, settings: { exposure: 75, brightness: 150, contrast: 255 } },
+    { name: 'blackWithWhiteBorder_LLL', src: blackWithWhiteBorder_LLL, settings: { exposure: 10, brightness: 100, contrast: 80 } },
+    { name: 'crossHatch_MMM', src: crossHatch_MMM, settings: { exposure: 45, brightness: 145, contrast: 145 } },
+    { name: '16BarGray_NNN', src: barGray_NNN, settings: { exposure: 20, brightness: 125, contrast: 125 } },
+    { name: 'black&White_OOO', src: blackWhite_OOO, settings: { exposure: 0, brightness: 145, contrast: 145 } },
   ];
+
+  //  const testPatterns = [
+  //   { name: 'white_AAA', src: white_AAA, settings: { exposure: 0, brightness: 145, contrast: 145 } },
+  //   { name: 'black&White_OOO', src: blackWhite_OOO, settings: { exposure: 0, brightness: 145, contrast: 145 } },
+  //   { name: 'colorBars_JJJ', src: colorBars_JJJ, settings: { exposure: 45, brightness: 85, contrast: 125 } },
+  //   { name: 'focus_KKK', src: focus_KKK, settings: { exposure: 45, brightness: 85, contrast: 125 } },
+  //   { name: 'gray75_HHH', src: gray75_HHH, settings: { exposure: 45, brightness: 85, contrast: 145 } },
+  //   { name: 'green_FFF', src: green_FFF, settings: { exposure: 45, brightness: 85, contrast: 145 } },
+  //   { name: 'cyan_CCC', src: cyan_CCC, settings: { exposure: 0, brightness: 145, contrast: 145 } },
+  //   { name: 'gray50_DDD', src: gray50_DDD, settings: { exposure: 45, brightness: 85, contrast: 125 } },
+  //   { name: 'red_EEE', src: red_EEE, settings: { exposure: 45, brightness: 85, contrast: 125 } },
+  //   { name: 'grayVertical_III', src: grayVertical_III, settings: { exposure: 20, brightness: 125, contrast: 145 } },
+  //   { name: '16BarGray_NNN', src: barGray_NNN, settings: { exposure: 20, brightness: 125, contrast: 125 } },
+  //   { name: 'blue_GGG', src: blue_GGG, settings: { exposure: 100, brightness: 125, contrast: 145 } },
+  //   { name: 'crossHatch_MMM', src: crossHatch_MMM, settings: { exposure: 45, brightness: 145, contrast: 145 } },
+  //   { name: 'blackWithWhiteBorder_LLL', src: blackWithWhiteBorder_LLL, settings: { exposure: 75, brightness: 150, contrast: 255 } },
+  //   { name: 'black_BBB', src: black_BBB, settings: { exposure: 0, brightness: 100, contrast: 145 } },
+  // ];
+
 
   const testImagesCount = testPatterns.length;
 
@@ -113,14 +153,10 @@ function ImageCaptureProcess({
   }, []);
 
   useEffect(() => {
-    console.log(isCameraReady);
-  }, [isCameraReady]);
-
-  useEffect(() => {
     if (isCameraReady && currentImageIndex < testImagesCount && !isCompleted) {
       
-      adjustPatternCameraSettings(testPatterns[currentImageIndex].name);
-
+      // adjustPatternCameraSettings(testPatterns[currentImageIndex].name);
+      adjustPatternCameraSettings(currentImageIndex);
       // Give time to display the test pattern, then capture the webcam image
       const captureTimer = setTimeout(() => {
         processCurrentImage();
@@ -155,17 +191,36 @@ function ImageCaptureProcess({
     onComplete,
   ]);
 
-  const adjustPatternCameraSettings = async (patternName: string) => {
+  // const adjustPatternCameraSettings = async (patternName: string) => {
+  //   if (!isCameraReady) return;
+  //   const cluster = clusterMapping[patternName];
+  //   const exposureCompensation = exposureClusters[cluster];
+
+  //   await adjustCameraSettings({
+  //     exposureMode: 'manual',
+  //     exposureTime: 4,
+  //     exposureCompensation: exposureCompensation,
+  //     focusMode: 'manual',
+  //     focusDistance: focusDistance,
+  //     brightness: 0,
+  //     contrast: 0,
+  //   });
+  // };
+
+    const adjustPatternCameraSettings = async (index: number) => {
     if (!isCameraReady) return;
-    const cluster = clusterMapping[patternName];
-    const exposureCompensation = exposureClusters[cluster];
+    
+    const pattern = testPatterns[index];
+    const { settings } = pattern;
 
     await adjustCameraSettings({
       exposureMode: 'manual',
       exposureTime: 50,
-      exposureCompensation: exposureCompensation,
+      exposureCompensation: settings.exposure,  
       focusMode: 'manual',
       focusDistance: focusDistance,
+      brightness: settings.brightness, 
+      contrast: settings.contrast,     
     });
   };
 

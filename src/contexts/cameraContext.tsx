@@ -23,6 +23,8 @@ interface CameraSettings {
   exposureTime?: number;
   exposureCompensation?: number;
   focusMode?: string;
+  brightness?: string;
+  contrast?: string;
   focusDistance?: number;
 }
 
@@ -161,6 +163,12 @@ export const CameraProvider: React.FC<{ children: React.ReactNode }> = ({
 
       if ('focusMode' in capabilities && settings.focusMode) {
         applicableSettings.focusMode = settings.focusMode;
+      }
+      if ('brightness' in capabilities && settings.brightness !== undefined) {
+        applicableSettings.brightness = settings.brightness;
+      }
+      if ('contrast' in capabilities && settings.contrast !== undefined) {
+        applicableSettings.contrast = settings.contrast;
       }
 
       if (

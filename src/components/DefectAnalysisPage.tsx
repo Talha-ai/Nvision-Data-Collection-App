@@ -129,9 +129,14 @@ function DefectAnalysisPage({
     try {
       // throw new Error('api fialed');
 
+      // const basePatternOrder = [
+      //   1, 15, 10, 11, 8, 6, 3, 4, 5, 9, 14, 7, 13, 12, 2,
+      // ];
+
       const basePatternOrder = [
-        1, 15, 10, 11, 8, 6, 3, 4, 5, 9, 14, 7, 13, 12, 2,
-      ];
+  1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15
+];
+
 
       const panel_images = uploadedImageUrls
         .filter((url) => url !== null)

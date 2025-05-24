@@ -92,6 +92,14 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
     const savedDistance = localStorage.getItem('focusDistance');
     return savedDistance ? Number(savedDistance) : 125;
   });
+  const [brightness, setBrightness] = useState(() => {
+    const savedBrightness = localStorage.getItem('brightness');
+    return savedBrightness ? Number(savedBrightness) : 125;
+  });
+  const [contrast, setContrast] = useState(() => {
+    const savedContrast = localStorage.getItem('contrast');
+    return savedContrast ? Number(savedContrast) : 125;
+  });
 
   const [showHiddenState, setShowHiddenState] = useState<boolean>(false);
 
@@ -174,6 +182,12 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
   useEffect(() => {
     localStorage.setItem('focusDistance', focusDistance.toString());
   }, [focusDistance]);
+  useEffect(() => {
+    localStorage.setItem('brightness', brightness.toString());
+  }, [brightness]);
+  useEffect(() => {
+    localStorage.setItem('contrast', contrast.toString());
+  }, [contrast]);
 
   // Combined function to fetch both patterns and statistics
   const fetchData = async () => {
@@ -258,12 +272,16 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
   useEffect(() => {
     if (isCameraReady) {
       adjustCameraSettings({
-        exposureMode: 'continuous',
+        exposureMode: 'manual',
         focusMode: 'manual',
         focusDistance: focusDistance,
+        brightness: brightness,
+        contrast: contrast,
+        exposureCompensation: cluster4,
+        exposureTime: 50,
       });
     }
-  }, [isCameraReady, focusDistance]);
+  }, [isCameraReady, focusDistance, brightness, contrast, cluster4]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -460,6 +478,40 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
                 className="w-full"
               />
             </div>
+            <div>
+              <div className="flex justify-between">
+                <label className="font-medium">
+                  Brightness: {brightness}
+                </label>
+                <span className="text-gray-500 text-sm">(Range: 0 - 255)</span>
+              </div>
+              <input
+                type="range"
+                min="0"
+                max="255"
+                step="1"
+                value={brightness}
+                onChange={(e) => setBrightness(Number(e.target.value))}
+                className="w-full"
+              />
+            </div>
+            <div>
+              <div className="flex justify-between">
+                <label className="font-medium">
+                  Contrast: {contrast}
+                </label>
+                <span className="text-gray-500 text-sm">(Range: 0 - 255)</span>
+              </div>
+              <input
+                type="range"
+                min="0"
+                max="255"
+                step="1"
+                value={contrast}
+                onChange={(e) => setContrast(Number(e.target.value))}
+                className="w-full"
+              />
+            </div>
           </div>
         </>
       )}
@@ -588,7 +640,7 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
                     <div className="text-white text-xl">No image available</div>
                   )}
 
-                  {/* <div className="w-96 h-40 bg-gray-800 absolute bottom-10">
+                  <div className="w-96 h-40 bg-gray-800 absolute bottom-10">
                     <img
                       src={cameraGuide}
                       alt="Camera guide"
@@ -600,7 +652,7 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
                       playsInline
                       className="w-96 h-full object-cover"
                     />
-                  </div> */}
+                  </div>
 
                   <div className="absolute top-4 right-4 text-white bg-black bg-opacity-50 px-3 py-2 rounded">
                     Double-click to exit fullscreen
