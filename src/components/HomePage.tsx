@@ -16,6 +16,21 @@ import barGray_NNN from '../assets/16BarGray_NNN.bmp';
 import blackWhite_OOO from '../assets/black&White_OOO.bmp';
 import cameraGuide from '../assets/camera-guides.png';
 import { useCamera } from '../contexts/cameraContext';
+import {
+  SidebarProvider,
+  SidebarInset,
+  SidebarTrigger,
+} from '@/components/ui/sidebar';
+import AppSidebar from './AppSidebar';
+import { Separator } from '@/components/ui/separator';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import {
+  Collapsible,
+  CollapsibleTrigger,
+  CollapsibleContent,
+} from '@/components/ui/collapsible';
+import { ChevronRight } from 'lucide-react';
 
 interface HomePageProps {
   onStartDefectChecker: (
@@ -27,6 +42,8 @@ interface HomePageProps {
     cluster4: number,
     focusDistance: number
   ) => void;
+  patternEBC: PatternEBCState;
+  setPatternEBC: React.Dispatch<React.SetStateAction<PatternEBCState>>;
 }
 
 interface Pattern {
@@ -65,7 +82,101 @@ const patternNameToFileName = {
   'Black and White Blocks': 'black&White_OOO.bmp',
 };
 
-function HomePage({ onStartDefectChecker }: HomePageProps) {
+// Define the testPatterns array with EBC defaults
+const testPatterns = [
+  {
+    name: 'white_AAA',
+    src: white_AAA,
+    settings: { exposure: 0, brightness: 145, contrast: 145 },
+  },
+  {
+    name: 'black_BBB',
+    src: black_BBB,
+    settings: { exposure: 0, brightness: 100, contrast: 145 },
+  },
+  {
+    name: 'cyan_CCC',
+    src: cyan_CCC,
+    settings: { exposure: 0, brightness: 145, contrast: 145 },
+  },
+  {
+    name: 'gray50_DDD',
+    src: gray50_DDD,
+    settings: { exposure: 20, brightness: 125, contrast: 125 },
+  },
+  {
+    name: 'red_EEE',
+    src: red_EEE,
+    settings: { exposure: 45, brightness: 85, contrast: 125 },
+  },
+  {
+    name: 'green_FFF',
+    src: green_FFF,
+    settings: { exposure: 45, brightness: 85, contrast: 145 },
+  },
+  {
+    name: 'blue_GGG',
+    src: blue_GGG,
+    settings: { exposure: 100, brightness: 125, contrast: 145 },
+  },
+  {
+    name: 'gray75_HHH',
+    src: gray75_HHH,
+    settings: { exposure: 45, brightness: 85, contrast: 145 },
+  },
+  {
+    name: 'grayVertical_III',
+    src: grayVertical_III,
+    settings: { exposure: 20, brightness: 125, contrast: 145 },
+  },
+  {
+    name: 'colorBars_JJJ',
+    src: colorBars_JJJ,
+    settings: { exposure: 45, brightness: 85, contrast: 125 },
+  },
+  {
+    name: 'focus_KKK',
+    src: focus_KKK,
+    settings: { exposure: 10, brightness: 80, contrast: 125 },
+  },
+  {
+    name: 'blackWithWhiteBorder_LLL',
+    src: blackWithWhiteBorder_LLL,
+    settings: { exposure: 10, brightness: 100, contrast: 80 },
+  },
+  {
+    name: 'crossHatch_MMM',
+    src: crossHatch_MMM,
+    settings: { exposure: 45, brightness: 145, contrast: 145 },
+  },
+  {
+    name: '16BarGray_NNN',
+    src: barGray_NNN,
+    settings: { exposure: 20, brightness: 125, contrast: 125 },
+  },
+  {
+    name: 'black&White_OOO',
+    src: blackWhite_OOO,
+    settings: { exposure: 0, brightness: 145, contrast: 145 },
+  },
+];
+
+type EBC = { exposure: number; brightness: number; contrast: number };
+type PatternEBCState = { [pattern: string]: EBC };
+
+const getDefaultPatternEBC = (): PatternEBCState => {
+  const obj: PatternEBCState = {};
+  testPatterns.forEach(({ name, settings }) => {
+    obj[name] = { ...settings };
+  });
+  return obj;
+};
+
+function HomePage({
+  onStartDefectChecker,
+  patternEBC,
+  setPatternEBC,
+}: HomePageProps) {
   const [ppid, setPpid] = useState<string>('');
 
   const [isTestMode, setIsTestMode] = useState(() => {
@@ -272,7 +383,7 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
   useEffect(() => {
     if (isCameraReady) {
       adjustCameraSettings({
-        exposureMode: 'manual',
+        exposureMode: 'continuous',
         focusMode: 'manual',
         focusDistance: focusDistance,
         brightness: brightness,
@@ -339,371 +450,282 @@ function HomePage({ onStartDefectChecker }: HomePageProps) {
   }
 
   return (
-    <div className="flex flex-col items-center max-w-xl mx-auto p-4">
-      <h1
-        className="text-2xl font-bold text-center my-4"
-        onDoubleClick={() => setShowHiddenState((prev) => !prev)}
-      >
-        Nvision AI Data Collection App
-      </h1>
-
-      <button
-        className="rounded-full border border-green-500 text-green-500 px-4 py-1 mb-6 flex items-center"
-        onClick={fetchData}
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-4 w-4 mr-1"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-          />
-        </svg>
-        Refresh
-      </button>
-
-      {showHiddenState && (
-        <>
-          <div className="text-center mb-4">
-            {cameraResolution ? (
-              <p>
-                Camera Resolution: {cameraResolution.width} x{' '}
-                {cameraResolution.height}
-              </p>
-            ) : (
-              <p>Loading camera...</p>
-            )}
-          </div>
-
-          <div className="flex items-center mb-6">
-            <label className="bg-gray-200 px-3 py-2 border border-gray-300 flex-shrink-0">
-              Mode
-            </label>
-            <select
-              value={isTestMode ? 'test' : 'production'}
-              onChange={(e) => setIsTestMode(e.target.value === 'test')}
-              className="flex-grow border border-gray-300 px-3 py-2"
-            >
-              <option value="test">Test</option>
-              <option value="production">Production</option>
-            </select>
-          </div>
-
-          {/* Cluster exposure sliders */}
-          <div className="space-y-4 mb-6">
-            <div>
-              <div className="flex justify-between">
-                <label className="font-medium">
-                  Cluster 1 Exposure: {cluster1}
-                </label>
-                <span className="text-gray-500 text-sm">(Range: 0 - 255)</span>
-              </div>
-              <input
-                type="range"
-                min="0"
-                max="255"
-                value={cluster1}
-                onChange={(e) => setCluster1(Number(e.target.value))}
-                className="w-full"
-              />
+    <div className="flex min-h-screen bg-gray-100 dark:bg-gray-900">
+      <SidebarProvider>
+        <AppSidebar />
+        <SidebarInset className="bg-gray-100">
+          <header className="flex h-16 shrink-0 items-center gap-2 border-b bg-background px-4">
+            <SidebarTrigger className="-ml-1" />
+            <Separator orientation="vertical" className="mx-2 h-4" />
+            <div className="text-xl font-semibold">
+              {activeTab === 'summary' && 'Defect Checker'}
+              {activeTab === 'pattern' && 'Pattern EBC Settings'}
             </div>
-            <div>
-              <div className="flex justify-between">
-                <label className="font-medium">
-                  Cluster 2 Exposure: {cluster2}
-                </label>
-                <span className="text-gray-500 text-sm">(Range: 0 - 255)</span>
-              </div>
-              <input
-                type="range"
-                min="0"
-                max="255"
-                value={cluster2}
-                onChange={(e) => setCluster2(Number(e.target.value))}
-                className="w-full"
-              />
-            </div>
-            <div>
-              <div className="flex justify-between">
-                <label className="font-medium">
-                  Cluster 3 Exposure: {cluster3}
-                </label>
-                <span className="text-gray-500 text-sm">(Range: 0 - 255)</span>
-              </div>
-              <input
-                type="range"
-                min="0"
-                max="255"
-                value={cluster3}
-                onChange={(e) => setCluster3(Number(e.target.value))}
-                className="w-full"
-              />
-            </div>
-            <div>
-              <div className="flex justify-between">
-                <label className="font-medium">
-                  Cluster 4 Exposure: {cluster4}
-                </label>
-                <span className="text-gray-500 text-sm">(Range: 0 - 255)</span>
-              </div>
-              <input
-                type="range"
-                min="0"
-                max="255"
-                value={cluster4}
-                onChange={(e) => setCluster4(Number(e.target.value))}
-                className="w-full"
-              />
-            </div>
-            <div>
-              <div className="flex justify-between">
-                <label className="font-medium">
-                  Focus Distance: {focusDistance}
-                </label>
-                <span className="text-gray-500 text-sm">(Range: 0 - 250)</span>
-              </div>
-              <input
-                type="range"
-                min="0"
-                max="250"
-                step="5"
-                value={focusDistance}
-                onChange={(e) => setFocusDistance(Number(e.target.value))}
-                className="w-full"
-              />
-            </div>
-            <div>
-              <div className="flex justify-between">
-                <label className="font-medium">
-                  Brightness: {brightness}
-                </label>
-                <span className="text-gray-500 text-sm">(Range: 0 - 255)</span>
-              </div>
-              <input
-                type="range"
-                min="0"
-                max="255"
-                step="1"
-                value={brightness}
-                onChange={(e) => setBrightness(Number(e.target.value))}
-                className="w-full"
-              />
-            </div>
-            <div>
-              <div className="flex justify-between">
-                <label className="font-medium">
-                  Contrast: {contrast}
-                </label>
-                <span className="text-gray-500 text-sm">(Range: 0 - 255)</span>
-              </div>
-              <input
-                type="range"
-                min="0"
-                max="255"
-                step="1"
-                value={contrast}
-                onChange={(e) => setContrast(Number(e.target.value))}
-                className="w-full"
-              />
-            </div>
-          </div>
-        </>
-      )}
-
-      <div className="aspect-video w-full h-full bg-gray-200 relative mb-4">
-        <img
-          src={cameraGuide}
-          alt="Camera guide"
-          className="absolute w-[90%] m-auto inset-0 object-contain pointer-events-none z-10 hidden"
-        />
-        <video
-          ref={videoRef}
-          autoPlay
-          playsInline
-          className="w-full h-full object-cover"
-        />
-      </div>
-
-      <p className="text-xs mb-8">
-        Note: Please place the display panel roughly within the guides before
-        starting the routine
-      </p>
-
-      <form onSubmit={handleSubmit} className="mb-6">
-        <div className="flex justify-between items-center text-sm w-full mb-5 gap-10">
-          <div className="flex items-center ">
-            <div className="bg-gray-200 px-3 py-2 border border-gray-300 flex-shrink-0">
-              Enter PPID
-            </div>
-            <input
-              type="text"
-              value={ppid}
-              onChange={handlePpidChange}
-              className="flex-grow border border-gray-300 px-3 py-2"
-              placeholder="abcd123456789"
-            />
-          </div>
-          <button
-            type="submit"
-            className={`${
-              ppid && !submitLoading
-                ? 'bg-green-600 hover:bg-green-700'
-                : 'bg-gray-400'
-            } text-white px-6 py-2 rounded transition-colors min-w-[220px] text-center`}
-            disabled={!ppid || submitLoading}
-          >
-            {submitLoading ? 'Processing...' : 'Start Defect Checker Routine'}
-          </button>
-        </div>
-        {submitError && (
-          <div className=" text-red-600 text-sm">Error: {submitError}</div>
-        )}
-      </form>
-
-      <div className="w-full">
-        {/* Tabs */}
-        <div className="flex border-b-2">
-          <button
-            className={`px-4 py-2 font-medium ${
-              activeTab === 'summary' ? 'border-b-2 border-black' : ''
-            }`}
-            onClick={() => setActiveTab('summary')}
-          >
-            Summary
-          </button>
-          <button
-            className={`px-4 py-2 font-medium ${
-              activeTab === 'pattern' ? 'border-b-2 border-black' : ''
-            }`}
-            onClick={() => setActiveTab('pattern')}
-          >
-            Pattern order
-          </button>
-        </div>
-
-        {/* Content */}
-        <div className="my-6 w-full">
-          {activeTab === 'summary' && (
-            <div>
-              {statsLoading ? (
-                <p>Loading statistics...</p>
-              ) : (
-                <table className="w-full border-collapse">
-                  <tbody>
-                    <tr className="border-b">
-                      <td className="py-3">Total panels tested</td>
-                      <td className="py-3">
-                        {statsData ? statsData.total_panels_tested : 0}
-                      </td>
-                    </tr>
-                    <tr className="border-b">
-                      <td className="py-3">Total images captured</td>
-                      <td className="py-3">
-                        {statsData ? statsData.total_images_captured : 0}
-                      </td>
-                    </tr>
-                    {defects.map((defect, i) => (
-                      <tr key={i} className="border-b">
-                        <td className="py-3">
-                          Panels with {defect.defect_name}
-                        </td>
-                        <td className="py-3">{defect.panel_count}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
-            </div>
-          )}
-
-          {activeTab === 'pattern' && (
-            <div>
-              {fullscreenPattern ? (
-                // Fullscreen pattern view
-                <div
-                  className="fixed inset-0 bg-black flex items-center justify-center cursor-pointer"
-                  onDoubleClick={handleExitFullscreen}
-                >
-                  {patternImportMap[fullscreenPattern] ? (
-                    <img
-                      src={patternImportMap[fullscreenPattern]}
-                      alt={fullscreenPattern}
-                      className="max-h-full max-w-full object-contain"
+          </header>
+          <div className="flex-1 p-4 md:p-6 overflow-auto">
+            {/* Main content */}
+            <div className="max-w-3xl mx-auto space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Defect Checker Routine</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <form onSubmit={handleSubmit} className="flex gap-4 mb-4">
+                    <input
+                      type="text"
+                      value={ppid}
+                      onChange={handlePpidChange}
+                      className="flex-grow border border-gray-300 px-3 py-2 rounded"
+                      placeholder="Enter PPID"
                     />
-                  ) : (
-                    <div className="text-white text-xl">No image available</div>
-                  )}
-
-                  <div className="w-96 h-40 bg-gray-800 absolute bottom-10">
-                    <img
-                      src={cameraGuide}
-                      alt="Camera guide"
-                      className="absolute w-[90%] m-auto inset-0 object-contain pointer-events-none z-10"
-                    />
+                    <Button type="submit" disabled={!ppid || submitLoading}>
+                      {submitLoading
+                        ? 'Processing...'
+                        : 'Start Defect Checker Routine'}
+                    </Button>
+                  </form>
+                  <div className="aspect-video w-full h-full bg-gray-200 relative mb-4 rounded-lg overflow-hidden">
                     <video
                       ref={videoRef}
                       autoPlay
                       playsInline
-                      className="w-96 h-full object-cover"
+                      className="w-full h-full object-cover"
                     />
                   </div>
-
-                  <div className="absolute top-4 right-4 text-white bg-black bg-opacity-50 px-3 py-2 rounded">
-                    Double-click to exit fullscreen
+                  <div className="flex items-center gap-4 mb-2">
+                    <span className="font-semibold">App mode:</span>
+                    <Button
+                      variant={isTestMode ? 'outline' : 'default'}
+                      size="sm"
+                      onClick={() => setIsTestMode(false)}
+                    >
+                      Production
+                    </Button>
+                    <Button
+                      variant={isTestMode ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setIsTestMode(true)}
+                    >
+                      Test
+                    </Button>
                   </div>
-                </div>
-              ) : // Regular pattern table view
-              loading ? (
-                <p>Loading patterns...</p>
-              ) : (
-                <table className="w-full border-collapse">
-                  <tbody>
-                    {patterns.map((pattern, index) => {
-                      const fileName =
-                        patternNameToFileName[pattern.pattern_name];
-                      return (
-                        <tr key={index} className="border-b">
-                          <td className="py-3 w-12 text-center">
-                            {pattern.order + 1}
-                          </td>
-                          <td className="py-3">
-                            <div
-                              className="border border-black w-24 cursor-pointer"
-                              onClick={() =>
-                                fileName && handlePatternClick(fileName)
-                              }
-                            >
-                              {fileName && patternImportMap[fileName] ? (
-                                <img
-                                  src={patternImportMap[fileName]}
-                                  alt={pattern.pattern_name}
-                                />
-                              ) : (
-                                <div className="bg-gray-200 w-full h-12 flex items-center justify-center">
-                                  No image
-                                </div>
-                              )}
+                  <Button
+                    variant="link"
+                    className="p-0 h-auto text-blue-600"
+                    onClick={() => setShowHiddenState((prev) => !prev)}
+                  >
+                    {showHiddenState
+                      ? 'Hide camera settings'
+                      : 'Show camera settings'}
+                  </Button>
+                  {showHiddenState && (
+                    <div className="mt-4 space-y-4">
+                      <Card>
+                        <CardHeader>
+                          <CardTitle>Live Camera Feed Settings</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-2">
+                          <div className="flex gap-4 flex-wrap">
+                            <div className="flex-1 min-w-[180px]">
+                              <label className="block font-medium">Focus</label>
+                              <input
+                                type="range"
+                                min="0"
+                                max="250"
+                                value={focusDistance}
+                                onChange={(e) =>
+                                  setFocusDistance(Number(e.target.value))
+                                }
+                              />
+                              <span className="text-xs">{focusDistance}</span>
                             </div>
-                          </td>
-                          <td className="py-3 text-sm text-gray-500">
-                            {fileName || 'No file mapping'}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+                            <div className="flex-1 min-w-[180px]">
+                              <label className="block font-medium">
+                                Exposure
+                              </label>
+                              <input
+                                type="range"
+                                min="0"
+                                max="255"
+                                value={cluster4}
+                                onChange={(e) =>
+                                  setCluster4(Number(e.target.value))
+                                }
+                              />
+                              <span className="text-xs">{cluster4}</span>
+                            </div>
+                            <div className="flex-1 min-w-[180px]">
+                              <label className="block font-medium">
+                                Brightness
+                              </label>
+                              <input
+                                type="range"
+                                min="0"
+                                max="255"
+                                value={brightness}
+                                onChange={(e) =>
+                                  setBrightness(Number(e.target.value))
+                                }
+                              />
+                              <span className="text-xs">{brightness}</span>
+                            </div>
+                            <div className="flex-1 min-w-[180px]">
+                              <label className="block font-medium">
+                                Contrast
+                              </label>
+                              <input
+                                type="range"
+                                min="0"
+                                max="255"
+                                value={contrast}
+                                onChange={(e) =>
+                                  setContrast(Number(e.target.value))
+                                }
+                              />
+                              <span className="text-xs">{contrast}</span>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+              {showHiddenState && (
+                <>
+                  <div className="flex gap-4 mt-6">
+                    <Button
+                      variant={activeTab === 'summary' ? 'default' : 'outline'}
+                      onClick={() => setActiveTab('summary')}
+                    >
+                      Summary
+                    </Button>
+                    <Button
+                      variant={activeTab === 'pattern' ? 'default' : 'outline'}
+                      onClick={() => setActiveTab('pattern')}
+                    >
+                      Pattern EBC Settings
+                    </Button>
+                  </div>
+                  {activeTab === 'summary' && (
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Statistics</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        {statsLoading ? (
+                          <p>Loading statistics...</p>
+                        ) : (
+                          <table className="w-full border-collapse">
+                            <tbody>
+                              <tr className="border-b">
+                                <td className="py-3">Total panels tested</td>
+                                <td className="py-3">
+                                  {statsData
+                                    ? statsData.total_panels_tested
+                                    : 0}
+                                </td>
+                              </tr>
+                              <tr className="border-b">
+                                <td className="py-3">Total images captured</td>
+                                <td className="py-3">
+                                  {statsData
+                                    ? statsData.total_images_captured
+                                    : 0}
+                                </td>
+                              </tr>
+                              {defects.map((defect, i) => (
+                                <tr key={i} className="border-b">
+                                  <td className="py-3">
+                                    Panels with {defect.defect_name}
+                                  </td>
+                                  <td className="py-3">{defect.panel_count}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        )}
+                      </CardContent>
+                    </Card>
+                  )}
+                  {activeTab === 'pattern' && (
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Pattern EBC Settings</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-4">
+                          {testPatterns.map(({ name, src }) => (
+                            <Collapsible
+                              key={name}
+                              className="border rounded-lg"
+                            >
+                              <div className="flex items-center justify-between px-4 py-2">
+                                <div className="flex items-center gap-2">
+                                  <img
+                                    src={src}
+                                    alt={name}
+                                    className="w-8 h-8 object-contain"
+                                  />
+                                  <span className="font-medium">{name}</span>
+                                </div>
+                                <CollapsibleTrigger asChild>
+                                  <Button variant="ghost" size="sm">
+                                    <ChevronRight className="h-4 w-4" />
+                                    <span className="sr-only">Toggle</span>
+                                  </Button>
+                                </CollapsibleTrigger>
+                              </div>
+                              <CollapsibleContent className="p-4">
+                                <div className="flex gap-4 flex-wrap">
+                                  {(
+                                    [
+                                      'exposure',
+                                      'brightness',
+                                      'contrast',
+                                    ] as const
+                                  ).map((key) => (
+                                    <div
+                                      key={key}
+                                      className="flex-1 min-w-[120px]"
+                                    >
+                                      <label className="block font-medium capitalize">
+                                        {key}
+                                      </label>
+                                      <input
+                                        type="range"
+                                        min="0"
+                                        max="255"
+                                        value={patternEBC[name][key]}
+                                        onChange={(e) =>
+                                          setPatternEBC((prev) => ({
+                                            ...prev,
+                                            [name]: {
+                                              ...prev[name],
+                                              [key]: Number(e.target.value),
+                                            },
+                                          }))
+                                        }
+                                      />
+                                      <span className="text-xs">
+                                        {patternEBC[name][key]}
+                                      </span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </CollapsibleContent>
+                            </Collapsible>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+                </>
               )}
             </div>
-          )}
-        </div>
-      </div>
+          </div>
+        </SidebarInset>
+      </SidebarProvider>
     </div>
   );
 }

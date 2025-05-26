@@ -70,6 +70,83 @@ function App() {
   const [isUploading, setIsUploading] = useState<boolean>(false);
   const [failedUploadIndices, setFailedUploadIndices] = useState<number[]>([]);
 
+  const [patternEBC, setPatternEBC] = useState(() => {
+    const saved = localStorage.getItem('patternEBC');
+    if (saved) return JSON.parse(saved);
+    // fallback: build from testPatterns
+    const testPatterns = [
+      {
+        name: 'white_AAA',
+        settings: { exposure: 0, brightness: 145, contrast: 145 },
+      },
+      {
+        name: 'black_BBB',
+        settings: { exposure: 0, brightness: 100, contrast: 145 },
+      },
+      {
+        name: 'cyan_CCC',
+        settings: { exposure: 0, brightness: 145, contrast: 145 },
+      },
+      {
+        name: 'gray50_DDD',
+        settings: { exposure: 20, brightness: 125, contrast: 125 },
+      },
+      {
+        name: 'red_EEE',
+        settings: { exposure: 45, brightness: 85, contrast: 125 },
+      },
+      {
+        name: 'green_FFF',
+        settings: { exposure: 45, brightness: 85, contrast: 145 },
+      },
+      {
+        name: 'blue_GGG',
+        settings: { exposure: 100, brightness: 125, contrast: 145 },
+      },
+      {
+        name: 'gray75_HHH',
+        settings: { exposure: 45, brightness: 85, contrast: 145 },
+      },
+      {
+        name: 'grayVertical_III',
+        settings: { exposure: 20, brightness: 125, contrast: 145 },
+      },
+      {
+        name: 'colorBars_JJJ',
+        settings: { exposure: 45, brightness: 85, contrast: 125 },
+      },
+      {
+        name: 'focus_KKK',
+        settings: { exposure: 10, brightness: 80, contrast: 125 },
+      },
+      {
+        name: 'blackWithWhiteBorder_LLL',
+        settings: { exposure: 10, brightness: 100, contrast: 80 },
+      },
+      {
+        name: 'crossHatch_MMM',
+        settings: { exposure: 45, brightness: 145, contrast: 145 },
+      },
+      {
+        name: '16BarGray_NNN',
+        settings: { exposure: 20, brightness: 125, contrast: 125 },
+      },
+      {
+        name: 'black&White_OOO',
+        settings: { exposure: 0, brightness: 145, contrast: 145 },
+      },
+    ];
+    const obj = {};
+    testPatterns.forEach(({ name, settings }) => {
+      obj[name] = { ...settings };
+    });
+    return obj;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('patternEBC', JSON.stringify(patternEBC));
+  }, [patternEBC]);
+
   const handleMinimize = () => {
     window.electronAPI?.minimizeWindow();
   };
@@ -233,6 +310,7 @@ function App() {
             onClose={handleClose}
           />
         )}
+        {/* Move sidebar/content below titlebar */}
         <div className="content-area">
           {isCapturing ? (
             <ImageCaptureProcess
@@ -245,12 +323,19 @@ function App() {
               cluster3={cluster3}
               cluster4={cluster4}
               focusDistance={focusDistance}
+              patternEBC={patternEBC}
             />
           ) : (
             (() => {
               switch (currentPage) {
                 case 'home':
-                  return <HomePage onStartDefectChecker={startDefectChecker} />;
+                  return (
+                    <HomePage
+                      onStartDefectChecker={startDefectChecker}
+                      patternEBC={patternEBC}
+                      setPatternEBC={setPatternEBC}
+                    />
+                  );
                 case 'review':
                   return (
                     <ReviewImagesPage
@@ -277,19 +362,24 @@ function App() {
                     />
                   );
                 default:
-                  return <HomePage onStartDefectChecker={startDefectChecker} />;
+                  // Provide required props for HomePage
+                  return (
+                    <HomePage
+                      onStartDefectChecker={startDefectChecker}
+                      patternEBC={patternEBC}
+                      setPatternEBC={setPatternEBC}
+                    />
+                  );
               }
             })()
           )}
         </div>
-
         <style jsx>{`
           .app-container {
             display: flex;
             flex-direction: column;
             height: 100vh;
           }
-
           .content-area {
             flex-grow: 1;
             overflow: auto;
