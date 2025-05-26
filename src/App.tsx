@@ -5,6 +5,10 @@ import DefectAnalysisPage from './components/DefectAnalysisPage';
 import ImageCaptureProcess from './components/ImageCaptureProcess';
 import CustomTitlebar from './components/customTitlebar';
 import { CameraProvider } from './contexts/cameraContext';
+import { LoginPage } from './components/LoginPage';
+import SignUpPage from './components/SignUpPage';
+import { SidebarInset, SidebarProvider } from './components/ui/sidebar';
+import AppSidebar from './components/AppSidebar';
 
 declare global {
   interface Window {
@@ -53,14 +57,13 @@ function App() {
   const [currentPage, setCurrentPage] = useState<string>('home');
   const [isCapturing, setIsCapturing] = useState<boolean>(false);
   const [ppid, setPpid] = useState<string>('');
-  const [cluster1, setCluster1] = useState<number>();
-  const [cluster2, setCluster2] = useState<number>();
-  const [cluster3, setCluster3] = useState<number>();
-  const [cluster4, setCluster4] = useState<number>();
+  // const [cluster1, setCluster1] = useState<number>();
+  // const [cluster2, setCluster2] = useState<number>();
+  // const [cluster3, setCluster3] = useState<number>();
+  // const [cluster4, setCluster4] = useState<number>();
   const [focusDistance, setFocusDistance] = useState();
   const [isTestMode, setIsTestMode] = useState<boolean>(false);
   const [capturedImages, setCapturedImages] = useState<string[]>([]);
-
   // Track upload progress
   const [uploadedImageUrls, setUploadedImageUrls] = useState<(string | null)[]>(
     []
@@ -70,10 +73,14 @@ function App() {
   const [isUploading, setIsUploading] = useState<boolean>(false);
   const [failedUploadIndices, setFailedUploadIndices] = useState<number[]>([]);
 
+  const [authToken, setAuthToken] = useState<string | null>(() =>
+    localStorage.getItem('sentinel_dash_token')
+  );
+  const [showSignup, setShowSignup] = useState(false);
+
   const [patternEBC, setPatternEBC] = useState(() => {
     const saved = localStorage.getItem('patternEBC');
     if (saved) return JSON.parse(saved);
-    // fallback: build from testPatterns
     const testPatterns = [
       {
         name: 'white_AAA',
@@ -147,6 +154,27 @@ function App() {
     localStorage.setItem('patternEBC', JSON.stringify(patternEBC));
   }, [patternEBC]);
 
+  useEffect(() => {
+    const token = localStorage.getItem('sentinel_dash_token');
+    setAuthToken(token);
+  }, []);
+
+  const handleLogin = (token: string) => {
+    localStorage.setItem('sentinel_dash_token', token);
+    setAuthToken(token);
+    setShowSignup(false);
+    setCurrentPage('home');
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('sentinel_dash_token');
+    setAuthToken(null);
+    setCurrentPage('login');
+  };
+
+  const navigateToSignup = () => setShowSignup(true);
+  const navigateToLogin = () => setShowSignup(false);
+
   const handleMinimize = () => {
     window.electronAPI?.minimizeWindow();
   };
@@ -163,18 +191,18 @@ function App() {
   const startDefectChecker = (
     enteredPpid: string,
     mode: boolean,
-    cluster1Val: number,
-    cluster2Val: number,
-    cluster3Val: number,
-    cluster4Val: number,
+    // cluster1Val: number,
+    // cluster2Val: number,
+    // cluster3Val: number,
+    // cluster4Val: number,
     focusDistanceVal: number
   ) => {
     setPpid(enteredPpid);
     setIsTestMode(mode);
-    setCluster1(cluster1Val);
-    setCluster2(cluster2Val);
-    setCluster3(cluster3Val);
-    setCluster4(cluster4Val);
+    // setCluster1(cluster1Val);
+    // setCluster2(cluster2Val);
+    // setCluster3(cluster3Val);
+    // setCluster4(cluster4Val);
     setFocusDistance(focusDistanceVal);
     setIsCapturing(true);
   };
@@ -301,8 +329,10 @@ function App() {
 
   return (
     <CameraProvider>
+      {/* <SidebarProvider>
+        <AppSidebar />
+        <SidebarInset className="bg-gray-100"> */}
       <div className="app-container">
-        {/* Only render the titlebar when not in capture mode */}
         {!isCapturing && (
           <CustomTitlebar
             onMinimize={handleMinimize}
@@ -310,18 +340,29 @@ function App() {
             onClose={handleClose}
           />
         )}
-        {/* Move sidebar/content below titlebar */}
         <div className="content-area">
-          {isCapturing ? (
+          {!authToken ? (
+            showSignup ? (
+              <SignUpPage
+                onSignup={handleLogin}
+                navigateToLogin={navigateToLogin}
+              />
+            ) : (
+              <LoginPage
+                onLogin={handleLogin}
+                navigateToSignup={navigateToSignup}
+              />
+            )
+          ) : isCapturing ? (
             <ImageCaptureProcess
               onComplete={handleCaptureComplete}
               onUploadProgress={handleUploadProgress}
               ppid={ppid}
               isTestMode={isTestMode}
-              cluster1={cluster1}
-              cluster2={cluster2}
-              cluster3={cluster3}
-              cluster4={cluster4}
+              // cluster1={cluster1}
+              // cluster2={cluster2}
+              // cluster3={cluster3}
+              // cluster4={cluster4}
               focusDistance={focusDistance}
               patternEBC={patternEBC}
             />
@@ -334,6 +375,7 @@ function App() {
                       onStartDefectChecker={startDefectChecker}
                       patternEBC={patternEBC}
                       setPatternEBC={setPatternEBC}
+                      handleLogout={handleLogout}
                     />
                   );
                 case 'review':
@@ -362,12 +404,12 @@ function App() {
                     />
                   );
                 default:
-                  // Provide required props for HomePage
                   return (
                     <HomePage
                       onStartDefectChecker={startDefectChecker}
                       patternEBC={patternEBC}
                       setPatternEBC={setPatternEBC}
+                      handleLogout={handleLogout}
                     />
                   );
               }
@@ -386,6 +428,8 @@ function App() {
           }
         `}</style>
       </div>
+      {/* </SidebarInset>
+      </SidebarProvider> */}
     </CameraProvider>
   );
 }

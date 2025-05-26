@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import * as Sentry from '@sentry/react';
 import white_AAA from '../assets/white_AAA.bmp';
 import black_BBB from '../assets/black_BBB.bmp';
 import cyan_CCC from '../assets/cyan_CCC.bmp';
@@ -40,10 +41,10 @@ function ImageCaptureProcess({
   onUploadProgress,
   ppid,
   isTestMode,
-  cluster1 = 20,
-  cluster2 = 60,
-  cluster3 = 100,
-  cluster4 = 140,
+  // cluster1 = 20,
+  // cluster2 = 60,
+  // cluster3 = 100,
+  // cluster4 = 140,
   focusDistance,
   patternEBC,
 }: ImageCaptureProcessProps) {
@@ -81,36 +82,36 @@ function ImageCaptureProcess({
   const testImagesCount = testPatterns.length;
 
   // Exposure values for each cluster
-  const exposureClusters: { [key: string]: number } = {
-    cluster1,
-    cluster2,
-    cluster3,
-    cluster4,
-  };
+  // const exposureClusters: { [key: string]: number } = {
+  //   cluster1,
+  //   cluster2,
+  //   cluster3,
+  //   cluster4,
+  // };
 
-  const clusterMapping: {
-    [key: string]: 'cluster1' | 'cluster2' | 'cluster3' | 'cluster4';
-  } = {
-    // Cluster 1
-    white_AAA: 'cluster1',
-    'black&White_OOO': 'cluster1',
-    colorBars_JJJ: 'cluster1',
-    // Cluster 2
-    focus_KKK: 'cluster2',
-    gray75_HHH: 'cluster2',
-    green_FFF: 'cluster2',
-    cyan_CCC: 'cluster2',
-    gray50_DDD: 'cluster2',
-    // Cluster 3
-    red_EEE: 'cluster3',
-    grayVertical_III: 'cluster3',
-    '16BarGray_NNN': 'cluster3',
-    // Cluster 4
-    blue_GGG: 'cluster4',
-    crossHatch_MMM: 'cluster4',
-    blackWithWhiteBorder_LLL: 'cluster4',
-    black_BBB: 'cluster4',
-  };
+  // const clusterMapping: {
+  //   [key: string]: 'cluster1' | 'cluster2' | 'cluster3' | 'cluster4';
+  // } = {
+  //   // Cluster 1
+  //   white_AAA: 'cluster1',
+  //   'black&White_OOO': 'cluster1',
+  //   colorBars_JJJ: 'cluster1',
+  //   // Cluster 2
+  //   focus_KKK: 'cluster2',
+  //   gray75_HHH: 'cluster2',
+  //   green_FFF: 'cluster2',
+  //   cyan_CCC: 'cluster2',
+  //   gray50_DDD: 'cluster2',
+  //   // Cluster 3
+  //   red_EEE: 'cluster3',
+  //   grayVertical_III: 'cluster3',
+  //   '16BarGray_NNN': 'cluster3',
+  //   // Cluster 4
+  //   blue_GGG: 'cluster4',
+  //   crossHatch_MMM: 'cluster4',
+  //   blackWithWhiteBorder_LLL: 'cluster4',
+  //   black_BBB: 'cluster4',
+  // };
 
   useEffect(() => {
     setupCamera();
@@ -224,7 +225,16 @@ function ImageCaptureProcess({
     } catch (error) {
       console.error('Error uploading to DigitalOcean:', error);
 
-      // Notify parent component about the failed upload
+      // Sentry.captureException(error, {
+      //   tags: {
+      //     location: 'uploadToDigitalOcean',
+      //     patternIndex: index.toString(),
+      //   },
+      //   extra: {
+      //     imageDataSnippet: imageData.slice(0, 30), //preview image
+      //   },
+      // });
+
       onUploadProgress(null, index);
 
       return null;

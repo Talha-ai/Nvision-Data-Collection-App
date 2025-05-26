@@ -27,20 +27,17 @@ import {
 
 export function NavUser({
   user,
+  handleLogout,
 }: {
   user: {
     name: string;
     email: string;
     avatar: string;
   };
+  handleLogout: () => void;
 }) {
   const { isMobile } = useSidebar();
   // const navigate = useNavigate();
-
-  const handleLogout = () => {
-    localStorage.removeItem('sentinel_dash_token');
-    // navigate('/login');
-  };
   return (
     <SidebarMenu>
       <SidebarMenuItem>

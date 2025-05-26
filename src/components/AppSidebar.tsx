@@ -1,5 +1,5 @@
 import { BookOpen, Bot, Settings2, SquareTerminal } from 'lucide-react';
-import  React from 'react'
+import React from 'react';
 import {
   Sidebar,
   SidebarContent,
@@ -25,7 +25,7 @@ const data = {
   },
   teams: [
     {
-      name: 'Acme Inc',
+      name: 'Nvision AI',
       logo: GalleryVerticalEnd,
       plan: 'Enterprise',
     },
@@ -42,35 +42,35 @@ const data = {
   ],
   navMain: [
     {
-      title: 'Scan Data',
+      title: 'Defect Checker',
       url: '#scan-data',
       icon: SquareTerminal,
       isActive: true,
-      items: [
-        {
-          title: 'Heatmap',
-          url: '#heatmap',
-        },
-        {
-          title: 'List view',
-          url: '#list-view',
-        },
-      ],
+      // items: [
+      //   {
+      //     title: 'Heatmap',
+      //     url: '#heatmap',
+      //   },
+      //   {
+      //     title: 'List view',
+      //     url: '#list-view',
+      //   },
+      // ],
     },
     {
-      title: 'QR Generator',
-      url: '#qr-generator',
+      title: 'Past Data',
+      url: '#past-data',
       icon: Bot,
       items: [],
     },
     {
-      title: 'Printers',
-      url: '#printers',
+      title: 'Past error logs',
+      url: '#past-error-logs',
       icon: BookOpen,
       items: [],
     },
     {
-      title: 'Settings',
+      title: 'App settings',
       url: '#settings',
       icon: Settings2,
       items: [
@@ -91,9 +91,16 @@ const data = {
   ],
 };
 
-const AppSidebar = ({ ...props }: React.ComponentProps<typeof Sidebar>) => {
+const AppSidebar = ({
+  handleLogout,
+  ...props
+}: React.ComponentProps<typeof Sidebar> & { handleLogout: () => void }) => {
   return (
-    <Sidebar collapsible="icon" {...props} className='my-10'>
+    <Sidebar
+      collapsible="icon"
+      {...props}
+      className="top-8 h-[calc(100vh-32px)]"
+    >
       <SidebarHeader>
         <TeamSwitcher teams={data.teams} />
       </SidebarHeader>
@@ -101,7 +108,7 @@ const AppSidebar = ({ ...props }: React.ComponentProps<typeof Sidebar>) => {
         <NavMain items={data.navMain} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser user={data.user} handleLogout={handleLogout} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
