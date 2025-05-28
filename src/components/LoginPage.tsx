@@ -23,7 +23,7 @@ export function LoginPage({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const  handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
@@ -43,6 +43,7 @@ export function LoginPage({
         throw new Error(data.message || 'Login failed');
       }
       console.log(data);
+      localStorage.setItem('sentinel_dash_username', username);
       onLogin(data.access);
     } catch (error: any) {
       setError(error.message || 'Invalid username or password');
@@ -94,12 +95,12 @@ export function LoginPage({
                 <div className="grid gap-2">
                   <div className="flex items-center">
                     <Label htmlFor="password">Password</Label>
-                    <a
+                    {/* <a
                       href="#"
                       className="ml-auto text-sm underline-offset-4 hover:underline"
                     >
                       Forgot your password?
-                    </a>
+                    </a> */}
                   </div>
                   <Input
                     id="password"

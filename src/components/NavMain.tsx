@@ -1,6 +1,4 @@
-import { useState, useEffect } from 'react';
 import { ChevronRight, type LucideIcon } from 'lucide-react';
-
 import {
   Collapsible,
   CollapsibleContent,
@@ -16,9 +14,7 @@ import {
   SidebarMenuSubItem,
 } from '@/components/ui/sidebar';
 
-export function NavMain({
-  items,
-}: {
+interface NavMainProps {
   items: {
     title: string;
     url: string;
@@ -29,57 +25,33 @@ export function NavMain({
       url: string;
     }[];
   }[];
-}) {
-  // State to store the current hash
-  const [currentHash, setCurrentHash] = useState('');
+  onNavigate: (page: string) => void;
+  activePage: string;
+}
 
-  // Effect to handle hash changes
-  useEffect(() => {
-    // Set initial hash
-    setCurrentHash(window.location.hash);
-
-    // Function to update hash on change
-    const handleHashChange = () => {
-      setCurrentHash(window.location.hash);
-    };
-
-    // Add event listener
-    window.addEventListener('hashchange', handleHashChange);
-
-    // Cleanup
-    return () => {
-      window.removeEventListener('hashchange', handleHashChange);
-    };
-  }, []);
-
-  // Check if item is active
-  const isItemActive = (url: string) => {
-    if (typeof window === 'undefined') return false;
-    return currentHash === url.replace('#', '');
-  };
+export function NavMain({ items, onNavigate, activePage }: NavMainProps) {
+  // Helper to extract page key from url (e.g., '#pattern-EBC' => 'pattern-ebc')
+  const getPageKey = (url: string) => url.replace(/^#/, '').toLowerCase();
 
   return (
     <SidebarGroup>
       <SidebarMenu>
         {items.map((item) => {
-          // If item has no subitems, render a simple button
           if (!item.items || item.items.length === 0) {
+            const pageKey = getPageKey(item.url);
             return (
               <SidebarMenuItem key={item.title}>
                 <SidebarMenuButton
                   tooltip={item.title}
-                  asChild
-                  isActive={isItemActive(item.url)}
+                  isActive={activePage === pageKey}
+                  onClick={() => onNavigate(pageKey)}
                 >
-                  <a href={item.url}>
-                    {item.icon && <item.icon />}
-                    <span>{item.title}</span>
-                  </a>
+                  {item.icon && <item.icon />}
+                  <span>{item.title}</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             );
           }
-
           // If item has subitems, render as collapsible
           return (
             <Collapsible
@@ -92,7 +64,7 @@ export function NavMain({
                 <CollapsibleTrigger asChild>
                   <SidebarMenuButton
                     tooltip={item.title}
-                    isActive={isItemActive(item.url)}
+                    isActive={activePage === getPageKey(item.url) || item.items.some(sub => activePage === getPageKey(sub.url))}
                   >
                     {item.icon && <item.icon />}
                     <span>{item.title}</span>
@@ -101,18 +73,19 @@ export function NavMain({
                 </CollapsibleTrigger>
                 <CollapsibleContent>
                   <SidebarMenuSub>
-                    {item.items?.map((subItem) => (
-                      <SidebarMenuSubItem key={subItem.title}>
-                        <SidebarMenuSubButton
-                          asChild
-                          isActive={isItemActive(subItem.url)}
-                        >
-                          <a href={subItem.url}>
+                    {item.items?.map((subItem) => {
+                      const subPageKey = getPageKey(subItem.url);
+                      return (
+                        <SidebarMenuSubItem key={subItem.title}>
+                          <SidebarMenuSubButton
+                            isActive={activePage === subPageKey}
+                            onClick={() => onNavigate(subPageKey)}
+                          >
                             <span>{subItem.title}</span>
-                          </a>
-                        </SidebarMenuSubButton>
-                      </SidebarMenuSubItem>
-                    ))}
+                          </SidebarMenuSubButton>
+                        </SidebarMenuSubItem>
+                      );
+                    })}
                   </SidebarMenuSub>
                 </CollapsibleContent>
               </SidebarMenuItem>

@@ -43,19 +43,9 @@ const data = {
   navMain: [
     {
       title: 'Defect Checker',
-      url: '#scan-data',
+      url: '#defect-checker',
       icon: SquareTerminal,
       isActive: true,
-      // items: [
-      //   {
-      //     title: 'Heatmap',
-      //     url: '#heatmap',
-      //   },
-      //   {
-      //     title: 'List view',
-      //     url: '#list-view',
-      //   },
-      // ],
     },
     {
       title: 'Data Collection',
@@ -75,12 +65,6 @@ const data = {
       icon: BookOpen,
       items: [],
     },
-    // {
-    //   title: 'Past error logs',
-    //   url: '#past-error-logs',
-    //   icon: BookOpen,
-    //   items: [],
-    // },
     {
       title: 'App settings',
       url: '#settings',
@@ -92,7 +76,7 @@ const data = {
         },
         {
           title: 'Pattern EBC',
-          url: '#pattern-EBC',
+          url: '#pattern-ebc',
         },
         {
           title: 'Team',
@@ -109,8 +93,11 @@ const data = {
 
 const AppSidebar = ({
   handleLogout,
+  onNavigate,
+  activePage,
+  username,
   ...props
-}: React.ComponentProps<typeof Sidebar> & { handleLogout: () => void }) => {
+}: React.ComponentProps<typeof Sidebar> & { handleLogout: () => void; onNavigate: (page: string) => void; activePage: string; username?: string }) => {
   return (
     <Sidebar
       collapsible="icon"
@@ -121,10 +108,14 @@ const AppSidebar = ({
         <TeamSwitcher teams={data.teams} />
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
+        <NavMain items={data.navMain} onNavigate={onNavigate} activePage={activePage} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} handleLogout={handleLogout} />
+        <NavUser user={{
+          name: username || data.user.name,
+          email: data.user.email,
+          avatar: '',
+        }} handleLogout={handleLogout} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
