@@ -544,8 +544,8 @@ function HomePage({
                         <button
                           className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
                             !isTestMode
-                              ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm'
-                              : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                              ? 'bg-green-500 dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm'
+                              : ' text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
                           }`}
                           onClick={() => setIsTestMode(false)}
                         >
@@ -554,8 +554,8 @@ function HomePage({
                         <button
                           className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
                             isTestMode
-                              ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm'
-                              : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                              ? 'bg-yellow-500 dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm'
+                              : ' text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
                           }`}
                           onClick={() => setIsTestMode(true)}
                         >

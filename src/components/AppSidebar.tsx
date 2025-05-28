@@ -1,4 +1,4 @@
-import { BookOpen, Bot, Settings2, SquareTerminal } from 'lucide-react';
+import { BookOpen, Bot, Gpu, Settings2, SquareTerminal } from 'lucide-react';
 import React from 'react';
 import {
   Sidebar,
@@ -58,17 +58,29 @@ const data = {
       // ],
     },
     {
+      title: 'Data Collection',
+      url: '#data-collection',
+      icon: Gpu,
+      items: [],
+    },
+    {
       title: 'Past Data',
       url: '#past-data',
       icon: Bot,
       items: [],
     },
     {
-      title: 'Past error logs',
-      url: '#past-error-logs',
+      title: 'Summary',
+      url: '#summary',
       icon: BookOpen,
       items: [],
     },
+    // {
+    //   title: 'Past error logs',
+    //   url: '#past-error-logs',
+    //   icon: BookOpen,
+    //   items: [],
+    // },
     {
       title: 'App settings',
       url: '#settings',
@@ -77,6 +89,10 @@ const data = {
         {
           title: 'General',
           url: '#settings-general',
+        },
+        {
+          title: 'Pattern EBC',
+          url: '#pattern-EBC',
         },
         {
           title: 'Team',

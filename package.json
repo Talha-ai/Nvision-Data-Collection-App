@@ -1,6 +1,6 @@
 {
   "name": "nvision-data-collection",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "description": "Nvision Data Collection App",
   "main": "main.js",
   "scripts": {
