@@ -26,6 +26,8 @@ import SummaryPage from './components/SummaryPage';
 import PatternEBCPage from './components/PatternEBCPage';
 import DataCollectionPage from './components/DataCollectionPage';
 import DefectCheckerPage from './components/DefectCheckerPage';
+import { AppModeProvider } from './contexts/appModeContext';
+import PastDataPage from './components/PastDataPage';
 
 declare global {
   interface Window {
@@ -131,6 +133,7 @@ function App() {
 
   const handleLogout = () => {
     localStorage.removeItem('sentinel_dash_token');
+    localStorage.removeItem('sentinel_dash_username');
     setAuthToken(null);
     setActivePage('login');
   };
@@ -288,6 +291,7 @@ function App() {
     'pattern-ebc': 'Pattern EBC Settings',
     'review': 'Review Images',
     'defect-analysis': 'Defect Analysis',
+    'past-data': 'Past Data',
     // Add more as needed
   };
 
@@ -332,85 +336,89 @@ function App() {
             }}
           />
         );
+      case 'past-data':
+        return <PastDataPage />;
       default:
         return <div>Welcome!</div>;
     }
   };
 
   return (
-    <CameraProvider>
-      <div className="app-container">
-        {!isCapturing && (
-          <CustomTitlebar
-            onMinimize={handleMinimize}
-            onMaximize={handleMaximize}
-            onClose={handleClose}
-          />
-        )}
-        <div className="content-area">
-          {!authToken ? (
-            showSignup ? (
-              <SignUpPage
-                onSignup={handleLogin}
-                navigateToLogin={navigateToLogin}
-              />
-            ) : (
-              <LoginPage
-                onLogin={handleLogin}
-                navigateToSignup={navigateToSignup}
-              />
-            )
-          ) : isCapturing ? (
-            <ImageCaptureProcess
-              onComplete={handleCaptureComplete}
-              onUploadProgress={handleUploadProgress}
-              ppid={ppid}
-              isTestMode={isTestMode}
-              focusDistance={focusDistance}
-              patternEBC={patternEBC}
+    <AppModeProvider>
+      <CameraProvider>
+        <div className="app-container">
+          {!isCapturing && (
+            <CustomTitlebar
+              onMinimize={handleMinimize}
+              onMaximize={handleMaximize}
+              onClose={handleClose}
             />
-          ) : (
-            <HomePage handleLogout={handleLogout} onNavigate={handleNavigate} activePage={activePage} pageTitle={pageTitles[activePage] || ''} username={username}>
-              {activePage === 'review' ? (
-                <ReviewImagesPage
-                  ppid={ppid}
-                  capturedImages={capturedImages}
-                  onApprove={approveImages}
-                  onRetake={retakeImages}
-                  onDiscard={discardSession}
-                />
-              ) : activePage === 'defect-analysis' ? (
-                <DefectAnalysisPage
-                  ppid={ppid}
-                  isTestMode={isTestMode}
-                  uploadedImageUrls={uploadedImageUrls}
-                  onSubmit={submitDefectAnalysis}
-                  onDiscard={discardSession}
-                  uploadProgress={completedUploads}
-                  totalUploads={totalUploads}
-                  isUploading={isUploading}
-                  failedUploadCount={failedUploadIndices.length}
-                  onRetryUploads={retryFailedUploads}
+          )}
+          <div className="content-area">
+            {!authToken ? (
+              showSignup ? (
+                <SignUpPage
+                  onSignup={handleLogin}
+                  navigateToLogin={navigateToLogin}
                 />
               ) : (
-                renderActivePage()
-              )}
-            </HomePage>
-          )}
+                <LoginPage
+                  onLogin={handleLogin}
+                  navigateToSignup={navigateToSignup}
+                />
+              )
+            ) : isCapturing ? (
+              <ImageCaptureProcess
+                onComplete={handleCaptureComplete}
+                onUploadProgress={handleUploadProgress}
+                ppid={ppid}
+                isTestMode={isTestMode}
+                focusDistance={focusDistance}
+                patternEBC={patternEBC}
+              />
+            ) : (
+              <HomePage handleLogout={handleLogout} onNavigate={handleNavigate} activePage={activePage} pageTitle={pageTitles[activePage] || ''} username={username}>
+                {activePage === 'review' ? (
+                  <ReviewImagesPage
+                    ppid={ppid}
+                    capturedImages={capturedImages}
+                    onApprove={approveImages}
+                    onRetake={retakeImages}
+                    onDiscard={discardSession}
+                  />
+                ) : activePage === 'defect-analysis' ? (
+                  <DefectAnalysisPage
+                    ppid={ppid}
+                    isTestMode={isTestMode}
+                    uploadedImageUrls={uploadedImageUrls}
+                    onSubmit={submitDefectAnalysis}
+                    onDiscard={discardSession}
+                    uploadProgress={completedUploads}
+                    totalUploads={totalUploads}
+                    isUploading={isUploading}
+                    failedUploadCount={failedUploadIndices.length}
+                    onRetryUploads={retryFailedUploads}
+                  />
+                ) : (
+                  renderActivePage()
+                )}
+              </HomePage>
+            )}
+          </div>
+          <style jsx>{`
+            .app-container {
+              display: flex;
+              flex-direction: column;
+              height: 100vh;
+            }
+            .content-area {
+              flex-grow: 1;
+              overflow: auto;
+            }
+          `}</style>
         </div>
-        <style jsx>{`
-          .app-container {
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-          }
-          .content-area {
-            flex-grow: 1;
-            overflow: auto;
-          }
-        `}</style>
-      </div>
-    </CameraProvider>
+      </CameraProvider>
+    </AppModeProvider>
   );
 }
 

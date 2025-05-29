@@ -3,6 +3,7 @@ import { useCamera } from '../contexts/cameraContext';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { RotateCcw } from 'lucide-react';
+import { useAppMode } from '../contexts/appModeContext';
 
 interface DefectCheckerPageProps {
   onStartDefectChecker: (
@@ -10,6 +11,7 @@ interface DefectCheckerPageProps {
     isTestMode: boolean,
     focusDistance: number
   ) => void;
+  cameraRefreshTrigger?: number;
 }
 
 const defaultLiveSettings = {
@@ -20,11 +22,8 @@ const defaultLiveSettings = {
 };
 
 const DefectCheckerPage: React.FC<DefectCheckerPageProps> = ({ onStartDefectChecker }) => {
+  const { isTestMode } = useAppMode();
   const [ppid, setPpid] = useState('');
-  const [isTestMode, setIsTestMode] = useState(() => {
-    const savedMode = localStorage.getItem('appMode');
-    return savedMode ? savedMode === 'test' : false;
-  });
   const [exposure, setExposure] = useState(() => {
     const saved = localStorage.getItem('exposure');
     return saved ? Number(saved) : 140;
@@ -65,9 +64,9 @@ const DefectCheckerPage: React.FC<DefectCheckerPageProps> = ({ onStartDefectChec
     };
   }, [cameraRefreshTrigger]);
 
-  useEffect(()=>{
+  useEffect(() => {
     setupCamera();
-  },[])
+  },[]);
 
   useEffect(() => {
     if (isCameraReady) {
@@ -122,11 +121,26 @@ const DefectCheckerPage: React.FC<DefectCheckerPageProps> = ({ onStartDefectChec
     setFocusDistance(defaultLiveSettings.focusDistance);
   };
 
+  useEffect(() => {
+    localStorage.setItem('exposure', exposure.toString());
+  }, [exposure]);
+
+  useEffect(() => {
+    localStorage.setItem('focusDistance', focusDistance.toString());
+  }, [focusDistance]);
+  useEffect(() => {
+    localStorage.setItem('brightness', brightness.toString());
+  }, [brightness]);
+  useEffect(() => {
+    localStorage.setItem('contrast', contrast.toString());
+  }, [contrast]);
+
+
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       <div className="flex items-center justify-between mb-2">
         <h2 className="text-xl font-semibold">Defect Checker</h2>
-        <Button variant="ghost" size="icon" onClick={handleRefresh} title="Refresh Camera">
+         <Button variant="ghost" size="icon" onClick={handleRefresh} title="Refresh Camera">
           <RotateCcw className="w-5 h-5" />
         </Button>
       </div>

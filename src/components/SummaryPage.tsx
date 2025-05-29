@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { RotateCcw } from 'lucide-react';
+import { useAppMode } from '../contexts/appModeContext';
 
 interface DefectStat {
   defect_name: string;
@@ -16,13 +17,10 @@ interface StatsData {
 }
 
 const SummaryPage: React.FC = () => {
+  const { isTestMode } = useAppMode();
   const [statsData, setStatsData] = useState<StatsData | null>(null);
   const [defects, setDefects] = useState<DefectStat[]>([]);
   const [statsLoading, setStatsLoading] = useState(true);
-  const [isTestMode, setIsTestMode] = useState(() => {
-    const savedMode = localStorage.getItem('appMode');
-    return savedMode ? savedMode === 'test' : false;
-  });
   const [fullStatsData, setFullStatsData] = useState<any>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
@@ -46,17 +44,22 @@ const SummaryPage: React.FC = () => {
     }
   };
 
-  useEffect(() => {
-    fetchStats();
-  }, [refreshTrigger]);
+    const updateDisplayedData = (data: any, testMode: boolean) => {
+    const modeData = testMode ? data.test : data.production;
+    setStatsData(modeData);
+    setDefects(modeData.defect_statistics);
+  };
+
+    useEffect(() => {
+    if (fullStatsData) {
+      updateDisplayedData(fullStatsData, isTestMode);
+    }
+  }, [isTestMode, fullStatsData]);
 
   useEffect(() => {
-    const modeData = isTestMode
-      ? fullStatsData?.test
-      : fullStatsData?.production;
-    setStatsData(modeData);
-    setDefects(modeData?.defect_statistics);
-  }, [isTestMode]);
+    fetchStats();
+    // eslint-disable-next-line
+  }, [refreshTrigger]);
 
   const handleRefresh = () => {
     setRefreshTrigger((prev) => prev + 1);
@@ -78,33 +81,12 @@ const SummaryPage: React.FC = () => {
         </div>
       </CardHeader>
       <CardContent>
-        {/* <div className="flex items-center gap-4 mb-2">
+        <div className="flex items-center gap-4 mb-2">
           <span className="font-semibold">App mode:</span>
-          <div className="relative">
-            <div className="flex bg-gray-200 dark:bg-gray-700 rounded-lg p-1">
-              <button
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
-                  !isTestMode
-                    ? 'bg-green-500 dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm'
-                    : ' text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-                }`}
-                onClick={() => setIsTestMode(false)}
-              >
-                Production
-              </button>
-              <button
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
-                  isTestMode
-                    ? 'bg-yellow-500 dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm'
-                    : ' text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-                }`}
-                onClick={() => setIsTestMode(true)}
-              >
-                Test
-              </button>
-            </div>
-          </div>
-        </div> */}
+          <span className="text-xs font-semibold px-2 py-1 rounded bg-gray-200 dark:bg-gray-700">
+            {isTestMode ? 'Test' : 'Production'}
+          </span>
+        </div>
         {statsLoading ? (
           <p>Loading statistics...</p>
         ) : (

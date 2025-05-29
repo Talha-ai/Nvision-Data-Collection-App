@@ -234,7 +234,7 @@ export const CameraProvider: React.FC<{ children: React.ReactNode }> = ({
     <CameraContext.Provider value={value}>
       {children}
       <div style={{ display: 'none' }}>
-        <video ref={videoRef} autoPlay playsInline />
+        {/* <video ref={videoRef} autoPlay playsInline /> */}
         <canvas ref={canvasRef} />
       </div>
     </CameraContext.Provider>
