@@ -112,7 +112,7 @@ const AppSidebar = ({
       <SidebarHeader>
         <div className="flex flex-col gap-2 w-full">
           <TeamSwitcher teams={data.teams} />
-          <div className="mt-2">
+           <div className="mt-2">
             <div
               className={`transition-all duration-200 overflow-hidden ${state === 'expanded' ? 'max-h-20 opacity-100' : 'max-h-0 opacity-0 pointer-events-none'}`}
             >

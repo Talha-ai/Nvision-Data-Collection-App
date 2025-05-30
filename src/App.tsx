@@ -28,6 +28,7 @@ import DataCollectionPage from './components/DataCollectionPage';
 import DefectCheckerPage from './components/DefectCheckerPage';
 import { AppModeProvider } from './contexts/appModeContext';
 import PastDataPage from './components/PastDataPage';
+import PredictedDefectsPage from './components/PredictedDefectsPage';
 
 declare global {
   interface Window {
@@ -71,6 +72,27 @@ const testPatterns = [
   { name: 'black&White_OOO', src: blackWhite_OOO },
 ];
 
+// Dummy defects result set for PredictedDefectsPage
+const dummyDefects = {
+  'VID - Abnormal Display Defect Not Found': true,
+  'VID - Horizontal Line Defect Not Found': true,
+  'VID - Horizontal Band Defect Found': false,
+  'VID - Vertical Line Defect Not Found': true,
+  'VID - Vertical Band Defect Not Found': true,
+  'VID - Particles Defect Not Found': true,
+  'CID - White Patch Defect Not Found': true,
+  'CID - Polariser Scratches / Dent Defect Not Found': true,
+  'VID - Light Leakage Defect Not Found': true,
+  'VID - Mura Defect Not Found': true,
+  'VID - Incoming Border Patch Defect Not Found': true,
+  'VID - Pixel Bright Dot Defect Not Found': true,
+  'BER - Incoming Galaxy Defect Not Found': false,
+  'VID - Led Off Defect Found': false,
+  'VID - Bleeding Defect Not Found': false,
+  'NTF - No Trouble Found Defect Not Found': true,
+  'Other Defects Defect Not Found': true,
+};
+
 function App() {
   const [activePage, setActivePage] = useState('defect-checker');
   const [isCapturing, setIsCapturing] = useState(false);
@@ -112,6 +134,7 @@ function App() {
     return obj;
   });
   const [username, setUsername] = useState(() => localStorage.getItem('sentinel_dash_username') || '');
+  const [routineType, setRoutineType] = useState('defect-checker');
 
   useEffect(() => {
     localStorage.setItem('patternEBC', JSON.stringify(patternEBC));
@@ -153,16 +176,18 @@ function App() {
     window.electronAPI?.closeWindow();
   };
 
-  // Start the defect checker routine
+  // Start the defect checker or data collection routine
   const startDefectChecker = (
     enteredPpid,
     mode,
-    focusDistanceVal
+    focusDistanceVal,
+    routine = 'defect-checker' // default
   ) => {
     setPpid(enteredPpid);
     setIsTestMode(mode);
     setFocusDistance(focusDistanceVal);
     setIsCapturing(true);
+    setRoutineType(routine);
   };
 
   // Handle when image capture is complete and uploads have started
@@ -292,6 +317,7 @@ function App() {
     'review': 'Review Images',
     'defect-analysis': 'Defect Analysis',
     'past-data': 'Past Data',
+    'predicted-defects': 'Predicted Defects',
     // Add more as needed
   };
 
@@ -338,6 +364,8 @@ function App() {
         );
       case 'past-data':
         return <PastDataPage />;
+      case 'predicted-defects':
+        return <PredictedDefectsPage defects={dummyDefects} />;
       default:
         return <div>Welcome!</div>;
     }
@@ -382,10 +410,18 @@ function App() {
                   <ReviewImagesPage
                     ppid={ppid}
                     capturedImages={capturedImages}
-                    onApprove={approveImages}
+                    onApprove={() => {
+                      if (routineType === 'data-collection') {
+                        setActivePage('predicted-defects');
+                      } else {
+                        approveImages();
+                      }
+                    }}
                     onRetake={retakeImages}
                     onDiscard={discardSession}
                   />
+                ) : activePage === 'predicted-defects' ? (
+                  <PredictedDefectsPage defects={dummyDefects} />
                 ) : activePage === 'defect-analysis' ? (
                   <DefectAnalysisPage
                     ppid={ppid}
