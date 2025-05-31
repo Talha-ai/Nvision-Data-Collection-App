@@ -382,13 +382,9 @@ function App() {
     }
   };
 
-     const tokena = localStorage.getItem('sentinel_dash_token');
-      console.log(tokena)
-
   const pollPredictionStatus = async (task_uuid) => {
     try {
       const token = localStorage.getItem('sentinel_dash_token');
-      console.log(token)
       // const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzQ4NzcxMzU5LCJpYXQiOjE3NDg2ODQ5NTksImp0aSI6IjRlNDA1YWZkNGIzZDQ4MzhiOWNjYzVhYzEyYjlmMTI3IiwidXNlcl9pZCI6Mn0.kbi0y39wG9MEk8ult_3L2HMo1ItL7bGFJiuVZtn1_6U'
       if (!token) {
         setIsPredicting(false);
