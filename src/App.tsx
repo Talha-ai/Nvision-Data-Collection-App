@@ -188,11 +188,18 @@ function App() {
     focusDistanceVal,
     routine = 'defect-checker' // default
   ) => {
+    // Reset all session/capture/upload states for a fresh routine
     setPpid(enteredPpid);
     setIsTestMode(mode);
     setFocusDistance(focusDistanceVal);
     setIsCapturing(true);
     setRoutineType(routine);
+    setCapturedImages([]);
+    setUploadedImageUrls([]);
+    setCompletedUploads(0);
+    setTotalUploads(0);
+    setIsUploading(false);
+    setFailedUploadIndices([]);
   };
 
   // Handle when image capture is complete and uploads have started
@@ -375,9 +382,14 @@ function App() {
     }
   };
 
+     const tokena = localStorage.getItem('sentinel_dash_token');
+      console.log(tokena)
+
   const pollPredictionStatus = async (task_uuid) => {
     try {
       const token = localStorage.getItem('sentinel_dash_token');
+      console.log(token)
+      // const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzQ4NzcxMzU5LCJpYXQiOjE3NDg2ODQ5NTksImp0aSI6IjRlNDA1YWZkNGIzZDQ4MzhiOWNjYzVhYzEyYjlmMTI3IiwidXNlcl9pZCI6Mn0.kbi0y39wG9MEk8ult_3L2HMo1ItL7bGFJiuVZtn1_6U'
       if (!token) {
         setIsPredicting(false);
         setPredictedDefects({ error: 'No authentication token found. Please log in again.' });
@@ -541,7 +553,7 @@ function App() {
                       {predictionError && (
                         <button
                           className="mt-4 px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-onClick={() => pollPredictionStatus(taskid)}
+                          onClick={() => pollPredictionStatus(taskid)}
                         >
                           Retry
                         </button>

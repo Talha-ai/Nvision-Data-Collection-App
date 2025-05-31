@@ -2,27 +2,27 @@ import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 
 // Dummy result set for demonstration
-const dummyDefects = {
-  'VID - Abnormal Display Defect Not Found': true,
-  'VID - Horizontal Line Defect Not Found': true,
-  'VID - Horizontal Band Defect Found': false,
-  'VID - Vertical Line Defect Not Found': true,
-  'VID - Vertical Band Defect Not Found': true,
-  'VID - Particles Defect Not Found': true,
-  'CID - White Patch Defect Not Found': true,
-  'CID - Polariser Scratches / Dent Defect Not Found': true,
-  'VID - Light Leakage Defect Not Found': true,
-  'VID - Mura Defect Not Found': true,
-  'VID - Incoming Border Patch Defect Not Found': true,
-  'VID - Pixel Bright Dot Defect Not Found': true,
-  'BER - Incoming Galaxy Defect Not Found': false,
-  'VID - Led Off Defect Found': false,
-  'VID - Bleeding Defect Not Found': false,
-  'NTF - No Trouble Found Defect Not Found': true,
-  'Other Defects Defect Not Found': true,
-};
+// const dummyDefects = {
+//   'VID - Abnormal Display Defect Not Found': true,
+//   'VID - Horizontal Line Defect Not Found': true,
+//   'VID - Horizontal Band Defect Found': false,
+//   'VID - Vertical Line Defect Not Found': true,
+//   'VID - Vertical Band Defect Not Found': true,
+//   'VID - Particles Defect Not Found': true,
+//   'CID - White Patch Defect Not Found': true,
+//   'CID - Polariser Scratches / Dent Defect Not Found': true,
+//   'VID - Light Leakage Defect Not Found': true,
+//   'VID - Mura Defect Not Found': true,
+//   'VID - Incoming Border Patch Defect Not Found': true,
+//   'VID - Pixel Bright Dot Defect Not Found': true,
+//   'BER - Incoming Galaxy Defect Not Found': false,
+//   'VID - Led Off Defect Found': false,
+//   'VID - Bleeding Defect Not Found': false,
+//   'NTF - No Trouble Found Defect Not Found': true,
+//   'Other Defects Defect Not Found': true,
+// };
 
-function PredictedDefectsPage({ defects = dummyDefects }) {
+function PredictedDefectsPage({ defects }) {
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       <Card>
