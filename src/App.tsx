@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import HomePage from './components/HomePage';
 import ReviewImagesPage from './components/ReviewImagesPage';
 import DefectAnalysisPage from './components/DefectAnalysisPage';
@@ -135,6 +135,11 @@ function App() {
   });
   const [username, setUsername] = useState(() => localStorage.getItem('sentinel_dash_username') || '');
   const [routineType, setRoutineType] = useState('defect-checker');
+  const [predictedDefects, setPredictedDefects] = useState(null); // for real API result
+  const [isPredicting, setIsPredicting] = useState(false);
+  const [predictionError, setPredictionError] = useState(null);
+  const [taskid, setTaskid] = useState();
+  const pollingRef = useRef(null);
 
   useEffect(() => {
     localStorage.setItem('patternEBC', JSON.stringify(patternEBC));
@@ -321,6 +326,107 @@ function App() {
     // Add more as needed
   };
 
+  // Helper to POST to inference API and poll for results
+  const startPrediction = async () => {
+    setIsPredicting(true);
+    setPredictedDefects(null);
+    setPredictionError(null);
+    try {
+      // const token = localStorage.getItem('sentinel_dash_token');
+      // if (!token) {
+      //   setIsPredicting(false);
+      //   setPredictedDefects({ error: 'No authentication token found. Please log in again.' });
+      //   return;
+      // }
+      // Prepare panel_images array as in defectchecker
+      const panel_images = uploadedImageUrls.map((url, idx) => ({
+        panel: ppid,
+        image_url: url,
+        base_pattern: idx + 1,
+      }));
+      const payload = {
+        ppid,
+        test_type: isTestMode ? 'test' : 'production',
+        inference: true,
+        panel_images,
+      };
+      const response = await fetch('https://nvision-staging.alemeno.com/data/display-panel/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          // 'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      });
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.detail || 'Failed to start prediction');
+      }
+      const data = await response.json();
+      const task_uuid = data.tasks?.[0]?.task_uuid;
+      if (!task_uuid) throw new Error('No task_uuid returned');
+      // Poll for status
+      setTaskid(task_uuid);
+      pollPredictionStatus(task_uuid);
+    } catch (err) {
+      setIsPredicting(false);
+      setPredictedDefects({ error: err.message || 'Prediction failed' });
+      setPredictionError(err.message || 'Prediction failed');
+    }
+  };
+
+  const pollPredictionStatus = async (task_uuid) => {
+    try {
+      const token = localStorage.getItem('sentinel_dash_token');
+      if (!token) {
+        setIsPredicting(false);
+        setPredictedDefects({ error: 'No authentication token found. Please log in again.' });
+        setPredictionError('No authentication token found. Please log in again.');
+        return;
+      }
+      const poll = async () => {
+        const res = await fetch(`https://nvision-staging.alemeno.com/data/task/${task_uuid}/status/`, {
+              headers: { 
+        'Authorization': `Bearer ${token}`, 
+        'Content-Type': 'application/json'   
+    },
+        });
+        if (!res.ok) {
+          let errMsg = 'Failed to poll status';
+          if (res.status === 401 || res.status === 403) {
+            errMsg = 'Unauthorized. Please log in again.';
+          } else {
+            const errData = await res.json().catch(() => ({}));
+            errMsg = errData.detail || errMsg;
+          }
+          setIsPredicting(false);
+          setPredictedDefects({ error: errMsg });
+          setPredictionError(errMsg);
+          return;
+        }
+        const data = await res.json();
+        const status = data.task?.status;
+        if (status === 'completed') {
+          setIsPredicting(false);
+          setPredictedDefects(data.task.results?.defects || {});
+          setPredictionError(null);
+          if (pollingRef.current) clearTimeout(pollingRef.current);
+        } else if (status === 'preprocessing_complete' || status === 'queued' || status === 'processing') {
+          pollingRef.current = setTimeout(() => poll(), 2000);
+        } else {
+          setIsPredicting(false);
+          setPredictedDefects({ error: 'Prediction failed or unknown status' });
+          setPredictionError('Prediction failed or unknown status');
+        }
+      };
+      poll();
+    } catch (err) {
+      setIsPredicting(false);
+      setPredictedDefects({ error: err.message || 'Prediction polling failed' });
+      setPredictionError(err.message || 'Prediction polling failed');
+    }
+  };
+
   // Render the correct subpage/component
   const renderActivePage = () => {
     switch (activePage) {
@@ -410,9 +516,10 @@ function App() {
                   <ReviewImagesPage
                     ppid={ppid}
                     capturedImages={capturedImages}
-                    onApprove={() => {
+                    onApprove={async () => {
                       if (routineType === 'data-collection') {
                         setActivePage('predicted-defects');
+                        await startPrediction();
                       } else {
                         approveImages();
                       }
@@ -421,7 +528,26 @@ function App() {
                     onDiscard={discardSession}
                   />
                 ) : activePage === 'predicted-defects' ? (
-                  <PredictedDefectsPage defects={dummyDefects} />
+                  isPredicting ? (
+                    <div className="flex flex-col items-center justify-center min-h-[300px]">
+                      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500 mb-4"></div>
+                      <div className="text-lg font-semibold">Processing images, please wait...</div>
+                    </div>
+                  ) : predictedDefects && !predictedDefects.error ? (
+                    <PredictedDefectsPage defects={predictedDefects} />
+                  ) : predictedDefects && predictedDefects.error ? (
+                    <div className="flex flex-col items-center justify-center min-h-[300px]">
+                      <div className="text-red-600 text-center p-8">{predictedDefects.error}</div>
+                      {predictionError && (
+                        <button
+                          className="mt-4 px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+onClick={() => pollPredictionStatus(taskid)}
+                        >
+                          Retry
+                        </button>
+                      )}
+                    </div>
+                  ) : null
                 ) : activePage === 'defect-analysis' ? (
                   <DefectAnalysisPage
                     ppid={ppid}
