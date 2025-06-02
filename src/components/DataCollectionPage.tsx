@@ -106,7 +106,7 @@ const DataCollectionPage: React.FC<DataCollectionrops> = ({ onStartDefectChecker
         }
         const checkData = await checkResponse.json();
         const finalPpid = checkData.exists ? checkData.recommended_ppid : ppid;
-        onStartDefectChecker(finalPpid, isTestMode, focusDistance);
+        onStartDefectChecker(finalPpid, isTestMode, focusDistance, 'data-collection');
       } catch (error) {
         setSubmitError(error instanceof Error ? error.message : 'An unknown error occurred');
       } finally {

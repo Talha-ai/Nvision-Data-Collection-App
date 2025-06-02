@@ -105,27 +105,74 @@ function App() {
   const [completedUploads, setCompletedUploads] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
   const [failedUploadIndices, setFailedUploadIndices] = useState([]);
-  const [authToken, setAuthToken] = useState(() => localStorage.getItem('sentinel_dash_token'));
+  const [authToken, setAuthToken] = useState(() =>
+    localStorage.getItem('sentinel_dash_token')
+  );
   const [showSignup, setShowSignup] = useState(false);
   const [patternEBC, setPatternEBC] = useState(() => {
     const saved = localStorage.getItem('patternEBC');
     if (saved) return JSON.parse(saved);
     const testPatternsDefault = [
-      { name: 'white_AAA', settings: { exposure: 0, brightness: 145, contrast: 145 } },
-      { name: 'black_BBB', settings: { exposure: 0, brightness: 100, contrast: 145 } },
-      { name: 'cyan_CCC', settings: { exposure: 0, brightness: 145, contrast: 145 } },
-      { name: 'gray50_DDD', settings: { exposure: 20, brightness: 125, contrast: 125 } },
-      { name: 'red_EEE', settings: { exposure: 45, brightness: 85, contrast: 125 } },
-      { name: 'green_FFF', settings: { exposure: 45, brightness: 85, contrast: 145 } },
-      { name: 'blue_GGG', settings: { exposure: 100, brightness: 125, contrast: 145 } },
-      { name: 'gray75_HHH', settings: { exposure: 45, brightness: 85, contrast: 145 } },
-      { name: 'grayVertical_III', settings: { exposure: 20, brightness: 125, contrast: 145 } },
-      { name: 'colorBars_JJJ', settings: { exposure: 45, brightness: 85, contrast: 125 } },
-      { name: 'focus_KKK', settings: { exposure: 10, brightness: 80, contrast: 125 } },
-      { name: 'blackWithWhiteBorder_LLL', settings: { exposure: 10, brightness: 100, contrast: 80 } },
-      { name: 'crossHatch_MMM', settings: { exposure: 45, brightness: 145, contrast: 145 } },
-      { name: '16BarGray_NNN', settings: { exposure: 20, brightness: 125, contrast: 125 } },
-      { name: 'black&White_OOO', settings: { exposure: 0, brightness: 145, contrast: 145 } },
+      {
+        name: 'white_AAA',
+        settings: { exposure: 0, brightness: 145, contrast: 145 },
+      },
+      {
+        name: 'black_BBB',
+        settings: { exposure: 0, brightness: 100, contrast: 145 },
+      },
+      {
+        name: 'cyan_CCC',
+        settings: { exposure: 0, brightness: 145, contrast: 145 },
+      },
+      {
+        name: 'gray50_DDD',
+        settings: { exposure: 20, brightness: 125, contrast: 125 },
+      },
+      {
+        name: 'red_EEE',
+        settings: { exposure: 45, brightness: 85, contrast: 125 },
+      },
+      {
+        name: 'green_FFF',
+        settings: { exposure: 45, brightness: 85, contrast: 145 },
+      },
+      {
+        name: 'blue_GGG',
+        settings: { exposure: 100, brightness: 125, contrast: 145 },
+      },
+      {
+        name: 'gray75_HHH',
+        settings: { exposure: 45, brightness: 85, contrast: 145 },
+      },
+      {
+        name: 'grayVertical_III',
+        settings: { exposure: 20, brightness: 125, contrast: 145 },
+      },
+      {
+        name: 'colorBars_JJJ',
+        settings: { exposure: 45, brightness: 85, contrast: 125 },
+      },
+      {
+        name: 'focus_KKK',
+        settings: { exposure: 10, brightness: 80, contrast: 125 },
+      },
+      {
+        name: 'blackWithWhiteBorder_LLL',
+        settings: { exposure: 10, brightness: 100, contrast: 80 },
+      },
+      {
+        name: 'crossHatch_MMM',
+        settings: { exposure: 45, brightness: 145, contrast: 145 },
+      },
+      {
+        name: '16BarGray_NNN',
+        settings: { exposure: 20, brightness: 125, contrast: 125 },
+      },
+      {
+        name: 'black&White_OOO',
+        settings: { exposure: 0, brightness: 145, contrast: 145 },
+      },
     ];
     const obj = {};
     testPatternsDefault.forEach(({ name, settings }) => {
@@ -133,7 +180,9 @@ function App() {
     });
     return obj;
   });
-  const [username, setUsername] = useState(() => localStorage.getItem('sentinel_dash_username') || '');
+  const [username, setUsername] = useState(
+    () => localStorage.getItem('sentinel_dash_username') || ''
+  );
   const [routineType, setRoutineType] = useState('defect-checker');
   const [predictedDefects, setPredictedDefects] = useState(null); // for real API result
   const [isPredicting, setIsPredicting] = useState(false);
@@ -324,9 +373,9 @@ function App() {
   const pageTitles = {
     'defect-checker': 'Defect Checker',
     'data-collection': 'Data Collection',
-    'summary': 'Data Collection Summary',
+    summary: 'Data Collection Summary',
     'pattern-ebc': 'Pattern EBC Settings',
-    'review': 'Review Images',
+    review: 'Review Images',
     'defect-analysis': 'Defect Analysis',
     'past-data': 'Past Data',
     'predicted-defects': 'Predicted Defects',
@@ -356,14 +405,17 @@ function App() {
         inference: true,
         panel_images,
       };
-      const response = await fetch('https://nvision-staging.alemeno.com/data/display-panel/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          // 'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify(payload),
-      });
+      const response = await fetch(
+        'https://nvision-staging.alemeno.com/data/display-panel/',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            // 'Authorization': `Bearer ${token}`,
+          },
+          body: JSON.stringify(payload),
+        }
+      );
       if (!response.ok) {
         const errData = await response.json().catch(() => ({}));
         throw new Error(errData.detail || 'Failed to start prediction');
@@ -384,20 +436,28 @@ function App() {
   const pollPredictionStatus = async (task_uuid) => {
     try {
       // const token = localStorage.getItem('sentinel_dash_token');
-      const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzQ4ODc0MjQ3LCJpYXQiOjE3NDg4NzM5NDcsImp0aSI6Ijg3NDNlNzYyMmQxMjRlNGNhMTM1NGFkMGY1MzY3N2ZiIiwidXNlcl9pZCI6Mn0.-DpP_T6n7Xd46wLRNP7iZ872G5m8EzJ6vn-wqvyllXI'
+      const token =
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzQ4OTgxNDc0LCJpYXQiOjE3NDg4OTUwNzQsImp0aSI6IjQ1NzlhYTMxMzE5MzQ0MjliMTk5MGFiZmU0ZGJhOWY3IiwidXNlcl9pZCI6Mn0.xDtbd7-0ELBZAVhJSrZxpHFnZ3F7IZKIZDJB2SDrA5A';
       if (!token) {
         setIsPredicting(false);
-        setPredictedDefects({ error: 'No authentication token found. Please log in again.' });
-        setPredictionError('No authentication token found. Please log in again.');
+        setPredictedDefects({
+          error: 'No authentication token found. Please log in again.',
+        });
+        setPredictionError(
+          'No authentication token found. Please log in again.'
+        );
         return;
       }
       const poll = async () => {
-        const res = await fetch(`https://nvision-staging.alemeno.com/data/task/${task_uuid}/status/`, {
-              headers: { 
-        'Authorization': `Bearer ${token}`, 
-        'Content-Type': 'application/json'   
-    },
-        });
+        const res = await fetch(
+          `https://nvision-staging.alemeno.com/data/task/${task_uuid}/status/`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          }
+        );
         if (!res.ok) {
           let errMsg = 'Failed to poll status';
           if (res.status === 401 || res.status === 403) {
@@ -418,7 +478,11 @@ function App() {
           setPredictedDefects(data.task.results?.defects || {});
           setPredictionError(null);
           if (pollingRef.current) clearTimeout(pollingRef.current);
-        } else if (status === 'preprocessing_complete') {
+        } else if (
+          status === 'preprocessing_complete' ||
+          status === 'queued' ||
+          status === 'processing'
+        ) {
           pollingRef.current = setTimeout(() => poll(), 5000);
         } else {
           setIsPredicting(false);
@@ -429,7 +493,9 @@ function App() {
       poll();
     } catch (err) {
       setIsPredicting(false);
-      setPredictedDefects({ error: err.message || 'Prediction polling failed' });
+      setPredictedDefects({
+        error: err.message || 'Prediction polling failed',
+      });
       setPredictionError(err.message || 'Prediction polling failed');
     }
   };
@@ -451,21 +517,66 @@ function App() {
             testPatterns={testPatterns}
             handleResetPatternEBC={() => {
               const testPatternsDefault = [
-                { name: 'white_AAA', settings: { exposure: 0, brightness: 145, contrast: 145 } },
-                { name: 'black_BBB', settings: { exposure: 0, brightness: 100, contrast: 145 } },
-                { name: 'cyan_CCC', settings: { exposure: 0, brightness: 145, contrast: 145 } },
-                { name: 'gray50_DDD', settings: { exposure: 20, brightness: 125, contrast: 125 } },
-                { name: 'red_EEE', settings: { exposure: 45, brightness: 85, contrast: 125 } },
-                { name: 'green_FFF', settings: { exposure: 45, brightness: 85, contrast: 145 } },
-                { name: 'blue_GGG', settings: { exposure: 100, brightness: 125, contrast: 145 } },
-                { name: 'gray75_HHH', settings: { exposure: 45, brightness: 85, contrast: 145 } },
-                { name: 'grayVertical_III', settings: { exposure: 20, brightness: 125, contrast: 145 } },
-                { name: 'colorBars_JJJ', settings: { exposure: 45, brightness: 85, contrast: 125 } },
-                { name: 'focus_KKK', settings: { exposure: 10, brightness: 80, contrast: 125 } },
-                { name: 'blackWithWhiteBorder_LLL', settings: { exposure: 10, brightness: 100, contrast: 80 } },
-                { name: 'crossHatch_MMM', settings: { exposure: 45, brightness: 145, contrast: 145 } },
-                { name: '16BarGray_NNN', settings: { exposure: 20, brightness: 125, contrast: 125 } },
-                { name: 'black&White_OOO', settings: { exposure: 0, brightness: 145, contrast: 145 } },
+                {
+                  name: 'white_AAA',
+                  settings: { exposure: 0, brightness: 145, contrast: 145 },
+                },
+                {
+                  name: 'black_BBB',
+                  settings: { exposure: 0, brightness: 100, contrast: 145 },
+                },
+                {
+                  name: 'cyan_CCC',
+                  settings: { exposure: 0, brightness: 145, contrast: 145 },
+                },
+                {
+                  name: 'gray50_DDD',
+                  settings: { exposure: 20, brightness: 125, contrast: 125 },
+                },
+                {
+                  name: 'red_EEE',
+                  settings: { exposure: 45, brightness: 85, contrast: 125 },
+                },
+                {
+                  name: 'green_FFF',
+                  settings: { exposure: 45, brightness: 85, contrast: 145 },
+                },
+                {
+                  name: 'blue_GGG',
+                  settings: { exposure: 100, brightness: 125, contrast: 145 },
+                },
+                {
+                  name: 'gray75_HHH',
+                  settings: { exposure: 45, brightness: 85, contrast: 145 },
+                },
+                {
+                  name: 'grayVertical_III',
+                  settings: { exposure: 20, brightness: 125, contrast: 145 },
+                },
+                {
+                  name: 'colorBars_JJJ',
+                  settings: { exposure: 45, brightness: 85, contrast: 125 },
+                },
+                {
+                  name: 'focus_KKK',
+                  settings: { exposure: 10, brightness: 80, contrast: 125 },
+                },
+                {
+                  name: 'blackWithWhiteBorder_LLL',
+                  settings: { exposure: 10, brightness: 100, contrast: 80 },
+                },
+                {
+                  name: 'crossHatch_MMM',
+                  settings: { exposure: 45, brightness: 145, contrast: 145 },
+                },
+                {
+                  name: '16BarGray_NNN',
+                  settings: { exposure: 20, brightness: 125, contrast: 125 },
+                },
+                {
+                  name: 'black&White_OOO',
+                  settings: { exposure: 0, brightness: 145, contrast: 145 },
+                },
               ];
               const obj = {};
               testPatternsDefault.forEach(({ name, settings }) => {
@@ -478,19 +589,21 @@ function App() {
       case 'past-data':
         return <PastDataPage />;
       case 'predicted-defects':
-        return <PredictedDefectsPage
-          defects={predictedDefects}
-          onGoHome={() => {
-            setPpid('');
-            setCapturedImages([]);
-            setUploadedImageUrls([]);
-            setCompletedUploads(0);
-            setTotalUploads(0);
-            setIsUploading(false);
-            setFailedUploadIndices([]);
-            setActivePage('data-collection');
-          }}
-        />;
+        return (
+          <PredictedDefectsPage
+            defects={predictedDefects}
+            onGoHome={() => {
+              setPpid('');
+              setCapturedImages([]);
+              setUploadedImageUrls([]);
+              setCompletedUploads(0);
+              setTotalUploads(0);
+              setIsUploading(false);
+              setFailedUploadIndices([]);
+              setActivePage('data-collection');
+            }}
+          />
+        );
       default:
         return <div>Welcome!</div>;
     }
@@ -509,7 +622,7 @@ function App() {
               />
             </div>
           )}
-          <div className="content-area pt-8">
+          <div className={`content-area ${authToken ? 'pt-8' : ''}`}>
             {!authToken ? (
               showSignup ? (
                 <SignUpPage
@@ -531,87 +644,95 @@ function App() {
                 focusDistance={focusDistance}
                 patternEBC={patternEBC}
               />
-            ) : (
-              // subpages without sidebar/header
-              activePage === 'review' ? (
+            ) : // subpages without sidebar/header
+            activePage === 'review' ? (
+              <div className="flex justify-center items-center min-h-screen bg-gray-100">
+                <div className="w-full max-w-3xl p-4">
+                  <ReviewImagesPage
+                    ppid={ppid}
+                    capturedImages={capturedImages}
+                    onApprove={async () => {
+                      if (routineType === 'defect-checker') {
+                        setActivePage('predicted-defects');
+                        await startPrediction();
+                      } else {
+                        approveImages();
+                      }
+                    }}
+                    onRetake={retakeImages}
+                    onDiscard={discardSession}
+                  />
+                </div>
+              </div>
+            ) : activePage === 'predicted-defects' ? (
+              isPredicting ? (
+                <div className="flex flex-col items-center justify-center min-h-[300px]">
+                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mb-4"></div>
+                  <div className="text-lg font-semibold">
+                    Processing images, please wait...
+                  </div>
+                </div>
+              ) : predictedDefects && !predictedDefects.error ? (
                 <div className="flex justify-center items-center min-h-screen bg-gray-100">
-                  <div className="w-full max-w-3xl p-4">
-                    <ReviewImagesPage
-                      ppid={ppid}
-                      capturedImages={capturedImages}
-                      onApprove={async () => {
-                        if (routineType === 'data-collection') {
-                          setActivePage('predicted-defects');
-                          await startPrediction();
-                        } else {
-                          approveImages();
-                        }
+                  <div className="w-full max-w-2xl p-4">
+                    <PredictedDefectsPage
+                      defects={predictedDefects}
+                      onGoHome={() => {
+                        setPpid('');
+                        setCapturedImages([]);
+                        setUploadedImageUrls([]);
+                        setCompletedUploads(0);
+                        setTotalUploads(0);
+                        setIsUploading(false);
+                        setFailedUploadIndices([]);
+                        setActivePage('defect-checker');
                       }}
-                      onRetake={retakeImages}
-                      onDiscard={discardSession}
                     />
                   </div>
                 </div>
-              ) : activePage === 'predicted-defects' ? (
-                isPredicting ? (
-                  <div className="flex flex-col items-center justify-center min-h-[300px]">
-                    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mb-4"></div>
-                    <div className="text-lg font-semibold">Processing images, please wait...</div>
+              ) : predictedDefects && predictedDefects.error ? (
+                <div className="flex flex-col items-center justify-center min-h-[300px]">
+                  <div className="text-red-600 text-center p-8">
+                    {predictedDefects.error}
                   </div>
-                ) : predictedDefects && !predictedDefects.error ? (
-                  <div className="flex justify-center items-center min-h-screen bg-gray-100">
-                    <div className="w-full max-w-2xl p-4">
-                      <PredictedDefectsPage
-                        defects={predictedDefects}
-                        onGoHome={() => {
-                          setPpid('');
-                          setCapturedImages([]);
-                          setUploadedImageUrls([]);
-                          setCompletedUploads(0);
-                          setTotalUploads(0);
-                          setIsUploading(false);
-                          setFailedUploadIndices([]);
-                          setActivePage('data-collection');
-                        }}
-                      />
-                    </div>
-                  </div>
-                ) : predictedDefects && predictedDefects.error ? (
-                  <div className="flex flex-col items-center justify-center min-h-[300px]">
-                    <div className="text-red-600 text-center p-8">{predictedDefects.error}</div>
-                    {predictionError && (
-                      <button
-                        className="mt-4 px-6 py-2 bg-primary text-white rounded hover:bg-primary/90"
-                        onClick={() => pollPredictionStatus(taskid)}
-                      >
-                        Retry
-                      </button>
-                    )}
-                  </div>
-                ) : null
-              ) : activePage === 'defect-analysis' ? (
-                <div className="flex justify-center items-center min-h-screen bg-gray-100">
-                  <div className="w-full max-w-3xl p-4">
-                    <DefectAnalysisPage
-                      ppid={ppid}
-                      isTestMode={isTestMode}
-                      uploadedImageUrls={uploadedImageUrls}
-                      onSubmit={submitDefectAnalysis}
-                      onDiscard={discardSession}
-                      uploadProgress={completedUploads}
-                      totalUploads={totalUploads}
-                      isUploading={isUploading}
-                      failedUploadCount={failedUploadIndices.length}
-                      onRetryUploads={retryFailedUploads}
-                    />
-                  </div>
+                  {predictionError && (
+                    <button
+                      className="mt-4 px-6 py-2 bg-primary text-white rounded hover:bg-primary/90"
+                      onClick={() => pollPredictionStatus(taskid)}
+                    >
+                      Retry
+                    </button>
+                  )}
                 </div>
-              ) : (
-                // All other pages remain inside HomePage (with sidebar/header)
-                <HomePage handleLogout={handleLogout} onNavigate={handleNavigate} activePage={activePage} pageTitle={pageTitles[activePage] || ''} username={username}>
-                  {renderActivePage() || <></>}
-                </HomePage>
-              )
+              ) : null
+            ) : activePage === 'defect-analysis' ? (
+              <div className="flex justify-center items-center min-h-screen bg-gray-100">
+                <div className="w-full max-w-3xl p-4">
+                  <DefectAnalysisPage
+                    ppid={ppid}
+                    isTestMode={isTestMode}
+                    uploadedImageUrls={uploadedImageUrls}
+                    onSubmit={submitDefectAnalysis}
+                    onDiscard={discardSession}
+                    uploadProgress={completedUploads}
+                    totalUploads={totalUploads}
+                    isUploading={isUploading}
+                    failedUploadCount={failedUploadIndices.length}
+                    onRetryUploads={retryFailedUploads}
+                  />
+                </div>
+              </div>
+            ) : (
+              // All other pages remain inside HomePage (with sidebar/header)
+              <HomePage
+                handleLogout={handleLogout}
+                onNavigate={handleNavigate}
+                activePage={activePage}
+                pageTitle={pageTitles[activePage] || ''}
+                username={username}
+              >
+                {renderActivePage() || <></>}
+              </HomePage>
             )}
           </div>
         </div>

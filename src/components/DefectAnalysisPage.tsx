@@ -136,9 +136,8 @@ function DefectAnalysisPage({
       // ];
 
       const basePatternOrder = [
-  1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15
-];
-
+        1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+      ];
 
       const panel_images = uploadedImageUrls
         .filter((url) => url !== null)
@@ -204,18 +203,22 @@ function DefectAnalysisPage({
           <div className="flex items-center gap-2">
             <span className="font-semibold text-sm">PPID: {ppid}</span>
           </div>
-          <CardTitle className="text-lg font-semibold text-center flex-1">Defect Analysis</CardTitle>
+          <CardTitle className="text-lg font-semibold text-center flex-1">
+            Defect Analysis
+          </CardTitle>
           <Button
             variant="outline"
             onClick={onDiscard}
-            className="border-green-500 text-green-600 hover:bg-green-50"
+            className="border-primary text-primary hover:bg-green-50"
             disabled={isUploading || submitting}
           >
             Discard Session
           </Button>
         </CardHeader>
         <CardContent>
-          <h2 className="text-md font-medium mb-4">Which defects are present in this display?</h2>
+          <h2 className="text-md font-medium mb-4">
+            Which defects are present in this display?
+          </h2>
           <table className="w-full border-collapse mb-4">
             <tbody>
               {rows.map((rowId) => (
@@ -246,7 +249,7 @@ function DefectAnalysisPage({
             <Button
               variant="ghost"
               onClick={addRow}
-              className="text-green-700 flex items-center hover:text-green-800 mb-4"
+              className="text-primary flex items-center hover:text-primary/90 mb-4"
               disabled={isUploading || submitting}
             >
               <span className="text-lg mr-1">+</span> Add R-Fault Code row
@@ -255,19 +258,45 @@ function DefectAnalysisPage({
           <div className="flex flex-col mt-6">
             {isUploading && (
               <div className="mb-3 flex items-center text-blue-600 bg-blue-50 p-3 rounded-md">
-                <svg className="animate-spin h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                <svg
+                  className="animate-spin h-5 w-5 mr-2"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
                 </svg>
                 Uploading... {uploadProgress}/{totalUploads} Images uploaded
               </div>
             )}
             {showUploadFailure && hasUploadFailures && !isUploading && (
               <div className="mb-3 flex items-center text-red-600 bg-red-50 p-3 rounded-md">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5 mr-2"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                    clipRule="evenodd"
+                  />
                 </svg>
-                {failedUploadCount} uploads failed. Please check your internet connection and retry.
+                {failedUploadCount} uploads failed. Please check your internet
+                connection and retry.
               </div>
             )}
             <Button
@@ -284,22 +313,54 @@ function DefectAnalysisPage({
                   ? 'bg-red-600 hover:bg-red-700'
                   : hasUploadFailures && showUploadFailure
                   ? 'bg-orange-600 hover:bg-orange-700'
-                  : 'bg-green-600 hover:bg-green-700'
+                  : 'bg-primary hover:bg-primary/90'
               } text-white rounded px-6 py-3 transition-colors`}
             >
               {submitting && !retryingApiSubmission ? (
                 <div className="flex items-center justify-center">
-                  <svg className="animate-spin h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  <svg
+                    className="animate-spin h-5 w-5 mr-2"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
                   </svg>
                   Submitting...
                 </div>
               ) : retryingApiSubmission ? (
                 <div className="flex items-center justify-center">
-                  <svg className="animate-spin h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  <svg
+                    className="animate-spin h-5 w-5 mr-2"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
                   </svg>
                   Retrying submission...
                 </div>
@@ -307,9 +368,25 @@ function DefectAnalysisPage({
                 `Try again with ${selectedCount} fault codes`
               ) : retryingUploads ? (
                 <div className="flex items-center justify-center">
-                  <svg className="animate-spin h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  <svg
+                    className="animate-spin h-5 w-5 mr-2"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
                   </svg>
                   Reuploading...{' '}
                   {uploadedImageUrls.filter((url) => url !== null).length}/
@@ -328,7 +405,7 @@ function DefectAnalysisPage({
       {showSuccessModal && (
         <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
           <div className="bg-white p-8 rounded-lg max-w-md text-center shadow-xl">
-            <div className="w-20 h-20 mx-auto mb-4 text-green-500">
+            <div className="w-20 h-20 mx-auto mb-4 text-primary">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 24 24"
@@ -346,7 +423,7 @@ function DefectAnalysisPage({
             </h2>
             <Button
               onClick={onSubmit}
-              className="bg-green-500 text-white px-8 py-2 rounded-md hover:bg-green-600 transition-colors"
+              className="bg-primary text-white px-8 py-2 rounded-md hover:bg-primary/90 transition-colors"
             >
               Ok
             </Button>

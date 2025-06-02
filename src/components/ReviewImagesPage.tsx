@@ -11,7 +11,6 @@ interface ReviewImagesPageProps {
   onDiscard: () => void;
 }
 
-
 // const testPatterns = [
 //   'white_AAA.png',
 //   'black&White_OOO.png',
@@ -30,7 +29,6 @@ interface ReviewImagesPageProps {
 //   'black_BBB.png',
 // ];
 
-
 const testPatterns = [
   'white_AAA.png',
   'black_BBB.png',
@@ -48,7 +46,6 @@ const testPatterns = [
   '16BarGray_NNN.png',
   'black&White_OOO.png',
 ];
-
 
 function ReviewImagesPage({
   ppid,
@@ -86,11 +83,13 @@ function ReviewImagesPage({
           <div className="flex items-center gap-2">
             <span className="font-semibold text-sm">PPID: {ppid}</span>
           </div>
-          <CardTitle className="text-lg font-semibold text-center flex-1">Review Images</CardTitle>
+          <CardTitle className="text-lg font-semibold text-center flex-1">
+            Review Images
+          </CardTitle>
           <Button
             variant="outline"
             onClick={onDiscard}
-            className="border-green-500 text-green-600 hover:bg-green-50"
+            className="border-primary text-primary hover:bg-primary/10"
           >
             Discard Session
           </Button>
@@ -104,8 +103,12 @@ function ReviewImagesPage({
             >
               <div className="flex-grow flex items-center justify-center w-full">
                 <img
-                  src={capturedImages[parseInt(fullscreenImage.id.split('-')[1])]}
-                  alt={`Captured image ${parseInt(fullscreenImage.id.split('-')[1]) + 1}`}
+                  src={
+                    capturedImages[parseInt(fullscreenImage.id.split('-')[1])]
+                  }
+                  alt={`Captured image ${
+                    parseInt(fullscreenImage.id.split('-')[1]) + 1
+                  }`}
                   className="max-h-full max-w-full object-contain"
                 />
               </div>
@@ -143,10 +146,7 @@ function ReviewImagesPage({
             >
               Retake images
             </Button>
-            <Button
-              onClick={onApprove}
-              className="bg-primary w-full"
-            >
+            <Button onClick={onApprove} className="bg-primary w-full">
               Approve images
             </Button>
           </div>

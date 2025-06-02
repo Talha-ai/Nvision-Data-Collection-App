@@ -105,7 +105,7 @@ const DefectCheckerPage: React.FC<DefectCheckerPageProps> = ({ onStartDefectChec
         }
         const checkData = await checkResponse.json();
         const finalPpid = checkData.exists ? checkData.recommended_ppid : ppid;
-        onStartDefectChecker(finalPpid, isTestMode, focusDistance, 'data-collection');
+        onStartDefectChecker(finalPpid, isTestMode, focusDistance, 'defect-checker');
       } catch (error) {
         setSubmitError(error instanceof Error ? error.message : 'An unknown error occurred');
       } finally {
