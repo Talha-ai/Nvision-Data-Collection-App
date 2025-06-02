@@ -69,7 +69,7 @@ function setupTray() {
     }
   ]);
 
-  tray.setToolTip('Nvision Data Collection App');
+  tray.setToolTip('Nvision AI');
   tray.setContextMenu(contextMenu);
 
   // Show window on tray icon click

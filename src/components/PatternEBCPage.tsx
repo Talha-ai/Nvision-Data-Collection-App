@@ -62,6 +62,7 @@ const PatternEBCPage: React.FC<PatternEBCPageProps> = ({ patternEBC, setPatternE
                             [key]: Number(e.target.value),
                           },
                         }))}
+                        className="range-slider-green"
                       />
                       <span className="text-xs">{patternEBC[name][key]}</span>
                     </div>

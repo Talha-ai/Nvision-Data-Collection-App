@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { GalleryVerticalEnd, SquareUser } from 'lucide-react';
+import nvision_logo from '../assets/nvision_logo.png';
 
 interface LoginPageProps {
   onLogin: (token: string) => void;
@@ -53,16 +53,15 @@ export function LoginPage({
   };
 
   return (
-    <div className="grid h-full lg:grid-cols-2">
-      <div className="relative hidden bg-muted lg:block bg-zinc-900">
-        {/* <img src={shad} alt="login" /> */}
+    <div className="grid min-h-screen lg:grid-cols-2">
+      <div className="relative hidden lg:block bg-[#6AA526]">
       </div>
       <div className="flex flex-col gap-4 p-6 md:p-10">
         <div className="flex justify-center gap-2 md:justify-start">
           <a href="#" className="flex items-center gap-2 font-medium">
             <div className="flex h-6 w-6 items-center justify-center rounded-md bg-primary text-primary-foreground">
-              <GalleryVerticalEnd className="size-4" />
-            </div>
+<img src={nvision_logo} className="size-6" alt="Nvision AI Logo">
+                </img>            </div>
             Nvision AI
           </a>
         </div>

@@ -18,6 +18,7 @@ import { NavUser } from '@/components/NavUser';
 import { TeamSwitcher } from './team-switcher';
 import { useAppMode } from '../contexts/appModeContext';
 import { Button } from '@/components/ui/button';
+// import nvision_logo from '../assets/nvision_logo.png';
 
 // This is sample data
 const data = {
@@ -30,29 +31,19 @@ const data = {
     {
       name: 'Nvision AI',
       logo: GalleryVerticalEnd,
-      plan: 'Enterprise',
-    },
-    {
-      name: 'Acme Corp.',
-      logo: AudioWaveform,
-      plan: 'Startup',
-    },
-    {
-      name: 'Evil Corp.',
-      logo: Command,
-      plan: 'Free',
+      plan: '',
     },
   ],
   navMain: [
     {
-      title: 'Defect Checker',
-      url: '#defect-checker',
+      title: 'Data Collection',
+      url: '#data-collection',
       icon: SquareTerminal,
       isActive: true,
     },
     {
-      title: 'Data Collection',
-      url: '#data-collection',
+      title: 'Defect Checker',
+      url: '#defect-checker',
       icon: Gpu,
       items: [],
     },
@@ -63,7 +54,7 @@ const data = {
       items: [],
     },
     {
-      title: 'Summary',
+      title: 'Data Collection Summary',
       url: '#summary',
       icon: BookOpen,
       items: [],
@@ -116,8 +107,8 @@ const AppSidebar = ({
             <div
               className={`transition-all duration-200 overflow-hidden ${state === 'expanded' ? 'max-h-20 opacity-100' : 'max-h-0 opacity-0 pointer-events-none'}`}
             >
-              <div className="flex items-center gap-2">
-                <span className="font-semibold text-xs">App mode:</span>
+              <div className="flex items-center justify-center">
+                {/* <span className="font-semibold text-xs">App mode:</span> */}
                 <div className="flex bg-gray-200 dark:bg-gray-700 rounded-lg p-1">
                   <button
                     className={`px-4 py-2 rounded-md text-xs font-medium transition-all duration-200 ${

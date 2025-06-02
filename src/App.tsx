@@ -324,7 +324,7 @@ function App() {
   const pageTitles = {
     'defect-checker': 'Defect Checker',
     'data-collection': 'Data Collection',
-    'summary': 'Summary',
+    'summary': 'Data Collection Summary',
     'pattern-ebc': 'Pattern EBC Settings',
     'review': 'Review Images',
     'defect-analysis': 'Defect Analysis',
@@ -333,7 +333,6 @@ function App() {
     // Add more as needed
   };
 
-  // Helper to POST to inference API and poll for results
   const startPrediction = async () => {
     setIsPredicting(true);
     setPredictedDefects(null);
@@ -384,8 +383,8 @@ function App() {
 
   const pollPredictionStatus = async (task_uuid) => {
     try {
-      const token = localStorage.getItem('sentinel_dash_token');
-      // const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzQ4NzcxMzU5LCJpYXQiOjE3NDg2ODQ5NTksImp0aSI6IjRlNDA1YWZkNGIzZDQ4MzhiOWNjYzVhYzEyYjlmMTI3IiwidXNlcl9pZCI6Mn0.kbi0y39wG9MEk8ult_3L2HMo1ItL7bGFJiuVZtn1_6U'
+      // const token = localStorage.getItem('sentinel_dash_token');
+      const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzQ4ODc0MjQ3LCJpYXQiOjE3NDg4NzM5NDcsImp0aSI6Ijg3NDNlNzYyMmQxMjRlNGNhMTM1NGFkMGY1MzY3N2ZiIiwidXNlcl9pZCI6Mn0.-DpP_T6n7Xd46wLRNP7iZ872G5m8EzJ6vn-wqvyllXI'
       if (!token) {
         setIsPredicting(false);
         setPredictedDefects({ error: 'No authentication token found. Please log in again.' });
@@ -419,8 +418,8 @@ function App() {
           setPredictedDefects(data.task.results?.defects || {});
           setPredictionError(null);
           if (pollingRef.current) clearTimeout(pollingRef.current);
-        } else if (status === 'preprocessing_complete' || status === 'queued' || status === 'processing') {
-          pollingRef.current = setTimeout(() => poll(), 2000);
+        } else if (status === 'preprocessing_complete') {
+          pollingRef.current = setTimeout(() => poll(), 5000);
         } else {
           setIsPredicting(false);
           setPredictedDefects({ error: 'Prediction failed or unknown status' });
@@ -438,10 +437,10 @@ function App() {
   // Render the correct subpage/component
   const renderActivePage = () => {
     switch (activePage) {
-      case 'defect-checker':
-        return <DefectCheckerPage onStartDefectChecker={startDefectChecker} />;
       case 'data-collection':
         return <DataCollectionPage onStartDefectChecker={startDefectChecker} />;
+      case 'defect-checker':
+        return <DefectCheckerPage onStartDefectChecker={startDefectChecker} />;
       case 'summary':
         return <SummaryPage />;
       case 'pattern-ebc':
@@ -479,7 +478,19 @@ function App() {
       case 'past-data':
         return <PastDataPage />;
       case 'predicted-defects':
-        return <PredictedDefectsPage defects={dummyDefects} />;
+        return <PredictedDefectsPage
+          defects={predictedDefects}
+          onGoHome={() => {
+            setPpid('');
+            setCapturedImages([]);
+            setUploadedImageUrls([]);
+            setCompletedUploads(0);
+            setTotalUploads(0);
+            setIsUploading(false);
+            setFailedUploadIndices([]);
+            setActivePage('data-collection');
+          }}
+        />;
       default:
         return <div>Welcome!</div>;
     }
@@ -490,13 +501,15 @@ function App() {
       <CameraProvider>
         <div className="app-container">
           {!isCapturing && (
-            <CustomTitlebar
-              onMinimize={handleMinimize}
-              onMaximize={handleMaximize}
-              onClose={handleClose}
-            />
+            <div className="fixed top-0 left-0 w-full z-50">
+              <CustomTitlebar
+                onMinimize={handleMinimize}
+                onMaximize={handleMaximize}
+                onClose={handleClose}
+              />
+            </div>
           )}
-          <div className="content-area">
+          <div className="content-area pt-8">
             {!authToken ? (
               showSignup ? (
                 <SignUpPage
@@ -519,73 +532,88 @@ function App() {
                 patternEBC={patternEBC}
               />
             ) : (
-              <HomePage handleLogout={handleLogout} onNavigate={handleNavigate} activePage={activePage} pageTitle={pageTitles[activePage] || ''} username={username}>
-                {activePage === 'review' ? (
-                  <ReviewImagesPage
-                    ppid={ppid}
-                    capturedImages={capturedImages}
-                    onApprove={async () => {
-                      if (routineType === 'data-collection') {
-                        setActivePage('predicted-defects');
-                        await startPrediction();
-                      } else {
-                        approveImages();
-                      }
-                    }}
-                    onRetake={retakeImages}
-                    onDiscard={discardSession}
-                  />
-                ) : activePage === 'predicted-defects' ? (
-                  isPredicting ? (
-                    <div className="flex flex-col items-center justify-center min-h-[300px]">
-                      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500 mb-4"></div>
-                      <div className="text-lg font-semibold">Processing images, please wait...</div>
+              // subpages without sidebar/header
+              activePage === 'review' ? (
+                <div className="flex justify-center items-center min-h-screen bg-gray-100">
+                  <div className="w-full max-w-3xl p-4">
+                    <ReviewImagesPage
+                      ppid={ppid}
+                      capturedImages={capturedImages}
+                      onApprove={async () => {
+                        if (routineType === 'data-collection') {
+                          setActivePage('predicted-defects');
+                          await startPrediction();
+                        } else {
+                          approveImages();
+                        }
+                      }}
+                      onRetake={retakeImages}
+                      onDiscard={discardSession}
+                    />
+                  </div>
+                </div>
+              ) : activePage === 'predicted-defects' ? (
+                isPredicting ? (
+                  <div className="flex flex-col items-center justify-center min-h-[300px]">
+                    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mb-4"></div>
+                    <div className="text-lg font-semibold">Processing images, please wait...</div>
+                  </div>
+                ) : predictedDefects && !predictedDefects.error ? (
+                  <div className="flex justify-center items-center min-h-screen bg-gray-100">
+                    <div className="w-full max-w-2xl p-4">
+                      <PredictedDefectsPage
+                        defects={predictedDefects}
+                        onGoHome={() => {
+                          setPpid('');
+                          setCapturedImages([]);
+                          setUploadedImageUrls([]);
+                          setCompletedUploads(0);
+                          setTotalUploads(0);
+                          setIsUploading(false);
+                          setFailedUploadIndices([]);
+                          setActivePage('data-collection');
+                        }}
+                      />
                     </div>
-                  ) : predictedDefects && !predictedDefects.error ? (
-                    <PredictedDefectsPage defects={predictedDefects} />
-                  ) : predictedDefects && predictedDefects.error ? (
-                    <div className="flex flex-col items-center justify-center min-h-[300px]">
-                      <div className="text-red-600 text-center p-8">{predictedDefects.error}</div>
-                      {predictionError && (
-                        <button
-                          className="mt-4 px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-                          onClick={() => pollPredictionStatus(taskid)}
-                        >
-                          Retry
-                        </button>
-                      )}
-                    </div>
-                  ) : null
-                ) : activePage === 'defect-analysis' ? (
-                  <DefectAnalysisPage
-                    ppid={ppid}
-                    isTestMode={isTestMode}
-                    uploadedImageUrls={uploadedImageUrls}
-                    onSubmit={submitDefectAnalysis}
-                    onDiscard={discardSession}
-                    uploadProgress={completedUploads}
-                    totalUploads={totalUploads}
-                    isUploading={isUploading}
-                    failedUploadCount={failedUploadIndices.length}
-                    onRetryUploads={retryFailedUploads}
-                  />
-                ) : (
-                  renderActivePage()
-                )}
-              </HomePage>
+                  </div>
+                ) : predictedDefects && predictedDefects.error ? (
+                  <div className="flex flex-col items-center justify-center min-h-[300px]">
+                    <div className="text-red-600 text-center p-8">{predictedDefects.error}</div>
+                    {predictionError && (
+                      <button
+                        className="mt-4 px-6 py-2 bg-primary text-white rounded hover:bg-primary/90"
+                        onClick={() => pollPredictionStatus(taskid)}
+                      >
+                        Retry
+                      </button>
+                    )}
+                  </div>
+                ) : null
+              ) : activePage === 'defect-analysis' ? (
+                <div className="flex justify-center items-center min-h-screen bg-gray-100">
+                  <div className="w-full max-w-3xl p-4">
+                    <DefectAnalysisPage
+                      ppid={ppid}
+                      isTestMode={isTestMode}
+                      uploadedImageUrls={uploadedImageUrls}
+                      onSubmit={submitDefectAnalysis}
+                      onDiscard={discardSession}
+                      uploadProgress={completedUploads}
+                      totalUploads={totalUploads}
+                      isUploading={isUploading}
+                      failedUploadCount={failedUploadIndices.length}
+                      onRetryUploads={retryFailedUploads}
+                    />
+                  </div>
+                </div>
+              ) : (
+                // All other pages remain inside HomePage (with sidebar/header)
+                <HomePage handleLogout={handleLogout} onNavigate={handleNavigate} activePage={activePage} pageTitle={pageTitles[activePage] || ''} username={username}>
+                  {renderActivePage() || <></>}
+                </HomePage>
+              )
             )}
           </div>
-          <style jsx>{`
-            .app-container {
-              display: flex;
-              flex-direction: column;
-              height: 100vh;
-            }
-            .content-area {
-              flex-grow: 1;
-              overflow: auto;
-            }
-          `}</style>
         </div>
       </CameraProvider>
     </AppModeProvider>

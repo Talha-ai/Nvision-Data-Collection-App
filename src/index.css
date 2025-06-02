@@ -109,3 +109,34 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+.range-slider-green {
+  accent-color: #6AA526;
+}
+
+/* For better cross-browser support */
+.range-slider-green::-webkit-slider-thumb {
+  background: #6AA526;
+  border: 2px solid #6AA526;
+}
+/* Remove custom track background */
+.range-slider-green::-webkit-slider-runnable-track {
+  background: initial;
+}
+.range-slider-green::-moz-range-thumb {
+  background: #6AA526;
+  border: 2px solid #6AA526;
+}
+.range-slider-green::-moz-range-track {
+  background: initial;
+}
+.range-slider-green::-ms-thumb {
+  background: #6AA526;
+  border: 2px solid #6AA526;
+}
+.range-slider-green::-ms-fill-lower {
+  background: initial;
+}
+.range-slider-green::-ms-fill-upper {
+  background: initial;
+}

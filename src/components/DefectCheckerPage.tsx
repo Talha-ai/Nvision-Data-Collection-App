@@ -105,7 +105,7 @@ const DefectCheckerPage: React.FC<DefectCheckerPageProps> = ({ onStartDefectChec
         }
         const checkData = await checkResponse.json();
         const finalPpid = checkData.exists ? checkData.recommended_ppid : ppid;
-        onStartDefectChecker(finalPpid, isTestMode, focusDistance);
+        onStartDefectChecker(finalPpid, isTestMode, focusDistance, 'data-collection');
       } catch (error) {
         setSubmitError(error instanceof Error ? error.message : 'An unknown error occurred');
       } finally {
@@ -138,15 +138,14 @@ const DefectCheckerPage: React.FC<DefectCheckerPageProps> = ({ onStartDefectChec
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
-      <div className="flex items-center justify-between mb-2">
-        <h2 className="text-xl font-semibold">Defect Checker</h2>
-         <Button variant="ghost" size="icon" onClick={handleRefresh} title="Refresh Camera">
-          <RotateCcw className="w-5 h-5" />
-        </Button>
-      </div>
       <Card>
         <CardHeader>
+        <div className="flex items-center justify-between">
           <CardTitle>Defect Checker Routine</CardTitle>
+           <Button variant="ghost" size="icon" onClick={handleRefresh} title="Refresh Camera">
+          <RotateCcw className="w-5 h-5" />
+        </Button>
+        </div>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="flex gap-4 mb-4">
@@ -158,7 +157,7 @@ const DefectCheckerPage: React.FC<DefectCheckerPageProps> = ({ onStartDefectChec
               placeholder="Enter PPID"
             />
             <Button type="submit" disabled={!ppid || submitLoading}>
-              {submitLoading ? 'Processing...' : 'Start Defect Checker Routine'}
+              {submitLoading ? 'Processing...' : 'Start Defect Cheker Routine'}
             </Button>
           </form>
           <div className="aspect-video w-full h-full bg-gray-200 relative mb-4 rounded-lg overflow-hidden">
@@ -166,7 +165,7 @@ const DefectCheckerPage: React.FC<DefectCheckerPageProps> = ({ onStartDefectChec
           </div>
           <Button
             variant="link"
-            className="p-0 h-auto text-blue-600"
+            className="p-0 h-auto text-primary"
             onClick={() => setShowHiddenState(prev => !prev)}
           >
             {showHiddenState ? 'Hide camera settings' : 'Show camera settings'}
@@ -217,6 +216,7 @@ const DefectCheckerPage: React.FC<DefectCheckerPageProps> = ({ onStartDefectChec
                         step="5"
                         value={focusDistance}
                         onChange={e => setFocusDistance(Number(e.target.value))}
+                        className="range-slider-green"
                       />
                       <span className="text-xs">{focusDistance}</span>
                     </div>
@@ -228,6 +228,7 @@ const DefectCheckerPage: React.FC<DefectCheckerPageProps> = ({ onStartDefectChec
                         max="255"
                         value={exposure}
                         onChange={e => setExposure(Number(e.target.value))}
+                        className="range-slider-green"
                       />
                       <span className="text-xs">{exposure}</span>
                     </div>
@@ -240,6 +241,7 @@ const DefectCheckerPage: React.FC<DefectCheckerPageProps> = ({ onStartDefectChec
                         value={brightness}
                         onChange={e => setBrightness(Number(e.target.value))}
                         disabled={!isManual}
+                        className="range-slider-green"
                       />
                       <span className="text-xs">{brightness}</span>
                     </div>
@@ -252,6 +254,7 @@ const DefectCheckerPage: React.FC<DefectCheckerPageProps> = ({ onStartDefectChec
                         value={contrast}
                         onChange={e => setContrast(Number(e.target.value))}
                         disabled={!isManual}
+                        className="range-slider-green"
                       />
                       <span className="text-xs">{contrast}</span>
                     </div>

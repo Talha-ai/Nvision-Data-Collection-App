@@ -24,8 +24,8 @@ export default {
   				foreground: 'hsl(var(--popover-foreground))'
   			},
   			primary: {
-  				DEFAULT: 'hsl(var(--primary))',
-  				foreground: 'hsl(var(--primary-foreground))'
+  				DEFAULT: '#6AA526',
+  				foreground: '#fff',
   			},
   			secondary: {
   				DEFAULT: 'hsl(var(--secondary))',
@@ -62,7 +62,8 @@ export default {
   				'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
   				border: 'hsl(var(--sidebar-border))',
   				ring: 'hsl(var(--sidebar-ring))'
-  			}
+  			},
+  			nvision: '#6AA526',
   		}
   	}
   },

@@ -54,7 +54,7 @@
   },
   "build": {
     "appId": "com.nvision.datacollection",
-    "productName": "Nvision Data Collection",
+    "productName": "Nvision AI",
     "directories": {
       "buildResources": "assets",
       "output": "dist_electron/${version}"

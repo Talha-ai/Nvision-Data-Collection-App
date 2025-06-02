@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { RotateCcw } from 'lucide-react';
 import { useAppMode } from '../contexts/appModeContext';
 
+
 interface DataCollectionrops {
   onStartDefectChecker: (
     ppid: string,
@@ -14,7 +15,6 @@ interface DataCollectionrops {
   ) => void;
   cameraRefreshTrigger?: number;
 }
-
 const defaultLiveSettings = {
   exposure: 125,
   brightness: 125,
@@ -106,7 +106,7 @@ const DataCollectionPage: React.FC<DataCollectionrops> = ({ onStartDefectChecker
         }
         const checkData = await checkResponse.json();
         const finalPpid = checkData.exists ? checkData.recommended_ppid : ppid;
-        onStartDefectChecker(finalPpid, isTestMode, focusDistance, 'data-collection');
+        onStartDefectChecker(finalPpid, isTestMode, focusDistance);
       } catch (error) {
         setSubmitError(error instanceof Error ? error.message : 'An unknown error occurred');
       } finally {
@@ -138,17 +138,16 @@ const DataCollectionPage: React.FC<DataCollectionrops> = ({ onStartDefectChecker
 
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
-      <div className="flex items-center justify-between mb-2">
-        <h2 className="text-xl font-semibold">Data Collection</h2>
-         <Button variant="ghost" size="icon" onClick={handleRefresh} title="Refresh Camera">
-          <RotateCcw className="w-5 h-5" />
-        </Button>
-      </div>
-      <Card>
-        <CardHeader>
-          <CardTitle>Data Collection Routine</CardTitle>
-        </CardHeader>
+     <div className="max-w-3xl mx-auto space-y-6">
+          <Card>
+            <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle>Data Collection Routine</CardTitle>
+               <Button variant="ghost" size="icon" onClick={handleRefresh} title="Refresh Camera">
+              <RotateCcw className="w-5 h-5" />
+            </Button>
+            </div>
+            </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="flex gap-4 mb-4">
             <input
@@ -167,7 +166,7 @@ const DataCollectionPage: React.FC<DataCollectionrops> = ({ onStartDefectChecker
           </div>
           <Button
             variant="link"
-            className="p-0 h-auto text-blue-600"
+            className="p-0 h-auto text-primary"
             onClick={() => setShowHiddenState(prev => !prev)}
           >
             {showHiddenState ? 'Hide camera settings' : 'Show camera settings'}
@@ -218,6 +217,7 @@ const DataCollectionPage: React.FC<DataCollectionrops> = ({ onStartDefectChecker
                         step="5"
                         value={focusDistance}
                         onChange={e => setFocusDistance(Number(e.target.value))}
+                        className="range-slider-green"
                       />
                       <span className="text-xs">{focusDistance}</span>
                     </div>
@@ -229,6 +229,7 @@ const DataCollectionPage: React.FC<DataCollectionrops> = ({ onStartDefectChecker
                         max="255"
                         value={exposure}
                         onChange={e => setExposure(Number(e.target.value))}
+                        className="range-slider-green"
                       />
                       <span className="text-xs">{exposure}</span>
                     </div>
@@ -241,6 +242,7 @@ const DataCollectionPage: React.FC<DataCollectionrops> = ({ onStartDefectChecker
                         value={brightness}
                         onChange={e => setBrightness(Number(e.target.value))}
                         disabled={!isManual}
+                        className="range-slider-green"
                       />
                       <span className="text-xs">{brightness}</span>
                     </div>
@@ -253,6 +255,7 @@ const DataCollectionPage: React.FC<DataCollectionrops> = ({ onStartDefectChecker
                         value={contrast}
                         onChange={e => setContrast(Number(e.target.value))}
                         disabled={!isManual}
+                        className="range-slider-green"
                       />
                       <span className="text-xs">{contrast}</span>
                     </div>

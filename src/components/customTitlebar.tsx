@@ -15,7 +15,7 @@ const CustomTitlebar: React.FC<CustomTitlebarProps> = ({
   return (
     <div className="h-8 bg-[#2b2b2b] flex justify-between items-center select-none">
       <div className="flex-grow pl-3 text-white text-xs font-medium -webkit-app-region-drag">
-        Nvision Data Collection App
+        Nvision AI
       </div>
       <div className="flex -webkit-app-region-no-drag">
         <button

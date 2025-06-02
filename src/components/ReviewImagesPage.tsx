@@ -81,9 +81,6 @@ function ReviewImagesPage({
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
-       <div className="flex items-center justify-between mb-2">
-        <h2 className="text-xl font-semibold">Review Images</h2>
-      </div>
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <div className="flex items-center gap-2">
@@ -142,13 +139,13 @@ function ReviewImagesPage({
             <Button
               variant="outline"
               onClick={onRetake}
-              className="border-green-600 text-green-600 w-full"
+              className="border-primary text-primary w-full"
             >
               Retake images
             </Button>
             <Button
               onClick={onApprove}
-              className="bg-green-600 hover:bg-green-700 text-white w-full"
+              className="bg-primary w-full"
             >
               Approve images
             </Button>

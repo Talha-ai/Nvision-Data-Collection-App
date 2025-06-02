@@ -199,9 +199,6 @@ function DefectAnalysisPage({
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
-       <div className="flex items-center justify-between mb-2">
-        <h2 className="text-xl font-semibold">Defect Analysis</h2>
-      </div>
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <div className="flex items-center gap-2">
