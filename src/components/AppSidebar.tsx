@@ -160,8 +160,8 @@ const AppSidebar = ({
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={{
-          name: username || data.user.name,
-          email: data.user.email,
+          name: username || '',
+          email: '',
           avatar: '',
         }} handleLogout={handleLogout} />
       </SidebarFooter>

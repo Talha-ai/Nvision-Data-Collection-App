@@ -183,7 +183,7 @@ function App() {
   const [username, setUsername] = useState(
     () => localStorage.getItem('sentinel_dash_username') || ''
   );
-  const [routineType, setRoutineType] = useState('defect-checker');
+  const [routineType, setRoutineType] = useState<'data-collection' | 'defect-checker'>('defect-checker');
   const [predictedDefects, setPredictedDefects] = useState(null); // for real API result
   const [isPredicting, setIsPredicting] = useState(false);
   const [predictionError, setPredictionError] = useState(null);
@@ -231,24 +231,12 @@ function App() {
   };
 
   // Start the defect checker or data collection routine
-  const startDefectChecker = (
-    enteredPpid,
-    mode,
-    focusDistanceVal,
-    routine = 'defect-checker' // default
-  ) => {
-    // Reset all session/capture/upload states for a fresh routine
-    setPpid(enteredPpid);
-    setIsTestMode(mode);
-    setFocusDistance(focusDistanceVal);
+  const startDefectChecker = (ppid, isTestMode, focusDistance, routine) => {
+    setPpid(ppid);
+    setIsTestMode(isTestMode);
+    setFocusDistance(focusDistance);
+    setRoutineType(routine === 'data-collection' ? 'data-collection' : 'defect-checker');
     setIsCapturing(true);
-    setRoutineType(routine);
-    setCapturedImages([]);
-    setUploadedImageUrls([]);
-    setCompletedUploads(0);
-    setTotalUploads(0);
-    setIsUploading(false);
-    setFailedUploadIndices([]);
   };
 
   // Handle when image capture is complete and uploads have started
@@ -318,7 +306,6 @@ function App() {
 
   const approveImages = () => setActivePage('defect-analysis');
   const retakeImages = () => {
-    // Reset upload states
     setUploadedImageUrls([]);
     setCompletedUploads(0);
     setTotalUploads(0);
@@ -336,7 +323,7 @@ function App() {
     setTotalUploads(0);
     setIsUploading(false);
     setFailedUploadIndices([]);
-    setActivePage('defect-checker');
+    setActivePage(routineType);
   };
 
   // Discard session
@@ -348,7 +335,7 @@ function App() {
     setTotalUploads(0);
     setIsUploading(false);
     setFailedUploadIndices([]);
-    setActivePage('defect-checker');
+    setActivePage(routineType);
   };
 
   // Check if all uploads are complete
@@ -435,9 +422,7 @@ function App() {
 
   const pollPredictionStatus = async (task_uuid) => {
     try {
-      // const token = localStorage.getItem('sentinel_dash_token');
-      const token =
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzQ4OTgxNDc0LCJpYXQiOjE3NDg4OTUwNzQsImp0aSI6IjQ1NzlhYTMxMzE5MzQ0MjliMTk5MGFiZmU0ZGJhOWY3IiwidXNlcl9pZCI6Mn0.xDtbd7-0ELBZAVhJSrZxpHFnZ3F7IZKIZDJB2SDrA5A';
+      const token = localStorage.getItem('sentinel_dash_token');
       if (!token) {
         setIsPredicting(false);
         setPredictedDefects({
@@ -588,22 +573,22 @@ function App() {
         );
       case 'past-data':
         return <PastDataPage />;
-      case 'predicted-defects':
-        return (
-          <PredictedDefectsPage
-            defects={predictedDefects}
-            onGoHome={() => {
-              setPpid('');
-              setCapturedImages([]);
-              setUploadedImageUrls([]);
-              setCompletedUploads(0);
-              setTotalUploads(0);
-              setIsUploading(false);
-              setFailedUploadIndices([]);
-              setActivePage('data-collection');
-            }}
-          />
-        );
+      // case 'predicted-defects':
+      //   return (
+      //     <PredictedDefectsPage
+      //       defects={predictedDefects}
+      //       onGoHome={() => {
+      //         setPpid('');
+      //         setCapturedImages([]);
+      //         setUploadedImageUrls([]);
+      //         setCompletedUploads(0);
+      //         setTotalUploads(0);
+      //         setIsUploading(false);
+      //         setFailedUploadIndices([]);
+      //         setActivePage('data-collection');
+      //       }}
+      //     />
+      //   );
       default:
         return <div>Welcome!</div>;
     }
@@ -646,6 +631,10 @@ function App() {
               />
             ) : // subpages without sidebar/header
             activePage === 'review' ? (
+              <>
+                  <header className="sticky w-screen top-0 z-10 flex h-16 shrink-0 items-center gap-2 border-b bg-background px-4">
+        <div className="text-xl font-semibold">{routineType === 'data-collection' ? 'Data Collection Review Page' : 'Defect Checker Review Page'}</div>
+      </header>
               <div className="flex justify-center items-center min-h-screen bg-gray-100">
                 <div className="w-full max-w-3xl p-4">
                   <ReviewImagesPage
@@ -664,6 +653,7 @@ function App() {
                   />
                 </div>
               </div>
+              </>
             ) : activePage === 'predicted-defects' ? (
               isPredicting ? (
                 <div className="flex flex-col items-center justify-center min-h-[300px]">
@@ -673,6 +663,10 @@ function App() {
                   </div>
                 </div>
               ) : predictedDefects && !predictedDefects.error ? (
+                      <>
+                  <header className="sticky w-screen top-0 z-10 flex h-16 shrink-0 items-center gap-2 border-b bg-background px-4">
+        <div className="text-xl font-semibold">{routineType === 'data-collection' ? 'Data Collection Predicted Defects' : 'Defect Checker Predicted Defects'}</div>
+      </header>
                 <div className="flex justify-center items-center min-h-screen bg-gray-100">
                   <div className="w-full max-w-2xl p-4">
                     <PredictedDefectsPage
@@ -690,6 +684,7 @@ function App() {
                     />
                   </div>
                 </div>
+                </>
               ) : predictedDefects && predictedDefects.error ? (
                 <div className="flex flex-col items-center justify-center min-h-[300px]">
                   <div className="text-red-600 text-center p-8">
@@ -706,6 +701,10 @@ function App() {
                 </div>
               ) : null
             ) : activePage === 'defect-analysis' ? (
+                    <>
+                  <header className="sticky w-screen top-0 z-10 flex h-16 shrink-0 items-center gap-2 border-b bg-background px-4">
+        <div className="text-xl font-semibold">{routineType === 'data-collection' ? 'Data Collection Defect Analysis' : 'Defect Checker Defect Analysis'}</div>
+      </header>
               <div className="flex justify-center items-center min-h-screen bg-gray-100">
                 <div className="w-full max-w-3xl p-4">
                   <DefectAnalysisPage
@@ -722,6 +721,7 @@ function App() {
                   />
                 </div>
               </div>
+              </>
             ) : (
               // All other pages remain inside HomePage (with sidebar/header)
               <HomePage

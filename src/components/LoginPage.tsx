@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import nvision_logo from '../assets/nvision_logo.png';
+import { baseURL } from '../../constants';
 
 interface LoginPageProps {
   onLogin: (token: string) => void;
@@ -28,7 +29,7 @@ export function LoginPage({
     setIsLoading(true);
     setError(null);
     try {
-      const response = await fetch('https://nvision.alemeno.com/login/', {
+      const response = await fetch(`${baseURL}login/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -197,239 +197,241 @@ function DefectAnalysisPage({
   }
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="font-semibold text-sm">PPID: {ppid}</span>
-          </div>
-          <CardTitle className="text-lg font-semibold text-center flex-1">
-            Defect Analysis
-          </CardTitle>
-          <Button
-            variant="outline"
-            onClick={onDiscard}
-            className="border-primary text-primary hover:bg-green-50"
-            disabled={isUploading || submitting}
-          >
-            Discard Session
-          </Button>
-        </CardHeader>
-        <CardContent>
-          <h2 className="text-md font-medium mb-4">
-            Which defects are present in this display?
-          </h2>
-          <table className="w-full border-collapse mb-4">
-            <tbody>
-              {rows.map((rowId) => (
-                <tr key={rowId} className="border">
-                  <td className="border border-gray-300 p-3 w-12 text-center">
-                    {rowId}
-                  </td>
-                  <td className="border border-gray-300 p-3">R-Fault Code</td>
-                  <td className="border border-gray-300 p-3">
-                    <select
-                      className="w-full p-2 border border-black rounded"
-                      value={selectedFaults[rowId] || '16'}
-                      onChange={(e) => setFault(rowId, e.target.value)}
-                      disabled={isUploading || submitting}
-                    >
-                      {defects.map((defect, index) => (
-                        <option key={index} value={defect.id}>
-                          {defect.fault_code}
-                        </option>
-                      ))}
-                    </select>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          {rows.length < 10 && (
+    <div>
+      <div className="max-w-3xl mx-auto space-y-6">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="font-semibold text-sm">PPID: {ppid}</span>
+            </div>
+            <CardTitle className="text-lg font-semibold text-center flex-1">
+              Defect Analysis
+            </CardTitle>
             <Button
-              variant="ghost"
-              onClick={addRow}
-              className="text-primary flex items-center hover:text-primary/90 mb-4"
+              variant="outline"
+              onClick={onDiscard}
+              className="border-primary text-primary hover:bg-green-50"
               disabled={isUploading || submitting}
             >
-              <span className="text-lg mr-1">+</span> Add R-Fault Code row
+              Discard Session
             </Button>
-          )}
-          <div className="flex flex-col mt-6">
-            {isUploading && (
-              <div className="mb-3 flex items-center text-blue-600 bg-blue-50 p-3 rounded-md">
-                <svg
-                  className="animate-spin h-5 w-5 mr-2"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  ></circle>
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  ></path>
-                </svg>
-                Uploading... {uploadProgress}/{totalUploads} Images uploaded
-              </div>
+          </CardHeader>
+          <CardContent>
+            <h2 className="text-md font-medium mb-4">
+              Which defects are present in this display?
+            </h2>
+            <table className="w-full border-collapse mb-4">
+              <tbody>
+                {rows.map((rowId) => (
+                  <tr key={rowId} className="border">
+                    <td className="border border-gray-300 p-3 w-12 text-center">
+                      {rowId}
+                    </td>
+                    <td className="border border-gray-300 p-3">R-Fault Code</td>
+                    <td className="border border-gray-300 p-3">
+                      <select
+                        className="w-full p-2 border border-black rounded"
+                        value={selectedFaults[rowId] || '16'}
+                        onChange={(e) => setFault(rowId, e.target.value)}
+                        disabled={isUploading || submitting}
+                      >
+                        {defects.map((defect, index) => (
+                          <option key={index} value={defect.id}>
+                            {defect.fault_code}
+                          </option>
+                        ))}
+                      </select>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {rows.length < 10 && (
+              <Button
+                variant="ghost"
+                onClick={addRow}
+                className="text-primary flex items-center hover:text-primary/90 mb-4"
+                disabled={isUploading || submitting}
+              >
+                <span className="text-lg mr-1">+</span> Add R-Fault Code row
+              </Button>
             )}
-            {showUploadFailure && hasUploadFailures && !isUploading && (
-              <div className="mb-3 flex items-center text-red-600 bg-red-50 p-3 rounded-md">
+            <div className="flex flex-col mt-6">
+              {isUploading && (
+                <div className="mb-3 flex items-center text-blue-600 bg-blue-50 p-3 rounded-md">
+                  <svg
+                    className="animate-spin h-5 w-5 mr-2"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                  Uploading... {uploadProgress}/{totalUploads} Images uploaded
+                </div>
+              )}
+              {showUploadFailure && hasUploadFailures && !isUploading && (
+                <div className="mb-3 flex items-center text-red-600 bg-red-50 p-3 rounded-md">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5 mr-2"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  {failedUploadCount} uploads failed. Please check your internet
+                  connection and retry.
+                </div>
+              )}
+              <Button
+                onClick={handleSubmit}
+                disabled={
+                  (submitting && !apiSubmissionFailed) ||
+                  retryingUploads ||
+                  (isUploading && !retryingUploads)
+                }
+                className={`mt-2 ${
+                  (submitting && !apiSubmissionFailed) || retryingUploads
+                    ? 'bg-gray-400'
+                    : apiSubmissionFailed
+                    ? 'bg-red-600 hover:bg-red-700'
+                    : hasUploadFailures && showUploadFailure
+                    ? 'bg-orange-600 hover:bg-orange-700'
+                    : 'bg-primary hover:bg-primary/90'
+                } text-white rounded px-6 py-3 transition-colors`}
+              >
+                {submitting && !retryingApiSubmission ? (
+                  <div className="flex items-center justify-center">
+                    <svg
+                      className="animate-spin h-5 w-5 mr-2"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
+                    </svg>
+                    Submitting...
+                  </div>
+                ) : retryingApiSubmission ? (
+                  <div className="flex items-center justify-center">
+                    <svg
+                      className="animate-spin h-5 w-5 mr-2"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
+                    </svg>
+                    Retrying submission...
+                  </div>
+                ) : apiSubmissionFailed ? (
+                  `Try again with ${selectedCount} fault codes`
+                ) : retryingUploads ? (
+                  <div className="flex items-center justify-center">
+                    <svg
+                      className="animate-spin h-5 w-5 mr-2"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
+                    </svg>
+                    Reuploading...{' '}
+                    {uploadedImageUrls.filter((url) => url !== null).length}/
+                    {totalUploads} images uploaded
+                  </div>
+                ) : hasUploadFailures && showUploadFailure ? (
+                  `Retry uploading ${failedUploadCount}/${totalUploads} failed images`
+                ) : (
+                  `Submit with ${selectedCount} fault codes`
+                )}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+        {/* Success Modal */}
+        {showSuccessModal && (
+          <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
+            <div className="bg-white p-8 rounded-lg max-w-md text-center shadow-xl">
+              <div className="w-20 h-20 mx-auto mb-4 text-primary">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5 mr-2"
-                  viewBox="0 0 20 20"
+                  viewBox="0 0 24 24"
                   fill="currentColor"
+                  className="w-full h-full"
                 >
                   <path
                     fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                    clipRule="evenodd"
+                    d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
                   />
                 </svg>
-                {failedUploadCount} uploads failed. Please check your internet
-                connection and retry.
               </div>
-            )}
-            <Button
-              onClick={handleSubmit}
-              disabled={
-                (submitting && !apiSubmissionFailed) ||
-                retryingUploads ||
-                (isUploading && !retryingUploads)
-              }
-              className={`mt-2 ${
-                (submitting && !apiSubmissionFailed) || retryingUploads
-                  ? 'bg-gray-400'
-                  : apiSubmissionFailed
-                  ? 'bg-red-600 hover:bg-red-700'
-                  : hasUploadFailures && showUploadFailure
-                  ? 'bg-orange-600 hover:bg-orange-700'
-                  : 'bg-primary hover:bg-primary/90'
-              } text-white rounded px-6 py-3 transition-colors`}
-            >
-              {submitting && !retryingApiSubmission ? (
-                <div className="flex items-center justify-center">
-                  <svg
-                    className="animate-spin h-5 w-5 mr-2"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    ></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
-                  </svg>
-                  Submitting...
-                </div>
-              ) : retryingApiSubmission ? (
-                <div className="flex items-center justify-center">
-                  <svg
-                    className="animate-spin h-5 w-5 mr-2"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    ></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
-                  </svg>
-                  Retrying submission...
-                </div>
-              ) : apiSubmissionFailed ? (
-                `Try again with ${selectedCount} fault codes`
-              ) : retryingUploads ? (
-                <div className="flex items-center justify-center">
-                  <svg
-                    className="animate-spin h-5 w-5 mr-2"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    ></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
-                  </svg>
-                  Reuploading...{' '}
-                  {uploadedImageUrls.filter((url) => url !== null).length}/
-                  {totalUploads} images uploaded
-                </div>
-              ) : hasUploadFailures && showUploadFailure ? (
-                `Retry uploading ${failedUploadCount}/${totalUploads} failed images`
-              ) : (
-                `Submit with ${selectedCount} fault codes`
-              )}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-      {/* Success Modal */}
-      {showSuccessModal && (
-        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
-          <div className="bg-white p-8 rounded-lg max-w-md text-center shadow-xl">
-            <div className="w-20 h-20 mx-auto mb-4 text-primary">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-                className="w-full h-full"
+              <h2 className="text-xl font-semibold mb-4">
+                Data collection successful for PPID {ppid}
+              </h2>
+              <Button
+                onClick={onSubmit}
+                className="bg-primary text-white px-8 py-2 rounded-md hover:bg-primary/90 transition-colors"
               >
-                <path
-                  fillRule="evenodd"
-                  d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
-                />
-              </svg>
+                Ok
+              </Button>
             </div>
-            <h2 className="text-xl font-semibold mb-4">
-              Data collection successful for PPID {ppid}
-            </h2>
-            <Button
-              onClick={onSubmit}
-              className="bg-primary text-white px-8 py-2 rounded-md hover:bg-primary/90 transition-colors"
-            >
-              Ok
-            </Button>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

@@ -24,37 +24,39 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 
 function PredictedDefectsPage({ defects, onGoHome }) {
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
-      <div className="flex items-center justify-between mb-2">
-        <h2 className="text-xl font-semibold">Predicted Defects</h2>
+    <div>
+      <div className="max-w-2xl mx-auto space-y-6">
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="text-xl font-semibold">Predicted Defects</h2>
+        </div>
+        <Card>
+          <CardHeader>
+            <CardTitle>Defect report</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ul className="space-y-2">
+              {Object.entries(defects).map(([defect, found], idx) => (
+                <li key={idx} className="flex items-center gap-3">
+                  <span
+                    className={`inline-block w-3 h-3 rounded-full ${
+                      found ? 'bg-red-500' : 'bg-primary'
+                    }`}
+                  ></span>
+                  <span>{defect}</span>
+                </li>
+              ))}
+            </ul>
+            {onGoHome && (
+              <button
+                className="mt-8 w-full px-6 py-3 bg-primary text-white rounded hover:bg-primary/90 text-lg font-semibold"
+                onClick={onGoHome}
+              >
+                Go to Defect Checker Home
+              </button>
+            )}
+          </CardContent>
+        </Card>
       </div>
-      <Card>
-        <CardHeader>
-          <CardTitle>Defect report</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ul className="space-y-2">
-            {Object.entries(defects).map(([defect, found], idx) => (
-              <li key={idx} className="flex items-center gap-3">
-                <span
-                  className={`inline-block w-3 h-3 rounded-full ${
-                    found ? 'bg-red-500' : 'bg-primary'
-                  }`}
-                ></span>
-                <span>{defect}</span>
-              </li>
-            ))}
-          </ul>
-          {onGoHome && (
-            <button
-              className="mt-8 w-full px-6 py-3 bg-primary text-white rounded hover:bg-primary/90 text-lg font-semibold"
-              onClick={onGoHome}
-            >
-              Go to Data Collection Home
-            </button>
-          )}
-        </CardContent>
-      </Card>
     </div>
   );
 }
