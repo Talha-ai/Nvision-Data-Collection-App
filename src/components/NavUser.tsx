@@ -23,7 +23,6 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/sidebar';
-// import { useNavigate } from 'react-router-dom';
 
 export function NavUser({
   user,
@@ -37,7 +36,6 @@ export function NavUser({
   handleLogout: () => void;
 }) {
   const { isMobile } = useSidebar();
-  // const navigate = useNavigate();
   // Compute initials from username
   const getInitials = (name: string) => {
     if (!name) return 'CN';

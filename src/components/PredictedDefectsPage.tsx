@@ -23,6 +23,22 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 // };
 
 function PredictedDefectsPage({ defects, onGoHome }) {
+  // Map defect keys to user-friendly labels
+  const defectDisplayMap = [
+    {
+      key: 'def_polariser_scratches',
+      label: 'Polariser scratches/ dents',
+    },
+    {
+      key: 'def_white_patches',
+      label: 'White Patches',
+    },
+    {
+      key: 'def_horizontal_band',
+      label: 'Horizontal Band',
+    },
+  ];
+
   return (
     <div>
       <div className="max-w-2xl mx-auto space-y-6">
@@ -35,7 +51,7 @@ function PredictedDefectsPage({ defects, onGoHome }) {
           </CardHeader>
           <CardContent>
             <ul className="space-y-2">
-              {Object.entries(defects).map(([defect, found], idx) => (
+               {/* {Object.entries(defects).map(([defect, found], idx) => (
                 <li key={idx} className="flex items-center gap-3">
                   <span
                     className={`inline-block w-3 h-3 rounded-full ${
@@ -44,7 +60,20 @@ function PredictedDefectsPage({ defects, onGoHome }) {
                   ></span>
                   <span>{defect}</span>
                 </li>
-              ))}
+              ))} */}
+              {defectDisplayMap.map(({ key, label }, idx) => {
+                const found = defects?.[key];
+                return (
+                  <li key={key} className="flex items-center gap-3">
+                    <span
+                      className={`inline-block w-3 h-3 rounded-full ${found ? 'bg-red-500' : 'bg-primary'}`}
+                    ></span>
+                    <span>
+                      {label} Defect {found ? 'FOUND' : 'NOT FOUND'}
+                    </span>
+                  </li>
+                );
+              })}
             </ul>
             {onGoHome && (
               <button
