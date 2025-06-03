@@ -108,7 +108,7 @@ function App() {
   const [authToken, setAuthToken] = useState(() =>
     localStorage.getItem('sentinel_dash_token')
   );
-  const [showSignup, setShowSignup] = useState(false);
+  // const [showSignup, setShowSignup] = useState(false);
   const [patternEBC, setPatternEBC] = useState(() => {
     const saved = localStorage.getItem('patternEBC');
     if (saved) return JSON.parse(saved);
@@ -183,7 +183,9 @@ function App() {
   const [username, setUsername] = useState(
     () => localStorage.getItem('sentinel_dash_username') || ''
   );
-  const [routineType, setRoutineType] = useState<'data-collection' | 'defect-checker'>('defect-checker');
+  const [routineType, setRoutineType] = useState<
+    'data-collection' | 'defect-checker'
+  >('defect-checker');
   const [predictedDefects, setPredictedDefects] = useState(null); // for real API result
   const [isPredicting, setIsPredicting] = useState(false);
   const [predictionError, setPredictionError] = useState(null);
@@ -202,7 +204,7 @@ function App() {
   const handleLogin = (token) => {
     localStorage.setItem('sentinel_dash_token', token);
     setAuthToken(token);
-    setShowSignup(false);
+    // setShowSignup(false);
     setActivePage('defect-checker');
     const savedUsername = localStorage.getItem('sentinel_dash_username') || '';
     setUsername(savedUsername);
@@ -215,8 +217,8 @@ function App() {
     setActivePage('login');
   };
 
-  const navigateToSignup = () => setShowSignup(true);
-  const navigateToLogin = () => setShowSignup(false);
+  // const navigateToSignup = () => setShowSignup(true);
+  // const navigateToLogin = () => setShowSignup(false);
 
   const handleMinimize = () => {
     window.electronAPI?.minimizeWindow();
@@ -235,7 +237,9 @@ function App() {
     setPpid(ppid);
     setIsTestMode(isTestMode);
     setFocusDistance(focusDistance);
-    setRoutineType(routine === 'data-collection' ? 'data-collection' : 'defect-checker');
+    setRoutineType(
+      routine === 'data-collection' ? 'data-collection' : 'defect-checker'
+    );
     setIsCapturing(true);
   };
 
@@ -609,18 +613,18 @@ function App() {
           )}
           <div className={`content-area ${authToken ? 'pt-8' : ''}`}>
             {!authToken ? (
-              showSignup ? (
-                <SignUpPage
-                  onSignup={handleLogin}
-                  navigateToLogin={navigateToLogin}
-                />
-              ) : (
-                <LoginPage
-                  onLogin={handleLogin}
-                  navigateToSignup={navigateToSignup}
-                />
-              )
-            ) : isCapturing ? (
+              // showSignup ? (
+              //   <SignUpPage
+              //     onSignup={handleLogin}
+              //     navigateToLogin={navigateToLogin}
+              //   />
+              // ) : (
+              <LoginPage
+                onLogin={handleLogin}
+                // navigateToSignup={navigateToSignup}
+              />
+            ) : // )
+            isCapturing ? (
               <ImageCaptureProcess
                 onComplete={handleCaptureComplete}
                 onUploadProgress={handleUploadProgress}
@@ -632,27 +636,31 @@ function App() {
             ) : // subpages without sidebar/header
             activePage === 'review' ? (
               <>
-                  <header className="sticky w-screen top-0 z-10 flex h-16 shrink-0 items-center gap-2 border-b bg-background px-4">
-        <div className="text-xl font-semibold">{routineType === 'data-collection' ? 'Data Collection Review Page' : 'Defect Checker Review Page'}</div>
-      </header>
-              <div className="flex justify-center items-center min-h-screen bg-gray-100">
-                <div className="w-full max-w-3xl p-4">
-                  <ReviewImagesPage
-                    ppid={ppid}
-                    capturedImages={capturedImages}
-                    onApprove={async () => {
-                      if (routineType === 'defect-checker') {
-                        setActivePage('predicted-defects');
-                        await startPrediction();
-                      } else {
-                        approveImages();
-                      }
-                    }}
-                    onRetake={retakeImages}
-                    onDiscard={discardSession}
-                  />
+                <header className="sticky w-screen top-0 z-10 flex h-16 shrink-0 items-center gap-2 border-b bg-background px-4">
+                  <div className="text-xl font-semibold">
+                    {routineType === 'data-collection'
+                      ? 'Data Collection Review Page'
+                      : 'Defect Checker Review Page'}
+                  </div>
+                </header>
+                <div className="flex justify-center items-center min-h-screen bg-gray-100">
+                  <div className="w-full max-w-3xl p-4">
+                    <ReviewImagesPage
+                      ppid={ppid}
+                      capturedImages={capturedImages}
+                      onApprove={async () => {
+                        if (routineType === 'defect-checker') {
+                          setActivePage('predicted-defects');
+                          await startPrediction();
+                        } else {
+                          approveImages();
+                        }
+                      }}
+                      onRetake={retakeImages}
+                      onDiscard={discardSession}
+                    />
+                  </div>
                 </div>
-              </div>
               </>
             ) : activePage === 'predicted-defects' ? (
               isPredicting ? (
@@ -663,27 +671,31 @@ function App() {
                   </div>
                 </div>
               ) : predictedDefects && !predictedDefects.error ? (
-                      <>
+                <>
                   <header className="sticky w-screen top-0 z-10 flex h-16 shrink-0 items-center gap-2 border-b bg-background px-4">
-        <div className="text-xl font-semibold">{routineType === 'data-collection' ? 'Data Collection Predicted Defects' : 'Defect Checker Predicted Defects'}</div>
-      </header>
-                <div className="flex justify-center items-center min-h-screen bg-gray-100">
-                  <div className="w-full max-w-2xl p-4">
-                    <PredictedDefectsPage
-                      defects={predictedDefects}
-                      onGoHome={() => {
-                        setPpid('');
-                        setCapturedImages([]);
-                        setUploadedImageUrls([]);
-                        setCompletedUploads(0);
-                        setTotalUploads(0);
-                        setIsUploading(false);
-                        setFailedUploadIndices([]);
-                        setActivePage('defect-checker');
-                      }}
-                    />
+                    <div className="text-xl font-semibold">
+                      {routineType === 'data-collection'
+                        ? 'Data Collection Predicted Defects'
+                        : 'Defect Checker Predicted Defects'}
+                    </div>
+                  </header>
+                  <div className="flex justify-center items-center min-h-screen bg-gray-100">
+                    <div className="w-full max-w-2xl p-4">
+                      <PredictedDefectsPage
+                        defects={predictedDefects}
+                        onGoHome={() => {
+                          setPpid('');
+                          setCapturedImages([]);
+                          setUploadedImageUrls([]);
+                          setCompletedUploads(0);
+                          setTotalUploads(0);
+                          setIsUploading(false);
+                          setFailedUploadIndices([]);
+                          setActivePage('defect-checker');
+                        }}
+                      />
+                    </div>
                   </div>
-                </div>
                 </>
               ) : predictedDefects && predictedDefects.error ? (
                 <div className="flex flex-col items-center justify-center min-h-[300px]">
@@ -701,26 +713,30 @@ function App() {
                 </div>
               ) : null
             ) : activePage === 'defect-analysis' ? (
-                    <>
-                  <header className="sticky w-screen top-0 z-10 flex h-16 shrink-0 items-center gap-2 border-b bg-background px-4">
-        <div className="text-xl font-semibold">{routineType === 'data-collection' ? 'Data Collection Defect Analysis' : 'Defect Checker Defect Analysis'}</div>
-      </header>
-              <div className="flex justify-center items-center min-h-screen bg-gray-100">
-                <div className="w-full max-w-3xl p-4">
-                  <DefectAnalysisPage
-                    ppid={ppid}
-                    isTestMode={isTestMode}
-                    uploadedImageUrls={uploadedImageUrls}
-                    onSubmit={submitDefectAnalysis}
-                    onDiscard={discardSession}
-                    uploadProgress={completedUploads}
-                    totalUploads={totalUploads}
-                    isUploading={isUploading}
-                    failedUploadCount={failedUploadIndices.length}
-                    onRetryUploads={retryFailedUploads}
-                  />
+              <>
+                <header className="sticky w-screen top-0 z-10 flex h-16 shrink-0 items-center gap-2 border-b bg-background px-4">
+                  <div className="text-xl font-semibold">
+                    {routineType === 'data-collection'
+                      ? 'Data Collection Defect Analysis'
+                      : 'Defect Checker Defect Analysis'}
+                  </div>
+                </header>
+                <div className="flex justify-center items-center min-h-screen bg-gray-100">
+                  <div className="w-full max-w-3xl p-4">
+                    <DefectAnalysisPage
+                      ppid={ppid}
+                      isTestMode={isTestMode}
+                      uploadedImageUrls={uploadedImageUrls}
+                      onSubmit={submitDefectAnalysis}
+                      onDiscard={discardSession}
+                      uploadProgress={completedUploads}
+                      totalUploads={totalUploads}
+                      isUploading={isUploading}
+                      failedUploadCount={failedUploadIndices.length}
+                      onRetryUploads={retryFailedUploads}
+                    />
+                  </div>
                 </div>
-              </div>
               </>
             ) : (
               // All other pages remain inside HomePage (with sidebar/header)

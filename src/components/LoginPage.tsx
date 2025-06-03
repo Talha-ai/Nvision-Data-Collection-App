@@ -8,14 +8,14 @@ import { baseURL } from '../../constants';
 
 interface LoginPageProps {
   onLogin: (token: string) => void;
-  navigateToSignup: () => void;
+  // navigateToSignup: () => void;
 }
 
 type LoginFormProps = LoginPageProps & React.ComponentPropsWithoutRef<'div'>;
 
 export function LoginPage({
   onLogin,
-  navigateToSignup,
+  // navigateToSignup,
   className,
   ...props
 }: LoginFormProps) {
