@@ -1,5 +1,5 @@
 import React from 'react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 
@@ -10,24 +10,6 @@ interface ReviewImagesPageProps {
   onRetake: () => void;
   onDiscard: () => void;
 }
-
-// const testPatterns = [
-//   'white_AAA.png',
-//   'black&White_OOO.png',
-//   'colorBars_JJJ.png',
-//   'focus_KKK.png',
-//   'gray75_HHH.png',
-//   'green_FFF.png',
-//   'cyan_CCC.png',
-//   'gray50_DDD.png',
-//   'red_EEE.png',
-//   'grayVertical_III.png',
-//   '16BarGray_NNN.png',
-//   'blue_GGG.png',
-//   'crossHatch_MMM.png',
-//   'blackWithWhiteBorder_LLL.png',
-//   'black_BBB.png',
-// ];
 
 const testPatterns = [
   'white_AAA.png',
@@ -76,6 +58,25 @@ function ReviewImagesPage({
     window.electronAPI.disableFullScreen();
   };
 
+  // Hide scrollbars when in fullscreen mode
+  useEffect(() => {
+    if (fullscreenImage) {
+      // Hide scrollbars
+      document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
+    } else {
+      // Restore scrollbars
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+    }
+
+    // Cleanup on unmount
+    return () => {
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+    };
+  }, [fullscreenImage]);
+
   return (
     <div>
       <div className="max-w-3xl mx-auto space-y-6">
@@ -99,10 +100,19 @@ function ReviewImagesPage({
             <h2 className="text-md font-medium mb-4">Review captured images</h2>
             {fullscreenImage ? (
               <div
-                className="fixed inset-0 bg-black flex flex-col items-center justify-between cursor-pointer z-50"
+                className="fixed inset-0 bg-black flex flex-col items-center justify-center cursor-pointer z-50 w-screen h-screen"
+                style={{ 
+                  position: 'fixed',
+                  top: 0,
+                  left: 0,
+                  width: '100vw',
+                  height: '100vh',
+                  margin: 0,
+                  padding: 0
+                }}
                 onDoubleClick={handleExitFullscreen}
               >
-                <div className="flex-grow flex items-center justify-center w-full">
+                <div className="flex items-center justify-center w-full h-full">
                   <img
                     src={
                       capturedImages[parseInt(fullscreenImage.id.split('-')[1])]
@@ -111,6 +121,7 @@ function ReviewImagesPage({
                       parseInt(fullscreenImage.id.split('-')[1]) + 1
                     }`}
                     className="max-h-full max-w-full object-contain"
+                    style={{ maxHeight: '100%', maxWidth: '100%' }}
                   />
                 </div>
                 <div className="absolute top-4 right-4 text-white bg-black bg-opacity-50 px-3 py-2 rounded">
