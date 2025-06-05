@@ -81,25 +81,19 @@ const UsageDataPage = () => {
                 <div className="text-2xl font-bold">
                   {inferenceUsage?.inference_count || 0}
                 </div>
-                <p className="text-sm text-muted-foreground">
-                  Total Inferences
-                </p>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
-                  Account group usage
+                  Total usage
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
                   {groupUsage[0]?.total_inferences || 0}
                 </div>
-                <p className="text-sm text-muted-foreground">
-                  Total Group Inferences
-                </p>
               </CardContent>
             </Card>
           </div>
