@@ -29,6 +29,8 @@ import DefectCheckerPage from './components/DefectCheckerPage';
 import { AppModeProvider } from './contexts/appModeContext';
 import PastDataPage from './components/PastDataPage';
 import PredictedDefectsPage from './components/PredictedDefectsPage';
+import UsageDataPage from './components/UsageDataPage';
+import { baseURL } from '../constants';
 
 declare global {
   interface Window {
@@ -370,6 +372,7 @@ function App() {
     'defect-analysis': 'Defect Analysis',
     'past-data': 'Past Data',
     'predicted-defects': 'Predicted Defects',
+    'usage-data': 'Defect Checker Usage',
     // Add more as needed
   };
 
@@ -378,12 +381,12 @@ function App() {
     setPredictedDefects(null);
     setPredictionError(null);
     try {
-      // const token = localStorage.getItem('sentinel_dash_token');
-      // if (!token) {
-      //   setIsPredicting(false);
-      //   setPredictedDefects({ error: 'No authentication token found. Please log in again.' });
-      //   return;
-      // }
+      const token = localStorage.getItem('sentinel_dash_token');
+      if (!token) {
+        setIsPredicting(false);
+        setPredictedDefects({ error: 'No authentication token found. Please log in again.' });
+        return;
+      }
       // Prepare panel_images array as in defectchecker
       const panel_images = uploadedImageUrls.map((url, idx) => ({
         panel: ppid,
@@ -397,12 +400,12 @@ function App() {
         panel_images,
       };
       const response = await fetch(
-        'https://nvision-staging.alemeno.com/data/display-panel/',
+        `${baseURL}/data/display-panel/`,
         {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            // 'Authorization': `Bearer ${token}`,
+            'Authorization': `Bearer ${token}`,
           },
           body: JSON.stringify(payload),
         }
@@ -439,7 +442,7 @@ function App() {
       }
       const poll = async () => {
         const res = await fetch(
-          `https://nvision-staging.alemeno.com/data/task/${task_uuid}/status/`,
+          `${baseURL}/data/task/${task_uuid}/status/`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -577,22 +580,8 @@ function App() {
         );
       case 'past-data':
         return <PastDataPage />;
-      // case 'predicted-defects':
-      //   return (
-      //     <PredictedDefectsPage
-      //       defects={predictedDefects}
-      //       onGoHome={() => {
-      //         setPpid('');
-      //         setCapturedImages([]);
-      //         setUploadedImageUrls([]);
-      //         setCompletedUploads(0);
-      //         setTotalUploads(0);
-      //         setIsUploading(false);
-      //         setFailedUploadIndices([]);
-      //         setActivePage('data-collection');
-      //       }}
-      //     />
-      //   );
+      case 'usage-data':
+        return <UsageDataPage />;
       default:
         return <div>Welcome!</div>;
     }

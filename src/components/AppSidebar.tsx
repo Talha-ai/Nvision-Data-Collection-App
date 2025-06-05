@@ -64,10 +64,10 @@ const data = {
       url: '#settings',
       icon: Settings2,
       items: [
-        // {
-        //   title: 'General',
-        //   url: '#settings-general',
-        // },
+        {
+          title: 'Defect Checker Usage',
+          url: '#usage-data',
+        },
         {
           title: 'Pattern EBC',
           url: '#pattern-ebc',
