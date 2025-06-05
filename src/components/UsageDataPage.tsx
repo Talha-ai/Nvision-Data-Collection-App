@@ -23,7 +23,9 @@ interface GroupUsage {
 }
 
 const UsageDataPage = () => {
-  const [inferenceUsage, setInferenceUsage] = useState<InferenceUsage | null>(null);
+  const [inferenceUsage, setInferenceUsage] = useState<InferenceUsage | null>(
+    null
+  );
   const [groupUsage, setGroupUsage] = useState<GroupUsage[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -32,7 +34,7 @@ const UsageDataPage = () => {
       try {
         const [userUsage, groupData] = await Promise.all([
           getInferenceUsage(),
-          getGroupInferenceUsage()
+          getGroupInferenceUsage(),
         ]);
         setInferenceUsage(userUsage);
         setGroupUsage(groupData);
@@ -48,47 +50,61 @@ const UsageDataPage = () => {
 
   if (loading) {
     return (
-      <div className="flex flex-col gap-4 p-4">
-        <Skeleton className="h-12 w-1/2" />
-        <div className="grid grid-cols-2 gap-4">
-          <Skeleton className="h-20 w-full" />
-          <Skeleton className="h-20 w-full" />
-        </div>
+      // <div className="flex flex-col gap-4 p-4">
+      //   <Skeleton className="h-12 w-1/2" />
+      //   <div className="grid grid-cols-2 gap-4">
+      //     <Skeleton className="h-20 w-full" />
+      //     <Skeleton className="h-20 w-full" />
+      //   </div>
+      // </div>
+      <div className="flex flex-col items-center justify-center min-h-[300px]">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mb-4"></div>
       </div>
     );
   }
 
   return (
     <div className="p-4 space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Defect Checker Usage</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card>
-       <CardHeader>
-                <CardTitle>Defect Checker Usage</CardTitle>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Account usage
+                </CardTitle>
               </CardHeader>
-                      <CardContent>
-              
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Account usage</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{inferenceUsage?.inference_count || 0}</div>
-            <p className="text-sm text-muted-foreground">Total Inferences</p>
-          </CardContent>
-        </Card>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {inferenceUsage?.inference_count || 0}
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Total Inferences
+                </p>
+              </CardContent>
+            </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Account group usage</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{groupUsage[0]?.total_inferences || 0}</div>
-            <p className="text-sm text-muted-foreground">Total Group Inferences</p>
-          </CardContent>
-        </Card>
-      </div>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Account group usage
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {groupUsage[0]?.total_inferences || 0}
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Total Group Inferences
+                </p>
+              </CardContent>
+            </Card>
+          </div>
 
-      {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Last Inference</CardTitle>
@@ -111,7 +127,7 @@ const UsageDataPage = () => {
           </CardContent>
         </Card>
       </div> */}
-      </CardContent>
+        </CardContent>
       </Card>
     </div>
   );

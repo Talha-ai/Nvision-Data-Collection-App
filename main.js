@@ -11,7 +11,7 @@ function createWindow() {
     // width: 900,
     // height: 700,
     frame: false,
-    icon: path.join(__dirname, 'assets/icon.png'),
+    // icon: path.join(__dirname, 'src/assets/nvision_logo.png'),
     webPreferences: {
       contextIsolation: true,
       nodeIntegration: false,
@@ -47,7 +47,7 @@ function createWindow() {
 }
 
 function setupTray() {
-  tray = new Tray(path.join(__dirname, 'assets/icon.png'));
+  tray = new Tray(path.join(__dirname, 'assets/nvision_logo.png'));
   const contextMenu = Menu.buildFromTemplate([
     {
       label: 'Show App',
