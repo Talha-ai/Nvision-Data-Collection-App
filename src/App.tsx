@@ -31,6 +31,7 @@ import PastDataPage from './components/PastDataPage';
 import PredictedDefectsPage from './components/PredictedDefectsPage';
 import UsageDataPage from './components/UsageDataPage';
 import { baseURL } from '../constants';
+import { createDisplayPanel, getTaskStatus } from './services/api';
 
 declare global {
   interface Window {
@@ -73,27 +74,6 @@ const testPatterns = [
   { name: '16BarGray_NNN', src: barGray_NNN },
   { name: 'black&White_OOO', src: blackWhite_OOO },
 ];
-
-// Dummy defects result set for PredictedDefectsPage
-const dummyDefects = {
-  'VID - Abnormal Display Defect Not Found': true,
-  'VID - Horizontal Line Defect Not Found': true,
-  'VID - Horizontal Band Defect Found': false,
-  'VID - Vertical Line Defect Not Found': true,
-  'VID - Vertical Band Defect Not Found': true,
-  'VID - Particles Defect Not Found': true,
-  'CID - White Patch Defect Not Found': true,
-  'CID - Polariser Scratches / Dent Defect Not Found': true,
-  'VID - Light Leakage Defect Not Found': true,
-  'VID - Mura Defect Not Found': true,
-  'VID - Incoming Border Patch Defect Not Found': true,
-  'VID - Pixel Bright Dot Defect Not Found': true,
-  'BER - Incoming Galaxy Defect Not Found': false,
-  'VID - Led Off Defect Found': false,
-  'VID - Bleeding Defect Not Found': false,
-  'NTF - No Trouble Found Defect Not Found': true,
-  'Other Defects Defect Not Found': true,
-};
 
 function App() {
   const [activePage, setActivePage] = useState('defect-checker');
@@ -393,28 +373,14 @@ function App() {
         image_url: url,
         base_pattern: idx + 1,
       }));
-      const payload = {
-        ppid,
-        test_type: isTestMode ? 'test' : 'production',
-        inference: true,
-        panel_images,
-      };
-      const response = await fetch(
-        `${baseURL}/data/display-panel/`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
-          },
-          body: JSON.stringify(payload),
-        }
-      );
-      if (!response.ok) {
-        const errData = await response.json().catch(() => ({}));
-        throw new Error(errData.detail || 'Failed to start prediction');
-      }
-      const data = await response.json();
+     const payload = {
+      ppid,
+      panel_images,
+      test_type: isTestMode ? "test" as "test" : "production" as "production",
+      inference: true, 
+    };
+    
+      const data = await createDisplayPanel(payload);
       const task_uuid = data.tasks?.[0]?.task_uuid;
       if (!task_uuid) throw new Error('No task_uuid returned');
       // Poll for status
@@ -427,44 +393,25 @@ function App() {
     }
   };
 
-  const pollPredictionStatus = async (task_uuid) => {
-    try {
-      const token = localStorage.getItem('sentinel_dash_token');
-      if (!token) {
-        setIsPredicting(false);
-        setPredictedDefects({
-          error: 'No authentication token found. Please log in again.',
-        });
-        setPredictionError(
-          'No authentication token found. Please log in again.'
-        );
-        return;
-      }
-      const poll = async () => {
-        const res = await fetch(
-          `${baseURL}/data/task/${task_uuid}/status/`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              'Content-Type': 'application/json',
-            },
-          }
-        );
-        if (!res.ok) {
-          let errMsg = 'Failed to poll status';
-          if (res.status === 401 || res.status === 403) {
-            errMsg = 'Unauthorized. Please log in again.';
-          } else {
-            const errData = await res.json().catch(() => ({}));
-            errMsg = errData.detail || errMsg;
-          }
-          setIsPredicting(false);
-          setPredictedDefects({ error: errMsg });
-          setPredictionError(errMsg);
-          return;
-        }
-        const data = await res.json();
+const pollPredictionStatus = async (task_uuid) => {
+  try {
+    const token = localStorage.getItem('sentinel_dash_token');
+    if (!token) {
+      setIsPredicting(false);
+      setPredictedDefects({
+        error: 'No authentication token found. Please log in again.',
+      });
+      setPredictionError(
+        'No authentication token found. Please log in again.'
+      );
+      return;
+    }
+    
+    const poll = async () => {
+      try {
+        const data = await getTaskStatus(task_uuid);
         const status = data.task?.status;
+        
         if (status === 'completed') {
           setIsPredicting(false);
           setPredictedDefects(data.task.results?.defects || {});
@@ -481,16 +428,28 @@ function App() {
           setPredictedDefects({ error: 'Prediction failed or unknown status' });
           setPredictionError('Prediction failed or unknown status');
         }
-      };
-      poll();
-    } catch (err) {
-      setIsPredicting(false);
-      setPredictedDefects({
-        error: err.message || 'Prediction polling failed',
-      });
-      setPredictionError(err.message || 'Prediction polling failed');
-    }
-  };
+      } catch (error) {
+        let errMsg = 'Failed to poll status';
+        if (error.response?.status === 401 || error.response?.status === 403) {
+          errMsg = 'Unauthorized. Please log in again.';
+        } else {
+          errMsg = error.response?.data?.detail || error.message || errMsg;
+        }
+        setIsPredicting(false);
+        setPredictedDefects({ error: errMsg });
+        setPredictionError(errMsg);
+      }
+    };
+    
+    poll();
+  } catch (err) {
+    setIsPredicting(false);
+    setPredictedDefects({
+      error: err.message || 'Prediction polling failed',
+    });
+    setPredictionError(err.message || 'Prediction polling failed');
+  }
+};
 
   // Render the correct subpage/component
   const renderActivePage = () => {

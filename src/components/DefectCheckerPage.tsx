@@ -4,6 +4,8 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { RotateCcw } from 'lucide-react';
 import { useAppMode } from '../contexts/appModeContext';
+import { baseURL } from '../../constants';
+import { checkDisplayPanel } from '@/services/api';
 
 interface DefectCheckerPageProps {
   onStartDefectChecker: (
@@ -92,18 +94,7 @@ const DefectCheckerPage: React.FC<DefectCheckerPageProps> = ({ onStartDefectChec
       setSubmitLoading(true);
       setSubmitError(null);
       try {
-        const checkResponse = await fetch(
-          'https://nvision.alemeno.com/data/display-panel/check_display_panel/',
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ ppid: ppid }),
-          }
-        );
-        if (!checkResponse.ok) {
-          throw new Error(`Server responded with status: ${checkResponse.status}`);
-        }
-        const checkData = await checkResponse.json();
+        const checkData = await checkDisplayPanel(ppid);
         const finalPpid = checkData.exists ? checkData.recommended_ppid : ppid;
         onStartDefectChecker(finalPpid, isTestMode, focusDistance, 'defect-checker');
       } catch (error) {

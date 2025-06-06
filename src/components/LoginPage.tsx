@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import nvision_logo from '../assets/nvision_logo.png';
 import { baseURL } from '../../constants';
+import { login } from '@/services/api';
 
 interface LoginPageProps {
   onLogin: (token: string) => void;
@@ -29,21 +30,7 @@ export function LoginPage({
     setIsLoading(true);
     setError(null);
     try {
-      const response = await fetch(`${baseURL}/login/`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          username,
-          password,
-        }),
-      });
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.message || 'Login failed');
-      }
-      console.log(data);
+      const data = await login(username, password);
       localStorage.setItem('sentinel_dash_username', username);
       onLogin(data.access);
     } catch (error: any) {

@@ -4,6 +4,8 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { RotateCcw } from 'lucide-react';
 import { useAppMode } from '../contexts/appModeContext';
+import { baseURL } from '../../constants';
+import { checkDisplayPanel } from '@/services/api';
 
 
 interface DataCollectionrops {
@@ -87,33 +89,22 @@ const DataCollectionPage: React.FC<DataCollectionrops> = ({ onStartDefectChecker
     setCameraRefreshTrigger((prev) => prev + 1);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (ppid.trim()) {
-      setSubmitLoading(true);
-      setSubmitError(null);
-      try {
-        const checkResponse = await fetch(
-          'https://nvision.alemeno.com/data/display-panel/check_display_panel/',
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ ppid: ppid }),
-          }
-        );
-        if (!checkResponse.ok) {
-          throw new Error(`Server responded with status: ${checkResponse.status}`);
-        }
-        const checkData = await checkResponse.json();
-        const finalPpid = checkData.exists ? checkData.recommended_ppid : ppid;
-        onStartDefectChecker(finalPpid, isTestMode, focusDistance, 'data-collection');
-      } catch (error) {
-        setSubmitError(error instanceof Error ? error.message : 'An unknown error occurred');
-      } finally {
-        setSubmitLoading(false);
-      }
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  if (ppid.trim()) {
+    setSubmitLoading(true);
+    setSubmitError(null);
+    try {
+      const checkData = await checkDisplayPanel(ppid);
+      const finalPpid = checkData.exists ? checkData.recommended_ppid : ppid;
+      onStartDefectChecker(finalPpid, isTestMode, focusDistance, 'data-collection');
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : 'An unknown error occurred');
+    } finally {
+      setSubmitLoading(false);
     }
-  };
+  }
+};
 
   const handleResetLiveSettings = () => {
     setExposure(defaultLiveSettings.exposure);

@@ -3,6 +3,8 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { RotateCcw } from 'lucide-react';
 import { useAppMode } from '../contexts/appModeContext';
+import { baseURL } from '../../constants';
+import { getPanelStats } from '@/services/api';
 
 interface DefectStat {
   defect_name: string;
@@ -27,11 +29,7 @@ const SummaryPage: React.FC = () => {
   const fetchStats = async () => {
     setStatsLoading(true);
     try {
-      const response = await fetch(
-        'https://nvision.alemeno.com/data/panel-image-search/stats/'
-      );
-      if (!response.ok) throw new Error('Failed to fetch statistics');
-      const data = await response.json();
+       const data = await getPanelStats();
       setFullStatsData(data);
       const modeData = isTestMode ? data.test : data.production;
       setStatsData(modeData);

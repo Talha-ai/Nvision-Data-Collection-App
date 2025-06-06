@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { baseURL } from '../../constants';
+import { createDisplayPanel, getDefects } from '@/services/api';
 
 interface DefectAnalysisPageProps {
   ppid: string;
@@ -55,15 +57,8 @@ function DefectAnalysisPage({
     // Fetch defect data
     const fetchDefects = async () => {
       try {
-        const response = await fetch(
-          'https://nvision.alemeno.com/data/defect/'
-        );
-        if (response.ok) {
-          const data = await response.json();
-          setDefects(data);
-        } else {
-          console.error('Failed to fetch defects');
-        }
+        const data = await getDefects();
+        setDefects(data);
       } catch (error) {
         console.error('Error fetching defects:', error);
       } finally {
@@ -156,28 +151,15 @@ function DefectAnalysisPage({
         ppid: ppid,
         defects: selectedDefectIds,
         panel_images: panel_images,
-        test_type: isTestMode ? 'test' : 'production',
+      test_type: isTestMode ? "test" as "test" : "production" as "production",
       };
       console.log('isTestMode:', isTestMode);
       console.log('Payload:', payload);
 
-      const response = await fetch(
-        'https://nvision.alemeno.com/data/display-panel/',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(payload),
-        }
-      );
+      await createDisplayPanel(payload);
 
-      if (response.ok) {
-        setShowSuccessModal(true);
-        setApiSubmissionFailed(false);
-      } else {
-        setApiSubmissionFailed(true);
-      }
+      setShowSuccessModal(true);
+    setApiSubmissionFailed(false);
     } catch (error) {
       console.error('Error submitting data:', error);
       setApiSubmissionFailed(true);
