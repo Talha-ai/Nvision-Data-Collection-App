@@ -2,6 +2,7 @@
   "name": "nvision-data-collection",
   "version": "4.1.1",
   "description": "Nvision Data Collection App",
+  "author": "Nvision",
   "main": "main.js",
   "scripts": {
     "dev": "concurrently \"vite\" \"npm:dev-electron\"",
@@ -56,6 +57,7 @@
   "build": {
     "appId": "com.nvision.datacollection",
     "productName": "Nvision AI",
+    "publish": null,
     "directories": {
       "buildResources": "src/assets",
       "output": "dist_electron/${version}"
