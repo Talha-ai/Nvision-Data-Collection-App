@@ -69,7 +69,10 @@
     "icon": "nvision_logo.ico",
     "win": {
       "target": "nsis",
-      "artifactName": "${productName}-${version}-setup.${ext}"
+      "artifactName": "${productName}-${os.arch}-${version}-${env.NODE_ENV}.${ext}"
+    },
+    "extraMetadata": {
+      "environment": "${env.NODE_ENV}"
     }
   }
 }
