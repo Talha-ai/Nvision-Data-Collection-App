@@ -1,81 +1,58 @@
-name: Build Electron App
+name: Build Nvision App
 
 on:
   push:
-    branches: [ dev, production ]
-  # Removed pull_request trigger - no more PR builds!
+    branches: [dev, production]
 
 jobs:
   build:
     runs-on: windows-latest
-    
-    permissions:
-      contents: write
-      
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
-        cache: 'npm'
-        
-    - name: Install dependencies
-      run: npm ci
-      
-    - name: Get package version
-      id: package-version
-      run: |
-        $version = (Get-Content package.json | ConvertFrom-Json).version
-        echo "version=$version" >> $env:GITHUB_OUTPUT
-      shell: powershell
-      
-    - name: Determine build info
-      id: build-info
-      run: |
-        if ("${{ github.ref }}" -eq "refs/heads/production") {
-          echo "branch=production" >> $env:GITHUB_OUTPUT
-          echo "build-type=production" >> $env:GITHUB_OUTPUT
-          echo "artifact-name=nvision-production" >> $env:GITHUB_OUTPUT
-        } else {
-          echo "branch=dev" >> $env:GITHUB_OUTPUT
-          echo "build-type=development" >> $env:GITHUB_OUTPUT
-          echo "artifact-name=nvision-dev" >> $env:GITHUB_OUTPUT
-        }
-      shell: powershell
-      
-    - name: Build application
-      run: npm run build
-      shell: powershell
-      env:
-        NODE_ENV: ${{ steps.build-info.outputs.build-type }}
-        
-    - name: Upload build artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: ${{ steps.build-info.outputs.artifact-name }}-${{ steps.package-version.outputs.version }}
-        path: |
-          dist_electron/**/*.exe
-          dist_electron/**/*.nsis.7z
-        retention-days: 30
-        
-    - name: Create Release (Production only)
-      if: github.ref == 'refs/heads/production' && github.event_name == 'push'
-      uses: softprops/action-gh-release@v2
-      with:
-        tag_name: v${{ steps.package-version.outputs.version }}
-        name: Release v${{ steps.package-version.outputs.version }}
-        body: |
-          ## Release v${{ steps.package-version.outputs.version }}
-          
-          Production build automatically created from commit ${{ github.sha }}
-          
-        files: |
-          dist_electron/**/*.exe
-        draft: false
-        prerelease: false
-        make_latest: true
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Get package version
+        id: package-version
+        run: |
+          $version = (Get-Content package.json | ConvertFrom-Json).version
+          echo "version=$version" >> $env:GITHUB_OUTPUT
+        shell: powershell
+
+      - name: Determine build info
+        id: build-info
+        run: |
+          if ("${{ github.ref }}" -eq "refs/heads/production") {
+            echo "branch=production" >> $env:GITHUB_OUTPUT
+            echo "build-type=production" >> $env:GITHUB_OUTPUT
+            echo "artifact-name=nvision-production" >> $env:GITHUB_OUTPUT
+          } else {
+            echo "branch=dev" >> $env:GITHUB_OUTPUT
+            echo "build-type=development" >> $env:GITHUB_OUTPUT
+            echo "artifact-name=nvision-dev" >> $env:GITHUB_OUTPUT
+          }
+        shell: powershell
+
+      - name: Build application
+        run: npm run build
+        shell: powershell
+        env:
+          NODE_ENV: ${{ steps.build-info.outputs.build-type }}
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.build-info.outputs.artifact-name }}-${{ steps.package-version.outputs.version }}
+          path: |
+            dist_electron/**/*.exe
+            dist_electron/**/*.nsis.7z
+          retention-days: 90
