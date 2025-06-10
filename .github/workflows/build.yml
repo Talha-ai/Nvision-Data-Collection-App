@@ -3,15 +3,14 @@ name: Build Electron App
 on:
   push:
     branches: [ dev, production ]
-  pull_request:
-    branches: [ production ]
+  # Removed pull_request trigger - no more PR builds!
 
 jobs:
   build:
     runs-on: windows-latest
     
     permissions:
-      contents: write  # Required for creating releases
+      contents: write
       
     steps:
     - name: Checkout code
@@ -40,19 +39,15 @@ jobs:
           echo "branch=production" >> $env:GITHUB_OUTPUT
           echo "build-type=production" >> $env:GITHUB_OUTPUT
           echo "artifact-name=nvision-production" >> $env:GITHUB_OUTPUT
-        } elseif ("${{ github.ref }}" -eq "refs/heads/dev") {
+        } else {
           echo "branch=dev" >> $env:GITHUB_OUTPUT
           echo "build-type=development" >> $env:GITHUB_OUTPUT
           echo "artifact-name=nvision-dev" >> $env:GITHUB_OUTPUT
-        } else {
-          echo "branch=unknown" >> $env:GITHUB_OUTPUT
-          echo "build-type=development" >> $env:GITHUB_OUTPUT
-          echo "artifact-name=nvision-pr" >> $env:GITHUB_OUTPUT
         }
       shell: powershell
       
     - name: Build application
-      run: npm run build  # Use consistent build command
+      run: npm run build
       shell: powershell
       env:
         NODE_ENV: ${{ steps.build-info.outputs.build-type }}
@@ -68,7 +63,7 @@ jobs:
         
     - name: Create Release (Production only)
       if: github.ref == 'refs/heads/production' && github.event_name == 'push'
-      uses: softprops/action-gh-release@v2  # Updated to v2 for better reliability
+      uses: softprops/action-gh-release@v2
       with:
         tag_name: v${{ steps.package-version.outputs.version }}
         name: Release v${{ steps.package-version.outputs.version }}
@@ -76,9 +71,6 @@ jobs:
           ## Release v${{ steps.package-version.outputs.version }}
           
           Production build automatically created from commit ${{ github.sha }}
-          
-          ### Changes
-          - Production release build from merge to production branch
           
         files: |
           dist_electron/**/*.exe
