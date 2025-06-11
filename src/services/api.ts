@@ -1,18 +1,29 @@
+// services/api.ts - Simplified API service with immediate environment switching
 import axios from 'axios';
-import { baseURL } from '../../constants';
+import { STAGING_URL, PRODUCTION_URL } from '../../constants';
+// const PRODUCTION_URL = 'https://nvision.alemeno.com';
+// const STAGING_URL = 'https://nvision-staging.alemeno.com';
+
+let currentEnvironment = {
+  isProduction: true,
+  baseUrl: PRODUCTION_URL,
+  environment: 'Production',
+};
 
 const getAuthToken = () => localStorage.getItem('sentinel_dash_token');
 
+// Create axios instance
 export const api = axios.create({
-  baseURL: baseURL,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Add request interceptor to include auth token in every request
+// Request interceptor that always uses current environment
 api.interceptors.request.use(
   (config) => {
+    config.baseURL = currentEnvironment.baseUrl;
+
     const token = getAuthToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -24,6 +35,50 @@ api.interceptors.request.use(
   }
 );
 
+// Function to update environment state
+export const updateEnvironment = (newEnvironment) => {
+  currentEnvironment = { ...newEnvironment };
+};
+
+// Function to toggle environment (for web use)
+export const toggleEnvironment = () => {
+  currentEnvironment.isProduction = !currentEnvironment.isProduction;
+  currentEnvironment.baseUrl = currentEnvironment.isProduction
+    ? PRODUCTION_URL
+    : STAGING_URL;
+  currentEnvironment.environment = currentEnvironment.isProduction
+    ? 'Production'
+    : 'Staging';
+
+  console.log('Environment toggled:', currentEnvironment);
+  return { ...currentEnvironment };
+};
+
+// Function to get current environment state
+export const getCurrentEnvironment = () => ({ ...currentEnvironment });
+
+// Initialize API
+export const initializeAPI = async () => {
+  if (window.electronAPI) {
+    try {
+      const electronEnv = await window.electronAPI.getCurrentEnvironment();
+      updateEnvironment(electronEnv);
+      console.log('API initialized from Electron:', currentEnvironment);
+    } catch (error) {
+      console.error('Failed to get environment from Electron:', error);
+    }
+  } else {
+    // Web fallback
+    const envUrl = import.meta.env.VITE_BASE_URL;
+    if (envUrl && envUrl.includes('staging')) {
+      updateEnvironment({
+        isProduction: false,
+        baseUrl: STAGING_URL,
+        environment: 'Staging',
+      });
+    }
+  }
+};
 // Authentication
 export const login = async (username: string, password: string) => {
   try {
@@ -41,9 +96,12 @@ export const login = async (username: string, password: string) => {
 // Display Panel
 export const checkDisplayPanel = async (ppid: string) => {
   try {
-    const response = await api.post('/data/display-panel/check_display_panel/', {
-      ppid,
-    });
+    const response = await api.post(
+      '/data/display-panel/check_display_panel/',
+      {
+        ppid,
+      }
+    );
     return response.data;
   } catch (error) {
     console.error('Error checking display panel:', error);

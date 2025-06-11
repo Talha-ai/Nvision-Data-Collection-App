@@ -32,5 +32,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
   disableFullScreen: () => ipcRenderer.send('set-fullscreen', false),
   minimizeWindow: () => ipcRenderer.send('minimize-window'),
   maximizeWindow: () => ipcRenderer.send('maximize-window'),
-  closeWindow: () => ipcRenderer.send('close-window')
+  closeWindow: () => ipcRenderer.send('close-window'),
+
+
+  // Environment switching
+  toggleEnvironment: () => ipcRenderer.send('toggle-environment'),
+  getCurrentEnvironment: () => ipcRenderer.invoke('get-current-environment'),
+  onEnvironmentChanged: (callback) => ipcRenderer.on('environment-changed', callback),
+
+  // Remove listeners
+  removeAllListeners: (channel) => ipcRenderer.removeAllListeners(channel)
 });

@@ -30,8 +30,12 @@ import { AppModeProvider } from './contexts/appModeContext';
 import PastDataPage from './components/PastDataPage';
 import PredictedDefectsPage from './components/PredictedDefectsPage';
 import UsageDataPage from './components/UsageDataPage';
-import { baseURL } from '../constants';
-import { createDisplayPanel, getTaskStatus } from './services/api';
+
+import {
+  createDisplayPanel,
+  getTaskStatus,
+  initializeAPI,
+} from './services/api';
 
 declare global {
   interface Window {
@@ -53,6 +57,27 @@ declare global {
       minimizeWindow: () => void;
       maximizeWindow: () => void;
       closeWindow: () => void;
+
+      // Environment switching
+      toggleEnvironment: () => void;
+      getCurrentEnvironment: () => Promise<{
+        isProduction: boolean;
+        baseUrl: string;
+        environment: string;
+      }>;
+      onEnvironmentChanged: (
+        callback: (
+          event: any,
+          environment: {
+            isProduction: boolean;
+            baseUrl: string;
+            environment: string;
+          }
+        ) => void
+      ) => void;
+
+      // Utilities
+      removeAllListeners: (channel: string) => void;
     };
   }
 }
@@ -173,6 +198,10 @@ function App() {
   const [predictionError, setPredictionError] = useState(null);
   const [taskid, setTaskid] = useState();
   const pollingRef = useRef(null);
+
+  useEffect(() => {
+    initializeAPI();
+  }, []);
 
   useEffect(() => {
     localStorage.setItem('patternEBC', JSON.stringify(patternEBC));
@@ -364,7 +393,9 @@ function App() {
       const token = localStorage.getItem('sentinel_dash_token');
       if (!token) {
         setIsPredicting(false);
-        setPredictedDefects({ error: 'No authentication token found. Please log in again.' });
+        setPredictedDefects({
+          error: 'No authentication token found. Please log in again.',
+        });
         return;
       }
       // Prepare panel_images array as in defectchecker
@@ -373,13 +404,15 @@ function App() {
         image_url: url,
         base_pattern: idx + 1,
       }));
-     const payload = {
-      ppid,
-      panel_images,
-      test_type: isTestMode ? "test" as "test" : "production" as "production",
-      inference: true, 
-    };
-    
+      const payload = {
+        ppid,
+        panel_images,
+        test_type: isTestMode
+          ? ('test' as 'test')
+          : ('production' as 'production'),
+        inference: true,
+      };
+
       const data = await createDisplayPanel(payload);
       const task_uuid = data.tasks?.[0]?.task_uuid;
       if (!task_uuid) throw new Error('No task_uuid returned');
@@ -393,63 +426,68 @@ function App() {
     }
   };
 
-const pollPredictionStatus = async (task_uuid) => {
-  try {
-    const token = localStorage.getItem('sentinel_dash_token');
-    if (!token) {
+  const pollPredictionStatus = async (task_uuid) => {
+    try {
+      const token = localStorage.getItem('sentinel_dash_token');
+      if (!token) {
+        setIsPredicting(false);
+        setPredictedDefects({
+          error: 'No authentication token found. Please log in again.',
+        });
+        setPredictionError(
+          'No authentication token found. Please log in again.'
+        );
+        return;
+      }
+
+      const poll = async () => {
+        try {
+          const data = await getTaskStatus(task_uuid);
+          const status = data.task?.status;
+
+          if (status === 'completed') {
+            setIsPredicting(false);
+            setPredictedDefects(data.task.results?.defects || {});
+            setPredictionError(null);
+            if (pollingRef.current) clearTimeout(pollingRef.current);
+          } else if (
+            status === 'preprocessing_complete' ||
+            status === 'queued' ||
+            status === 'processing'
+          ) {
+            pollingRef.current = setTimeout(() => poll(), 5000);
+          } else {
+            setIsPredicting(false);
+            setPredictedDefects({
+              error: 'Prediction failed or unknown status',
+            });
+            setPredictionError('Prediction failed or unknown status');
+          }
+        } catch (error) {
+          let errMsg = 'Failed to poll status';
+          if (
+            error.response?.status === 401 ||
+            error.response?.status === 403
+          ) {
+            errMsg = 'Unauthorized. Please log in again.';
+          } else {
+            errMsg = error.response?.data?.detail || error.message || errMsg;
+          }
+          setIsPredicting(false);
+          setPredictedDefects({ error: errMsg });
+          setPredictionError(errMsg);
+        }
+      };
+
+      poll();
+    } catch (err) {
       setIsPredicting(false);
       setPredictedDefects({
-        error: 'No authentication token found. Please log in again.',
+        error: err.message || 'Prediction polling failed',
       });
-      setPredictionError(
-        'No authentication token found. Please log in again.'
-      );
-      return;
+      setPredictionError(err.message || 'Prediction polling failed');
     }
-    
-    const poll = async () => {
-      try {
-        const data = await getTaskStatus(task_uuid);
-        const status = data.task?.status;
-        
-        if (status === 'completed') {
-          setIsPredicting(false);
-          setPredictedDefects(data.task.results?.defects || {});
-          setPredictionError(null);
-          if (pollingRef.current) clearTimeout(pollingRef.current);
-        } else if (
-          status === 'preprocessing_complete' ||
-          status === 'queued' ||
-          status === 'processing'
-        ) {
-          pollingRef.current = setTimeout(() => poll(), 5000);
-        } else {
-          setIsPredicting(false);
-          setPredictedDefects({ error: 'Prediction failed or unknown status' });
-          setPredictionError('Prediction failed or unknown status');
-        }
-      } catch (error) {
-        let errMsg = 'Failed to poll status';
-        if (error.response?.status === 401 || error.response?.status === 403) {
-          errMsg = 'Unauthorized. Please log in again.';
-        } else {
-          errMsg = error.response?.data?.detail || error.message || errMsg;
-        }
-        setIsPredicting(false);
-        setPredictedDefects({ error: errMsg });
-        setPredictionError(errMsg);
-      }
-    };
-    
-    poll();
-  } catch (err) {
-    setIsPredicting(false);
-    setPredictedDefects({
-      error: err.message || 'Prediction polling failed',
-    });
-    setPredictionError(err.message || 'Prediction polling failed');
-  }
-};
+  };
 
   // Render the correct subpage/component
   const renderActivePage = () => {
