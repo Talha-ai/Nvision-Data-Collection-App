@@ -36,6 +36,7 @@ import {
   getTaskStatus,
   initializeAPI,
 } from './services/api';
+import { EnvironmentIndicator } from './hooks/useEnvironment';
 
 declare global {
   interface Window {
@@ -226,6 +227,10 @@ function App() {
     localStorage.removeItem('sentinel_dash_username');
     setAuthToken(null);
     setActivePage('login');
+  };
+
+  const handleEnvironmentSwitch = () => {
+    handleLogout();
   };
 
   // const navigateToSignup = () => setShowSignup(true);
@@ -587,6 +592,7 @@ function App() {
   return (
     <AppModeProvider>
       <CameraProvider>
+        <EnvironmentIndicator onEnvironmentSwitch={handleEnvironmentSwitch} />
         <div className="app-container">
           {!isCapturing && (
             <div className="fixed top-0 left-0 w-full z-50">

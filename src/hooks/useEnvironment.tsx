@@ -1,4 +1,4 @@
-// hooks/useEnvironment.tsx - Simplified environment hook
+// hooks/useEnvironment.tsx - Enhanced environment hook with auto logout
 import { useEffect, useState } from 'react';
 import {
   getCurrentEnvironment,
@@ -14,7 +14,13 @@ interface EnvironmentState {
   environment: string;
 }
 
-export const useEnvironment = () => {
+interface UseEnvironmentProps {
+  onEnvironmentSwitch?: () => void; // Callback for when environment switches
+}
+
+export const useEnvironment = ({
+  onEnvironmentSwitch,
+}: UseEnvironmentProps = {}) => {
   const [environment, setEnvironment] = useState<EnvironmentState>({
     isProduction: true,
     baseUrl: PRODUCTION_URL,
@@ -22,6 +28,20 @@ export const useEnvironment = () => {
   });
 
   const [isInitialized, setIsInitialized] = useState(false);
+
+  // Function to handle logout when environment switches
+  const handleEnvironmentSwitch = () => {
+    // Clear auth tokens
+    localStorage.removeItem('sentinel_dash_token');
+    localStorage.removeItem('sentinel_dash_username');
+
+    // Call the callback function (this will be the handleLogout from App.tsx)
+    if (onEnvironmentSwitch) {
+      onEnvironmentSwitch();
+    }
+
+    console.log('🔐 User logged out due to environment switch');
+  };
 
   useEffect(() => {
     const initEnvironment = async () => {
@@ -44,11 +64,21 @@ export const useEnvironment = () => {
           newEnvironment
         );
 
+        // Check if environment actually changed (not just a refresh)
+        const currentEnv = getCurrentEnvironment();
+        const environmentChanged =
+          currentEnv.isProduction !== newEnvironment.isProduction;
+
         // Immediately update API service
         updateEnvironment(newEnvironment);
 
         // Update React state
         setEnvironment(newEnvironment);
+
+        // Only logout if environment actually switched
+        if (environmentChanged && isInitialized) {
+          handleEnvironmentSwitch();
+        }
 
         console.log('✅ API and React state updated via hotkey');
       };
@@ -60,15 +90,22 @@ export const useEnvironment = () => {
         window.electronAPI.removeAllListeners('environment-changed');
       };
     }
-  }, []);
+  }, [isInitialized, onEnvironmentSwitch]);
 
   const toggleEnvironment = () => {
     if (window.electronAPI) {
       window.electronAPI.toggleEnvironment();
+      // Note: The logout will be handled by the environment change listener above
     } else {
       // Direct toggle for web environment
+      const currentEnv = getCurrentEnvironment();
       const newEnv = apiToggleEnvironment();
       setEnvironment(newEnv);
+
+      // Check if environment actually changed
+      if (currentEnv.isProduction !== newEnv.isProduction) {
+        handleEnvironmentSwitch();
+      }
     }
   };
 
@@ -80,8 +117,14 @@ export const useEnvironment = () => {
 };
 
 // Environment indicator component
-export const EnvironmentIndicator = () => {
-  const { environment, toggleEnvironment, isInitialized } = useEnvironment();
+export const EnvironmentIndicator = ({
+  onEnvironmentSwitch,
+}: {
+  onEnvironmentSwitch?: () => void;
+}) => {
+  const { environment, toggleEnvironment, isInitialized } = useEnvironment({
+    onEnvironmentSwitch,
+  });
 
   if (!isInitialized) {
     return (
@@ -99,10 +142,10 @@ export const EnvironmentIndicator = () => {
     //       : 'bg-yellow-500 text-black hover:bg-yellow-600'
     //   }`}
     //   onClick={toggleEnvironment}
-    //   title={`Click to toggle environment. Current: ${environment.environment} (${environment.baseUrl})`}
+    //   title={`Click to toggle environment. Current: ${environment.environment} (${environment.baseUrl}). Note: Will log you out.`}
     // >
     //   {environment.environment}
     // </div>
-    <div></div>
+    <></>
   );
 };

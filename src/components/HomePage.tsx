@@ -5,7 +5,6 @@ import {
   SidebarTrigger,
 } from '@/components/ui/sidebar';
 import AppSidebar from './AppSidebar';
-import { EnvironmentIndicator } from '@/hooks/useEnvironment';
 
 interface HomePageProps {
   children: React.ReactNode;
@@ -27,7 +26,6 @@ function HomePage({
   return (
     <div className="flex min-h-screen bg-gray-100 dark:bg-gray-900">
       <SidebarProvider>
-        <EnvironmentIndicator />
         <AppSidebar
           handleLogout={handleLogout}
           onNavigate={onNavigate}
