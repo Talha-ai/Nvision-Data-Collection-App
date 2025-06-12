@@ -63,15 +63,16 @@
       "output": "dist_electron/${version}"
     },
     "files": [
-      "dist/**/*",
-      "main.js",
-      "preload.js",
-      "package.json"
-    ],
+  "dist/**/*",
+  "main.js",
+  "preload.js",
+  "package.json",
+  "src/assets/**/*"
+],
     "icon": "nvision_logo.ico",
     "win": {
       "target": "nsis",
-      "artifactName": "${productName}-${arch}-${version}.${ext}"
+      "artifactName": "${productName}-${version}.${ext}"
     }
   }
 }

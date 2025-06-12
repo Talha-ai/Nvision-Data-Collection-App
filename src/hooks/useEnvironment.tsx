@@ -127,25 +127,21 @@ export const EnvironmentIndicator = ({
   });
 
   if (!isInitialized) {
-    return (
-      <div className="fixed top-4 right-4 px-3 py-1 rounded-full text-sm font-medium z-50 bg-gray-500 text-white">
-        Loading...
-      </div>
-    );
+    return null; // Don't show anything while loading
+  }
+
+  // Only show indicator for staging environment
+  if (environment.isProduction) {
+    return null;
   }
 
   return (
-    // <div
-    //   className={`fixed top-4 right-4 px-3 py-1 rounded-full text-sm font-medium z-50 cursor-pointer transition-colors ${
-    //     environment.isProduction
-    //       ? 'bg-red-500 text-white hover:bg-red-600'
-    //       : 'bg-yellow-500 text-black hover:bg-yellow-600'
-    //   }`}
-    //   onClick={toggleEnvironment}
-    //   title={`Click to toggle environment. Current: ${environment.environment} (${environment.baseUrl}). Note: Will log you out.`}
-    // >
-    //   {environment.environment}
-    // </div>
-    <></>
+    <div
+      className="fixed top-10 right-4 px-3 py-1 rounded-full text-sm font-medium z-50 cursor-pointer transition-colors bg-yellow-500 text-black hover:bg-yellow-600 shadow-lg"
+      // onClick={toggleEnvironment}
+      title={`Click to switch to production. Current: ${environment.environment} (${environment.baseUrl}). Note: Will log you out.`}
+    >
+      {environment.environment}
+    </div>
   );
 };

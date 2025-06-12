@@ -30,11 +30,11 @@ import { AppModeProvider } from './contexts/appModeContext';
 import PastDataPage from './components/PastDataPage';
 import PredictedDefectsPage from './components/PredictedDefectsPage';
 import UsageDataPage from './components/UsageDataPage';
-
 import {
   createDisplayPanel,
   getTaskStatus,
   initializeAPI,
+  setLogoutCallback,
 } from './services/api';
 import { EnvironmentIndicator } from './hooks/useEnvironment';
 
@@ -199,6 +199,7 @@ function App() {
   const [predictionError, setPredictionError] = useState(null);
   const [taskid, setTaskid] = useState();
   const pollingRef = useRef(null);
+  const pollCountRef = useRef(0);
 
   useEffect(() => {
     initializeAPI();
@@ -225,9 +226,17 @@ function App() {
   const handleLogout = () => {
     localStorage.removeItem('sentinel_dash_token');
     localStorage.removeItem('sentinel_dash_username');
+    localStorage.removeItem('sentinel_dash_refresh');
     setAuthToken(null);
     setActivePage('login');
   };
+
+  useEffect(() => {
+    setLogoutCallback(() => {
+      setAuthToken(null);
+      setActivePage('login');
+    });
+  }, []);
 
   const handleEnvironmentSwitch = () => {
     handleLogout();
@@ -394,6 +403,8 @@ function App() {
     setIsPredicting(true);
     setPredictedDefects(null);
     setPredictionError(null);
+    pollCountRef.current = 0;
+
     try {
       const token = localStorage.getItem('sentinel_dash_token');
       if (!token) {
@@ -403,12 +414,14 @@ function App() {
         });
         return;
       }
+
       // Prepare panel_images array as in defectchecker
       const panel_images = uploadedImageUrls.map((url, idx) => ({
         panel: ppid,
         image_url: url,
         base_pattern: idx + 1,
       }));
+
       const payload = {
         ppid,
         panel_images,
@@ -421,6 +434,7 @@ function App() {
       const data = await createDisplayPanel(payload);
       const task_uuid = data.tasks?.[0]?.task_uuid;
       if (!task_uuid) throw new Error('No task_uuid returned');
+
       // Poll for status
       setTaskid(task_uuid);
       pollPredictionStatus(task_uuid);
@@ -447,6 +461,18 @@ function App() {
 
       const poll = async () => {
         try {
+          if (pollCountRef.current >= 10) {
+            setIsPredicting(false);
+            setPredictedDefects({
+              error: 'timeout',
+              message:
+                'Prediction is taking longer than expected. This might be due to high server load.',
+            });
+            setPredictionError('timeout');
+            if (pollingRef.current) clearTimeout(pollingRef.current);
+            return;
+          }
+
           const data = await getTaskStatus(task_uuid);
           const status = data.task?.status;
 
@@ -460,6 +486,8 @@ function App() {
             status === 'queued' ||
             status === 'processing'
           ) {
+            pollCountRef.current += 1;
+            // setPollCount(pollCountRef.current);
             pollingRef.current = setTimeout(() => poll(), 5000);
           } else {
             setIsPredicting(false);
@@ -491,6 +519,76 @@ function App() {
         error: err.message || 'Prediction polling failed',
       });
       setPredictionError(err.message || 'Prediction polling failed');
+    }
+  };
+
+  const TimeoutErrorDisplay = ({ onRetry, onGoHome }) => (
+    <div className="text-center p-6 max-w-3xl mx-auto mt-10">
+      <div className="mb-6">
+        <h3 className="text-xl font-semibold text-red-600 mb-2">
+          Prediction Timeout
+        </h3>
+        <p className="text-gray-600 mb-4">
+          The prediction is taking longer than expected. This might be due to
+          high server load.
+        </p>
+      </div>
+
+      <div className="flex gap-5 justify-center">
+        <button
+          className=" px-6 py-3 bg-blue-600 text-white rounded hover:bg-blue-700 text-md font-semibold"
+          onClick={onRetry}
+        >
+          Retry Prediction
+        </button>
+
+        <button
+          className="px-6 py-3 bg-primary text-white rounded hover:bg-primary/90 text-md font-semibold"
+          onClick={onGoHome}
+        >
+          Go to Defect Checker Home
+        </button>
+      </div>
+    </div>
+  );
+
+  const resetAndGoBack = () => {
+    setPpid('');
+    setCapturedImages([]);
+    setUploadedImageUrls([]);
+    setCompletedUploads(0);
+    setTotalUploads(0);
+    setIsUploading(false);
+    setFailedUploadIndices([]);
+
+    // Also reset prediction states
+    setIsPredicting(false);
+    setPredictedDefects(null);
+    setPredictionError(null);
+    // setPollCount(0);
+    pollCountRef.current = 0;
+    setTaskid(null); // Clear the task ID
+
+    setActivePage('defect-checker');
+  };
+
+  const retryPrediction = () => {
+    // Reset polling state
+    setIsPredicting(true);
+    setPredictedDefects(null);
+    setPredictionError(null);
+    // setPollCount(0);
+    pollCountRef.current = 0;
+
+    // Resume polling with existing task_uuid (stored in taskid state)
+    if (taskid) {
+      pollPredictionStatus(taskid);
+    } else {
+      // If no task_uuid available, need to start fresh
+      setIsPredicting(false);
+      setPredictionError(
+        'No task ID available for retry. Please start prediction again.'
+      );
     }
   };
 
@@ -662,6 +760,11 @@ function App() {
                     Processing images, please wait...
                   </div>
                 </div>
+              ) : predictionError === 'timeout' ? (
+                <TimeoutErrorDisplay
+                  onRetry={retryPrediction}
+                  onGoHome={resetAndGoBack}
+                />
               ) : predictedDefects && !predictedDefects.error ? (
                 <>
                   <header className="sticky w-screen top-0 z-10 flex h-16 shrink-0 items-center gap-2 border-b bg-background px-4">
@@ -675,16 +778,7 @@ function App() {
                     <div className="w-full max-w-2xl p-4">
                       <PredictedDefectsPage
                         defects={predictedDefects}
-                        onGoHome={() => {
-                          setPpid('');
-                          setCapturedImages([]);
-                          setUploadedImageUrls([]);
-                          setCompletedUploads(0);
-                          setTotalUploads(0);
-                          setIsUploading(false);
-                          setFailedUploadIndices([]);
-                          setActivePage('defect-checker');
-                        }}
+                        onGoHome={resetAndGoBack}
                       />
                     </div>
                   </div>

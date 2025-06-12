@@ -1,8 +1,11 @@
-// services/api.ts - Simplified API service with immediate environment switching
 import axios from 'axios';
 import { STAGING_URL, PRODUCTION_URL } from '../../constants';
-// const PRODUCTION_URL = 'https://nvision.alemeno.com';
-// const STAGING_URL = 'https://nvision-staging.alemeno.com';
+
+let isRefreshing = false;
+let refreshSubscribers: ((token: string) => void)[] = [];
+
+// Logout callback function that will be set from App.tsx
+let logoutCallback: (() => void) | null = null;
 
 let currentEnvironment = {
   isProduction: true,
@@ -11,8 +14,32 @@ let currentEnvironment = {
 };
 
 const getAuthToken = () => localStorage.getItem('sentinel_dash_token');
+const getRefreshToken = () => localStorage.getItem('sentinel_dash_refresh');
 
-// Create axios instance
+const subscribeTokenRefresh = (cb: (token: string) => void) => {
+  refreshSubscribers.push(cb);
+};
+
+const onRefreshed = (newToken: string) => {
+  refreshSubscribers.forEach((cb) => cb(newToken));
+  refreshSubscribers = [];
+};
+
+// Function to set logout callback from App.tsx
+export const setLogoutCallback = (callback: () => void) => {
+  logoutCallback = callback;
+};
+
+// Internal logout function
+const performLogout = () => {
+  localStorage.removeItem('sentinel_dash_token');
+  localStorage.removeItem('sentinel_dash_username');
+  localStorage.removeItem('sentinel_dash_refresh');
+  if (logoutCallback) {
+    logoutCallback();
+  }
+};
+
 export const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
@@ -31,6 +58,69 @@ api.interceptors.request.use(
     return config;
   },
   (error) => {
+    return Promise.reject(error);
+  }
+);
+
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+
+    // Check for expired access token
+    if (
+      error.response?.data?.code === 'token_not_valid' &&
+      !originalRequest._retry
+    ) {
+      originalRequest._retry = true;
+
+      if (!isRefreshing) {
+        isRefreshing = true;
+        try {
+          const refreshToken = getRefreshToken();
+          const response = await axios.post(
+            `${currentEnvironment.baseUrl}/login/refresh/`,
+            {
+              refresh: refreshToken,
+            }
+          );
+
+          const { access, refresh } = response.data;
+
+          // Save new tokens
+          localStorage.setItem('sentinel_dash_token', access);
+          localStorage.setItem('sentinel_dash_refresh', refresh);
+
+          onRefreshed(access);
+          isRefreshing = false;
+
+          return api(originalRequest); // Retry original request
+        } catch (refreshError) {
+          console.error('Refresh token failed:', refreshError);
+          isRefreshing = false;
+
+          // Check if refresh also failed with token_not_valid
+          if (refreshError.response?.data?.code === 'token_not_valid') {
+            console.log('Refresh token is also invalid, logging out user');
+            performLogout();
+          } else {
+            // For other refresh errors, still clear tokens but don't trigger full logout
+            localStorage.removeItem('sentinel_dash_token');
+            localStorage.removeItem('sentinel_dash_refresh');
+          }
+
+          return Promise.reject(refreshError);
+        }
+      }
+
+      return new Promise((resolve) => {
+        subscribeTokenRefresh((newToken) => {
+          originalRequest.headers.Authorization = `Bearer ${newToken}`;
+          resolve(api(originalRequest));
+        });
+      });
+    }
+
     return Promise.reject(error);
   }
 );

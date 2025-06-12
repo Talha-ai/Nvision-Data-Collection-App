@@ -35,10 +35,10 @@ function createWindow() {
     mainWindow.maximize();
   });
 
-  mainWindow.on('minimize', (event) => {
-    event.preventDefault();
-    mainWindow.hide();
-  });
+  // mainWindow.on('minimize', (event) => {
+  //   event.preventDefault();
+  //   mainWindow.hide();
+  // });
 
   mainWindow.on('closed', () => {
     mainWindow = null;
@@ -46,12 +46,22 @@ function createWindow() {
 }
 
 function setupTray() {
-  tray = new Tray(path.join(__dirname, 'src/assets/nvision_logo.png'));
+  const iconPath = app.isPackaged
+    ? path.join(__dirname, 'src/assets/nvision_logo.png')
+    : path.join(__dirname, 'src/assets/nvision_logo.png');
+
+  tray = new Tray(iconPath);
+
   updateTrayMenu();
   tray.setToolTip('Nvision AI');
 
   tray.on('click', () => {
-    mainWindow.isVisible() ? mainWindow.hide() : mainWindow.show();
+    if (mainWindow.isVisible()) {
+      mainWindow.minimize();
+    } else {
+      mainWindow.show();
+      mainWindow.focus();
+    }
   });
 }
 
@@ -62,7 +72,10 @@ function updateTrayMenu() {
   const contextMenu = Menu.buildFromTemplate([
     {
       label: 'Show App',
-      click: () => mainWindow?.show()
+      click: () => {
+        mainWindow?.show();
+        mainWindow?.focus();
+      }
     },
     {
       label: `Mode: ${currentEnv.environment}`,

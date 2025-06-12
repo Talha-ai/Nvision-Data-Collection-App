@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import nvision_logo from '../assets/nvision_logo.png';
-import { baseURL } from '../../constants';
 import { login } from '@/services/api';
 
 interface LoginPageProps {
@@ -32,6 +31,7 @@ export function LoginPage({
     try {
       const data = await login(username, password);
       localStorage.setItem('sentinel_dash_username', username);
+      localStorage.setItem('sentinel_dash_refresh', data.refresh);
       onLogin(data.access);
     } catch (error: any) {
       setError(error.message || 'Invalid username or password');
