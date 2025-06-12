@@ -1,6 +1,6 @@
 {
   "name": "nvision-data-collection",
-  "version": "4.1.1",
+  "version": "4.2.0",
   "description": "Nvision Data Collection App",
   "author": "Nvision",
   "main": "main.js",
@@ -63,12 +63,12 @@
       "output": "dist_electron/${version}"
     },
     "files": [
-  "dist/**/*",
-  "main.js",
-  "preload.js",
-  "package.json",
-  "src/assets/**/*"
-],
+      "dist/**/*",
+      "main.js",
+      "preload.js",
+      "package.json",
+      "src/assets/**/*"
+    ],
     "icon": "nvision_logo.ico",
     "win": {
       "target": "nsis",
