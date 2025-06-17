@@ -32,8 +32,10 @@ import PredictedDefectsPage from './components/PredictedDefectsPage';
 import UsageDataPage from './components/UsageDataPage';
 import {
   createDisplayPanel,
+  getLatestTask,
   getTaskStatus,
   initializeAPI,
+  retryDisplayPanel,
   setLogoutCallback,
 } from './services/api';
 import { EnvironmentIndicator } from './hooks/useEnvironment';
@@ -572,23 +574,41 @@ function App() {
     setActivePage('defect-checker');
   };
 
-  const retryPrediction = () => {
-    // Reset polling state
+  const retryPrediction = async () => {
     setIsPredicting(true);
     setPredictedDefects(null);
     setPredictionError(null);
-    // setPollCount(0);
     pollCountRef.current = 0;
 
-    // Resume polling with existing task_uuid (stored in taskid state)
-    if (taskid) {
-      pollPredictionStatus(taskid);
-    } else {
-      // If no task_uuid available, need to start fresh
+    try {
+      if (!ppid) {
+        setIsPredicting(false);
+        setPredictionError(
+          'No Panel ID available for retry. Please start prediction again.'
+        );
+        return;
+      }
+
+      const retryResponse = await retryDisplayPanel(ppid);
+      const latestTask = getLatestTask(retryResponse);
+
+      if (!latestTask || !latestTask.task_uuid) {
+        setIsPredicting(false);
+        setPredictionError(
+          'No valid task returned from retry. Please try again.'
+        );
+        return;
+      }
+
+      // Update task ID and start polling with the latest task UUID
+      setTaskid(latestTask.task_uuid);
+      pollPredictionStatus(latestTask.task_uuid);
+    } catch (error) {
       setIsPredicting(false);
-      setPredictionError(
-        'No task ID available for retry. Please start prediction again.'
-      );
+      const errorMessage =
+        error.response?.data?.detail || error.message || 'Retry failed';
+      setPredictedDefects({ error: errorMessage });
+      setPredictionError(errorMessage);
     }
   };
 
@@ -779,6 +799,7 @@ function App() {
                       <PredictedDefectsPage
                         defects={predictedDefects}
                         onGoHome={resetAndGoBack}
+                        taskUuid={taskid}
                       />
                     </div>
                   </div>
@@ -791,10 +812,29 @@ function App() {
                   {predictionError && (
                     <button
                       className="mt-4 px-6 py-2 bg-primary text-white rounded hover:bg-primary/90"
-                      onClick={() => pollPredictionStatus(taskid)}
+                      onClick={() => retryPrediction}
                     >
                       Retry
                     </button>
+                  )}
+                  {predictedDefects.error ===
+                  'No authentication token found. Please log in again.' ? (
+                    <button
+                      className="px-6 py-3 bg-primary text-white rounded hover:bg-primary/90 text-md font-semibold"
+                      onClick={handleLogout}
+                    >
+                      Go to Login page
+                    </button>
+                  ) : (
+                    predictedDefects.error &&
+                    !predictionError && (
+                      <button
+                        className="px-6 py-3 bg-primary text-white rounded hover:bg-primary/90 text-md font-semibold"
+                        onClick={resetAndGoBack}
+                      >
+                        Go to Defect Checker Home
+                      </button>
+                    )
                   )}
                 </div>
               ) : null

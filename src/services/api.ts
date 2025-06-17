@@ -51,15 +51,25 @@ api.interceptors.request.use(
   (config) => {
     config.baseURL = currentEnvironment.baseUrl;
 
+    // Allow unauthenticated request for login or refresh
+    if (
+      config.url?.includes('/login/') &&
+      !config.url?.includes('/login/refresh/')
+    ) {
+      return config;
+    }
+
     const token = getAuthToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+    } else {
+      // If no token and route is not login, logout
+      performLogout();
+      return Promise.reject(new Error('No authentication token found'));
     }
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
 api.interceptors.response.use(
@@ -105,8 +115,9 @@ api.interceptors.response.use(
             performLogout();
           } else {
             // For other refresh errors, still clear tokens but don't trigger full logout
-            localStorage.removeItem('sentinel_dash_token');
-            localStorage.removeItem('sentinel_dash_refresh');
+            // localStorage.removeItem('sentinel_dash_token');
+            // localStorage.removeItem('sentinel_dash_refresh');
+            performLogout();
           }
 
           return Promise.reject(refreshError);
@@ -225,6 +236,49 @@ export const getTaskStatus = async (taskUuid: string) => {
     return response.data;
   } catch (error) {
     console.error('Error getting task status:', error);
+    throw error;
+  }
+};
+
+export const retryDisplayPanel = async (displayUuid: string) => {
+  try {
+    const response = await api.post(
+      `/data/display-panel/retry/${displayUuid}/`
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error retrying display panel:', error);
+    throw error;
+  }
+};
+
+// Helper function to get the latest task from retry response
+export const getLatestTask = (retryResponse: any) => {
+  if (!retryResponse.tasks || retryResponse.tasks.length === 0) {
+    return null;
+  }
+
+  // Sort tasks by created_at in descending order to get the latest
+  const sortedTasks = retryResponse.tasks.sort(
+    (a: any, b: any) =>
+      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  );
+
+  return sortedTasks[0];
+};
+
+//Feedback
+export const submitFeedback = async (
+  taskUuid: string,
+  feedback: Record<string, { feedback: boolean }>
+) => {
+  try {
+    const response = await api.post(`/data/task/${taskUuid}/feedback/`, {
+      feedback,
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error submitting feedback:', error);
     throw error;
   }
 };
