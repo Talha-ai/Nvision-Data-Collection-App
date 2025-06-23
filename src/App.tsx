@@ -39,6 +39,7 @@ import {
   setLogoutCallback,
 } from './services/api';
 import { EnvironmentIndicator } from './hooks/useEnvironment';
+import DefectConfiguration from './components/DefectConfiguration';
 
 declare global {
   interface Window {
@@ -200,6 +201,8 @@ function App() {
   const [isPredicting, setIsPredicting] = useState(false);
   const [predictionError, setPredictionError] = useState(null);
   const [taskid, setTaskid] = useState();
+  const [selectedDefects, setSelectedDefects] = useState([]);
+  const [defectDisplayMap, setDefectDisplayMap] = useState([]);
   const pollingRef = useRef(null);
   const pollCountRef = useRef(0);
 
@@ -215,6 +218,12 @@ function App() {
     const token = localStorage.getItem('sentinel_dash_token');
     setAuthToken(token);
   }, []);
+
+  const handleDefectsSelected = (defects, displayMap) => {
+    setSelectedDefects(defects);
+    setDefectDisplayMap(displayMap);
+    console.log('Defects configured:', defects);
+  };
 
   const handleLogin = (token) => {
     localStorage.setItem('sentinel_dash_token', token);
@@ -398,6 +407,7 @@ function App() {
     'past-data': 'Past Data',
     'predicted-defects': 'Predicted Defects',
     'usage-data': 'Defect Checker Usage',
+    'select-defects': 'Select Defects',
     // Add more as needed
   };
 
@@ -702,6 +712,13 @@ function App() {
         return <PastDataPage />;
       case 'usage-data':
         return <UsageDataPage />;
+      case 'defect-configuration':
+        return (
+          <DefectConfiguration
+            onDefectsSelected={handleDefectsSelected}
+            selectedDefects={selectedDefects}
+          />
+        );
       default:
         return <div>Welcome!</div>;
     }
@@ -800,6 +817,7 @@ function App() {
                         defects={predictedDefects}
                         onGoHome={resetAndGoBack}
                         taskUuid={taskid}
+                        defectDisplayMap={defectDisplayMap} 
                       />
                     </div>
                   </div>

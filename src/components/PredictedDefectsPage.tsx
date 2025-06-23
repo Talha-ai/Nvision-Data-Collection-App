@@ -3,27 +3,16 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { X, RotateCcw } from 'lucide-react';
 import { submitFeedback } from '@/services/api';
 
-function PredictedDefectsPage({ defects, onGoHome, taskUuid }) {
+function PredictedDefectsPage({
+  defects,
+  onGoHome,
+  taskUuid,
+  defectDisplayMap = [],
+}) {
   const [corrections, setCorrections] = useState({});
   const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false);
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
-
-  // Map defect keys to user-friendly labels
-  const defectDisplayMap = [
-    {
-      key: 'def_polariser_scratches',
-      label: 'Polariser scratches/ dents',
-    },
-    {
-      key: 'def_white_patches',
-      label: 'White Patches',
-    },
-    {
-      key: 'def_horizontal_band',
-      label: 'Horizontal Band',
-    },
-  ];
-
+console.log(defects)
   const handleMarkIncorrect = (defectKey) => {
     setCorrections((prev) => ({
       ...prev,
@@ -54,9 +43,9 @@ function PredictedDefectsPage({ defects, onGoHome, taskUuid }) {
         // Default: feedback is false (no correction needed)
         // If marked as incorrect: feedback is true (correction/feedback provided)
         const isMarkedIncorrect = corrections[defectKey] === true;
-        
+
         feedbackData[defectKey] = {
-          feedback: isMarkedIncorrect ? true : false, 
+          feedback: isMarkedIncorrect ? true : false,
         };
       });
 

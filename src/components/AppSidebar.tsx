@@ -72,6 +72,10 @@ const data = {
           title: 'Pattern EBC',
           url: '#pattern-ebc',
         },
+        {
+          title: 'Defect Configuration',
+          url: '#defect-configuration',
+        },
         // {
         //   title: 'Team',
         //   url: '#settings-team',
@@ -91,7 +95,12 @@ const AppSidebar = ({
   activePage,
   username,
   ...props
-}: React.ComponentProps<typeof Sidebar> & { handleLogout: () => void; onNavigate: (page: string) => void; activePage: string; username?: string }) => {
+}: React.ComponentProps<typeof Sidebar> & {
+  handleLogout: () => void;
+  onNavigate: (page: string) => void;
+  activePage: string;
+  username?: string;
+}) => {
   const { isTestMode, setIsTestMode } = useAppMode();
   const { state } = useSidebar();
   return (
@@ -103,9 +112,13 @@ const AppSidebar = ({
       <SidebarHeader>
         <div className="flex flex-col gap-2 w-full">
           <TeamSwitcher teams={data.teams} />
-           <div className="mt-2">
+          <div className="mt-2">
             <div
-              className={`transition-all duration-200 overflow-hidden ${state === 'expanded' ? 'max-h-20 opacity-100' : 'max-h-0 opacity-0 pointer-events-none'}`}
+              className={`transition-all duration-200 overflow-hidden ${
+                state === 'expanded'
+                  ? 'max-h-20 opacity-100'
+                  : 'max-h-0 opacity-0 pointer-events-none'
+              }`}
             >
               <div className="flex items-center justify-center">
                 {/* <span className="font-semibold text-xs">App mode:</span> */}
@@ -134,7 +147,11 @@ const AppSidebar = ({
               </div>
             </div>
             <div
-              className={`transition-all duration-200 flex items-center justify-center ${state !== 'expanded' ? 'opacity-100 max-h-10' : 'opacity-0 max-h-0 pointer-events-none'}`}
+              className={`transition-all duration-200 flex items-center justify-center ${
+                state !== 'expanded'
+                  ? 'opacity-100 max-h-10'
+                  : 'opacity-0 max-h-0 pointer-events-none'
+              }`}
             >
               <button
                 className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 ${
@@ -156,14 +173,21 @@ const AppSidebar = ({
         </div>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} onNavigate={onNavigate} activePage={activePage} />
+        <NavMain
+          items={data.navMain}
+          onNavigate={onNavigate}
+          activePage={activePage}
+        />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={{
-          name: username || '',
-          email: '',
-          avatar: '',
-        }} handleLogout={handleLogout} />
+        <NavUser
+          user={{
+            name: username || '',
+            email: '',
+            avatar: '',
+          }}
+          handleLogout={handleLogout}
+        />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

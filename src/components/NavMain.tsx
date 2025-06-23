@@ -64,7 +64,12 @@ export function NavMain({ items, onNavigate, activePage }: NavMainProps) {
                 <CollapsibleTrigger asChild>
                   <SidebarMenuButton
                     tooltip={item.title}
-                    isActive={activePage === getPageKey(item.url) || item.items.some(sub => activePage === getPageKey(sub.url))}
+                    isActive={
+                      activePage === getPageKey(item.url) ||
+                      item.items.some(
+                        (sub) => activePage === getPageKey(sub.url)
+                      )
+                    }
                   >
                     {item.icon && <item.icon />}
                     <span>{item.title}</span>
@@ -76,7 +81,10 @@ export function NavMain({ items, onNavigate, activePage }: NavMainProps) {
                     {item.items?.map((subItem) => {
                       const subPageKey = getPageKey(subItem.url);
                       return (
-                        <SidebarMenuSubItem key={subItem.title}>
+                        <SidebarMenuSubItem
+                          key={subItem.title}
+                          className="cursor-pointer"
+                        >
                           <SidebarMenuSubButton
                             isActive={activePage === subPageKey}
                             onClick={() => onNavigate(subPageKey)}
