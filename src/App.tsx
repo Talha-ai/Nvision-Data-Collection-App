@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import * as Sentry from '@sentry/react';
 import HomePage from './components/HomePage';
 import ReviewImagesPage from './components/ReviewImagesPage';
 import DefectAnalysisPage from './components/DefectAnalysisPage';
@@ -206,8 +207,98 @@ function App() {
   const pollingRef = useRef(null);
   const pollCountRef = useRef(0);
 
+  console.log(selectedDefects);
+
   useEffect(() => {
     initializeAPI();
+
+    // Load defectDisplayMap from localStorage on app startup
+    const loadDefectDisplayMap = () => {
+      try {
+        const savedDefects = localStorage.getItem('selectedDefects');
+
+        // Default defects that should be selected if no saved configuration exists
+        const defaultDefects = [
+          'def_horizontal_band',
+          'def_white_patches',
+          'def_polariser_scratches',
+        ];
+
+        // Complete defect list matching DefectConfiguration.tsx
+        const defectsList = [
+          { name: 'Abnormal Display', key: 'def_abnormal_display' },
+          { name: 'Horizontal Line', key: 'def_horizontal_line' },
+          { name: 'Horizontal Band', key: 'def_horizontal_band' },
+          { name: 'Vertical Line', key: 'def_vertical_line' },
+          { name: 'Vertical Band', key: 'def_vertical_band' },
+          { name: 'Particles', key: 'def_particles' },
+          { name: 'White Patch', key: 'def_white_patches' },
+          {
+            name: 'Polariser Scratches / Dent',
+            key: 'def_polariser_scratches',
+          },
+          { name: 'Light Leakage', key: 'def_light_leakage' },
+          { name: 'Mura', key: 'def_mura' },
+          { name: 'Incoming Border Patch', key: 'def_incoming_border_patch' },
+          { name: 'Pixel Bright Dot', key: 'def_pixel_bright_dot' },
+          { name: 'Incoming Galaxy', key: 'def_incoming_galaxy' },
+          { name: 'Led Off', key: 'def_led_off' },
+          { name: 'Bleeding', key: 'def_bleeding' },
+          { name: 'No Trouble Found', key: 'def_no_trouble_found' },
+          { name: 'Other Defects', key: 'def_other_defects' },
+        ];
+
+        let defectsToUse = defaultDefects;
+
+        if (savedDefects) {
+          const parsedDefects = JSON.parse(savedDefects);
+          // Only use saved defects if they exist and are not empty
+          if (parsedDefects.length > 0) {
+            defectsToUse = parsedDefects;
+          } else {
+            // If saved defects exist but are empty, save the defaults
+            localStorage.setItem(
+              'selectedDefects',
+              JSON.stringify(defaultDefects)
+            );
+          }
+        } else {
+          // No saved defects, save the defaults
+          localStorage.setItem(
+            'selectedDefects',
+            JSON.stringify(defaultDefects)
+          );
+        }
+
+        const selectedDefectsList = defectsList.filter((defect) =>
+          defectsToUse.includes(defect.key)
+        );
+
+        const displayMap = selectedDefectsList.map((defect) => ({
+          key: defect.key,
+          label: defect.name,
+        }));
+
+        setSelectedDefects(defectsToUse);
+        setDefectDisplayMap(displayMap);
+        console.log('Loaded defectDisplayMap from localStorage:', displayMap);
+      } catch (error) {
+        console.error(
+          'Error loading defectDisplayMap from localStorage:',
+          error
+        );
+        // Fallback to defaults on error
+        const defaultDefects = [
+          'def_horizontal_band',
+          'def_white_patches',
+          'def_polariser_scratches',
+        ];
+        setSelectedDefects(defaultDefects);
+        localStorage.setItem('selectedDefects', JSON.stringify(defaultDefects));
+      }
+    };
+
+    loadDefectDisplayMap();
   }, []);
 
   useEffect(() => {
@@ -224,6 +315,8 @@ function App() {
     setDefectDisplayMap(displayMap);
     console.log('Defects configured:', defects);
   };
+
+  console.log(defectDisplayMap);
 
   const handleLogin = (token) => {
     localStorage.setItem('sentinel_dash_token', token);
@@ -334,6 +427,16 @@ function App() {
           console.log(`Successfully re-uploaded ${patternName}`);
         } catch (error) {
           console.error(`Failed to re-upload image at index ${index}:`, error);
+          Sentry.captureException(error, {
+            tags: {
+              location: 'retryFailedUploads',
+              operation: 'image_reupload',
+            },
+            extra: {
+              imageIndex: index,
+              patternName: testPatterns[index]?.name || 'unknown',
+            },
+          });
           // Leave as null in the array
         }
       }
@@ -454,9 +557,19 @@ function App() {
       setIsPredicting(false);
       setPredictedDefects({ error: err.message || 'Prediction failed' });
       setPredictionError(err.message || 'Prediction failed');
+      Sentry.captureException(err, {
+        tags: {
+          location: 'startPrediction',
+          operation: 'prediction_start',
+        },
+        extra: {
+          ppid: ppid,
+          isTestMode: isTestMode,
+          imagesCount: uploadedImageUrls.filter((url) => url !== null).length,
+        },
+      });
     }
   };
-
   const pollPredictionStatus = async (task_uuid) => {
     try {
       const token = localStorage.getItem('sentinel_dash_token');
@@ -490,23 +603,41 @@ function App() {
 
           if (status === 'completed') {
             setIsPredicting(false);
-            setPredictedDefects(data.task.results?.defects || {});
-            setPredictionError(null);
+
+            // Check for errors in defect_details
+            const defectDetails = data.task.results?.defect_details || {};
+            const hasErrors = Object.values(defectDetails).some(
+              (detail: any) => detail.processing_status === 'error'
+            );
+
+            if (hasErrors) {
+              // Find the first error for display
+              const errorDetail = Object.values(defectDetails).find(
+                (detail: any) => detail.processing_status === 'error'
+              ) as any;
+
+              setPredictedDefects({
+                error: 'processing_failed',
+                message: `Defect analysis failed`,
+              });
+              setPredictionError('processing_failed');
+            } else {
+              setPredictedDefects(data.task.results?.defects || {});
+              setPredictionError(null);
+            }
+
             if (pollingRef.current) clearTimeout(pollingRef.current);
-          } else if (
-            status === 'preprocessing_complete' ||
-            status === 'queued' ||
-            status === 'processing'
-          ) {
-            pollCountRef.current += 1;
-            // setPollCount(pollCountRef.current);
-            pollingRef.current = setTimeout(() => poll(), 5000);
-          } else {
+          } else if (status === 'failed') {
             setIsPredicting(false);
             setPredictedDefects({
-              error: 'Prediction failed or unknown status',
+              error: 'failed',
+              message: 'Task processing failed. Please try again.',
             });
-            setPredictionError('Prediction failed or unknown status');
+            setPredictionError('failed');
+            if (pollingRef.current) clearTimeout(pollingRef.current);
+          } else {
+            pollCountRef.current += 1;
+            pollingRef.current = setTimeout(() => poll(), 5000);
           }
         } catch (error) {
           let errMsg = 'Failed to poll status';
@@ -521,6 +652,17 @@ function App() {
           setIsPredicting(false);
           setPredictedDefects({ error: errMsg });
           setPredictionError(errMsg);
+          Sentry.captureException(error, {
+            tags: {
+              location: 'pollPredictionStatus',
+              operation: 'status_polling',
+            },
+            extra: {
+              taskUuid: task_uuid,
+              pollCount: pollCountRef.current,
+              errorStatus: error.response?.status,
+            },
+          });
         }
       };
 
@@ -531,34 +673,45 @@ function App() {
         error: err.message || 'Prediction polling failed',
       });
       setPredictionError(err.message || 'Prediction polling failed');
+      Sentry.captureException(err, {
+        tags: {
+          location: 'pollPredictionStatus',
+          operation: 'polling_initialization',
+        },
+        extra: {
+          taskUuid: task_uuid,
+        },
+      });
     }
   };
 
-  const TimeoutErrorDisplay = ({ onRetry, onGoHome }) => (
+  const ErrorDisplay = ({
+    title = 'Error',
+    message,
+    onRetry,
+    onGoHome,
+    retryButtonText = 'Retry',
+    homeButtonText = 'Go to Defect Checker Home',
+  }) => (
     <div className="text-center p-6 max-w-3xl mx-auto mt-10">
       <div className="mb-6">
-        <h3 className="text-xl font-semibold text-red-600 mb-2">
-          Prediction Timeout
-        </h3>
-        <p className="text-gray-600 mb-4">
-          The prediction is taking longer than expected. This might be due to
-          high server load.
-        </p>
+        <h3 className="text-xl font-semibold text-red-600 mb-2">{title}</h3>
+        <p className="text-gray-600 mb-4">{message}</p>
       </div>
 
-      <div className="flex gap-5 justify-center">
+      <div className="flex gap-3 justify-center">
         <button
-          className=" px-6 py-3 bg-blue-600 text-white rounded hover:bg-blue-700 text-md font-semibold"
+          className="px-6 py-3 bg-primary text-white rounded hover:bg-primary/90 text-md font-semibold"
           onClick={onRetry}
         >
-          Retry Prediction
+          {retryButtonText}
         </button>
 
         <button
           className="px-6 py-3 bg-primary text-white rounded hover:bg-primary/90 text-md font-semibold"
           onClick={onGoHome}
         >
-          Go to Defect Checker Home
+          {homeButtonText}
         </button>
       </div>
     </div>
@@ -619,6 +772,16 @@ function App() {
         error.response?.data?.detail || error.message || 'Retry failed';
       setPredictedDefects({ error: errorMessage });
       setPredictionError(errorMessage);
+      Sentry.captureException(error, {
+        tags: {
+          location: 'retryPrediction',
+          operation: 'prediction_retry',
+        },
+        extra: {
+          ppid: ppid,
+          errorStatus: error.response?.status,
+        },
+      });
     }
   };
 
@@ -797,8 +960,20 @@ function App() {
                     Processing images, please wait...
                   </div>
                 </div>
-              ) : predictionError === 'timeout' ? (
-                <TimeoutErrorDisplay
+              ) : predictionError &&
+                predictionError !==
+                  'No authentication token found. Please log in again.' ? (
+                <ErrorDisplay
+                  title={
+                    predictionError === 'timeout'
+                      ? 'Prediction Timeout'
+                      : predictionError === 'failed'
+                      ? 'Task Failed'
+                      : predictionError === 'processing_failed'
+                      ? 'Processing Failed'
+                      : 'Error'
+                  }
+                  message={predictedDefects.message || predictedDefects.error}
                   onRetry={retryPrediction}
                   onGoHome={resetAndGoBack}
                 />
@@ -817,43 +992,24 @@ function App() {
                         defects={predictedDefects}
                         onGoHome={resetAndGoBack}
                         taskUuid={taskid}
-                        defectDisplayMap={defectDisplayMap} 
+                        defectDisplayMap={defectDisplayMap}
                       />
                     </div>
                   </div>
                 </>
-              ) : predictedDefects && predictedDefects.error ? (
+              ) : predictedDefects &&
+                predictedDefects.error ===
+                  'No authentication token found. Please log in again.' ? (
                 <div className="flex flex-col items-center justify-center min-h-[300px]">
                   <div className="text-red-600 text-center p-8">
-                    {predictedDefects.error}
+                    {predictedDefects.message || predictedDefects.error}
                   </div>
-                  {predictionError && (
-                    <button
-                      className="mt-4 px-6 py-2 bg-primary text-white rounded hover:bg-primary/90"
-                      onClick={() => retryPrediction}
-                    >
-                      Retry
-                    </button>
-                  )}
-                  {predictedDefects.error ===
-                  'No authentication token found. Please log in again.' ? (
-                    <button
-                      className="px-6 py-3 bg-primary text-white rounded hover:bg-primary/90 text-md font-semibold"
-                      onClick={handleLogout}
-                    >
-                      Go to Login page
-                    </button>
-                  ) : (
-                    predictedDefects.error &&
-                    !predictionError && (
-                      <button
-                        className="px-6 py-3 bg-primary text-white rounded hover:bg-primary/90 text-md font-semibold"
-                        onClick={resetAndGoBack}
-                      >
-                        Go to Defect Checker Home
-                      </button>
-                    )
-                  )}
+                  <button
+                    className="px-6 py-3 bg-primary text-white rounded hover:bg-primary/90 text-md font-semibold"
+                    onClick={handleLogout}
+                  >
+                    Go to Login page
+                  </button>
                 </div>
               ) : null
             ) : activePage === 'defect-analysis' ? (

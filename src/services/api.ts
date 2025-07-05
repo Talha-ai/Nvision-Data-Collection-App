@@ -1,4 +1,5 @@
 import axios from 'axios';
+import * as Sentry from '@sentry/react';
 import { STAGING_URL, PRODUCTION_URL } from '../../constants';
 
 let isRefreshing = false;
@@ -190,6 +191,15 @@ export const login = async (username: string, password: string) => {
     return response.data;
   } catch (error) {
     console.error('Error logging in:', error);
+    Sentry.captureException(error, {
+      tags: {
+        location: 'login',
+        operation: 'authentication',
+      },
+      extra: {
+        username: username,
+      },
+    });
     throw error;
   }
 };
@@ -206,6 +216,15 @@ export const checkDisplayPanel = async (ppid: string) => {
     return response.data;
   } catch (error) {
     console.error('Error checking display panel:', error);
+    Sentry.captureException(error, {
+      tags: {
+        location: 'checkDisplayPanel',
+        operation: 'display_panel_check',
+      },
+      extra: {
+        ppid: ppid,
+      },
+    });
     throw error;
   }
 };
@@ -226,6 +245,18 @@ export const createDisplayPanel = async (data: {
     return response.data;
   } catch (error) {
     console.error('Error creating display panel:', error);
+    Sentry.captureException(error, {
+      tags: {
+        location: 'createDisplayPanel',
+        operation: 'display_panel_creation',
+      },
+      extra: {
+        ppid: data.ppid,
+        test_type: data.test_type,
+        defects_count: data.defects?.length || 0,
+        images_count: data.panel_images?.length || 0,
+      },
+    });
     throw error;
   }
 };
@@ -236,6 +267,15 @@ export const getTaskStatus = async (taskUuid: string) => {
     return response.data;
   } catch (error) {
     console.error('Error getting task status:', error);
+    Sentry.captureException(error, {
+      tags: {
+        location: 'getTaskStatus',
+        operation: 'task_status_check',
+      },
+      extra: {
+        taskUuid: taskUuid,
+      },
+    });
     throw error;
   }
 };
@@ -248,6 +288,15 @@ export const retryDisplayPanel = async (displayUuid: string) => {
     return response.data;
   } catch (error) {
     console.error('Error retrying display panel:', error);
+    Sentry.captureException(error, {
+      tags: {
+        location: 'retryDisplayPanel',
+        operation: 'display_panel_retry',
+      },
+      extra: {
+        displayUuid: displayUuid,
+      },
+    });
     throw error;
   }
 };
@@ -279,6 +328,16 @@ export const submitFeedback = async (
     return response.data;
   } catch (error) {
     console.error('Error submitting feedback:', error);
+    Sentry.captureException(error, {
+      tags: {
+        location: 'submitFeedback',
+        operation: 'feedback_submission',
+      },
+      extra: {
+        taskUuid: taskUuid,
+        feedbackCount: Object.keys(feedback).length,
+      },
+    });
     throw error;
   }
 };
@@ -290,6 +349,12 @@ export const getDefects = async () => {
     return response.data;
   } catch (error) {
     console.error('Error fetching defects:', error);
+    Sentry.captureException(error, {
+      tags: {
+        location: 'getDefects',
+        operation: 'defects_fetch',
+      },
+    });
     throw error;
   }
 };
@@ -301,6 +366,12 @@ export const getPanelStats = async () => {
     return response.data;
   } catch (error) {
     console.error('Error fetching panel statistics:', error);
+    Sentry.captureException(error, {
+      tags: {
+        location: 'getPanelStats',
+        operation: 'panel_stats_fetch',
+      },
+    });
     throw error;
   }
 };
@@ -312,6 +383,12 @@ export const getInferenceUsage = async () => {
     return response.data;
   } catch (error) {
     console.error('Error fetching inference usage:', error);
+    Sentry.captureException(error, {
+      tags: {
+        location: 'getInferenceUsage',
+        operation: 'inference_usage_fetch',
+      },
+    });
     throw error;
   }
 };
@@ -322,6 +399,12 @@ export const getGroupInferenceUsage = async () => {
     return response.data;
   } catch (error) {
     console.error('Error fetching group inference usage:', error);
+    Sentry.captureException(error, {
+      tags: {
+        location: 'getGroupInferenceUsage',
+        operation: 'group_inference_usage_fetch',
+      },
+    });
     throw error;
   }
 };

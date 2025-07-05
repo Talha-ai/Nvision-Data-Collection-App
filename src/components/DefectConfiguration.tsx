@@ -105,34 +105,44 @@ const DefectConfiguration = ({ onDefectsSelected, selectedDefects = [] }) => {
 
   // Load saved defects from localStorage on component mount
   useEffect(() => {
+    const defaultDefects = [
+      'def_horizontal_band',
+      'def_white_patches',
+      'def_polariser_scratches',
+    ];
+
     try {
       const savedDefects = localStorage.getItem('selectedDefects');
       if (savedDefects) {
         const parsedDefects = JSON.parse(savedDefects);
-        setCheckedDefects(new Set(parsedDefects));
+        // If saved defects exist and are not empty, use them
+        if (parsedDefects.length > 0) {
+          setCheckedDefects(new Set(parsedDefects));
+        } else {
+          // If saved defects exist but are empty, use defaults and save them
+          setCheckedDefects(new Set(defaultDefects));
+          localStorage.setItem(
+            'selectedDefects',
+            JSON.stringify(defaultDefects)
+          );
+        }
+        // Override with props if provided and not empty
         if (selectedDefects.length > 0) {
           setCheckedDefects(new Set(selectedDefects));
         }
       } else if (selectedDefects.length > 0) {
+        // Use props if no saved data but props provided
         setCheckedDefects(new Set(selectedDefects));
-        // } else {
-        //   // Default selection - commonly used defects
-        //   const defaultDefects = [
-        //     'def_horizontal_band',
-        //     'def_white_patches',
-        //     'def_polariser_scratches',
-        //   ];
-        //   setCheckedDefects(new Set(defaultDefects));
+      } else {
+        // No saved data and no props - use defaults and save them
+        setCheckedDefects(new Set(defaultDefects));
+        localStorage.setItem('selectedDefects', JSON.stringify(defaultDefects));
       }
     } catch (error) {
-      // console.error('Error loading saved defects:', error);
-      // // Fallback to default selection
-      // const defaultDefects = [
-      //   'def_horizontal_band',
-      //   'def_white_patches',
-      //   'def_polariser_scratches',
-      // ];
-      // setCheckedDefects(new Set(defaultDefects));
+      console.error('Error loading saved defects:', error);
+      // Fallback to default selection and save them
+      setCheckedDefects(new Set(defaultDefects));
+      localStorage.setItem('selectedDefects', JSON.stringify(defaultDefects));
     }
     setIsLoading(false);
   }, [selectedDefects]);
@@ -146,19 +156,40 @@ const DefectConfiguration = ({ onDefectsSelected, selectedDefects = [] }) => {
         newSet.add(defectKey);
       }
 
+      // If the set becomes empty, apply defaults
+      let finalSet = newSet;
+      if (newSet.size === 0) {
+        const defaultDefects = [
+          'def_horizontal_band',
+          'def_white_patches',
+          'def_polariser_scratches',
+        ];
+        finalSet = new Set(defaultDefects);
+        console.log(
+          'Applied defaults due to empty selection:',
+          Array.from(finalSet)
+        );
+      }
+
       // Automatically save configuration after state update
       setTimeout(() => {
-        handleSaveConfiguration(newSet);
+        handleSaveConfiguration(finalSet);
       }, 0);
 
-      return newSet;
+      return finalSet;
     });
   };
 
   const handleSelectAll = () => {
     let newSet;
     if (checkedDefects.size === defectsList.length) {
-      newSet = new Set();
+      // Deselecting all - apply defaults instead of empty
+      const defaultDefects = [
+        'def_horizontal_band',
+        'def_white_patches',
+        'def_polariser_scratches',
+      ];
+      newSet = new Set(defaultDefects);
     } else {
       newSet = new Set(defectsList.map((defect) => defect.key));
     }
@@ -192,7 +223,9 @@ const DefectConfiguration = ({ onDefectsSelected, selectedDefects = [] }) => {
 
       // Pass the selected defects back to parent component
       if (onDefectsSelected) {
-        onDefectsSelected(Array.from(defectsToSave), defectDisplayMap);
+        const defectsArray = Array.from(defectsToSave);
+        console.log('Notifying parent with defects:', defectsArray);
+        onDefectsSelected(defectsArray, defectDisplayMap);
       }
 
       setTimeout(() => {
@@ -217,6 +250,16 @@ const DefectConfiguration = ({ onDefectsSelected, selectedDefects = [] }) => {
   const allSelected = checkedDefects.size === defectsList.length;
   const someSelected = checkedDefects.size > 0;
 
+  // Check if current selection matches defaults
+  const defaultDefects = [
+    'def_horizontal_band',
+    'def_white_patches',
+    'def_polariser_scratches',
+  ];
+  const isDefaultSelection =
+    defaultDefects.length === checkedDefects.size &&
+    defaultDefects.every((defect) => checkedDefects.has(defect));
+
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <div className="flex items-center justify-between mb-6">
@@ -240,7 +283,7 @@ const DefectConfiguration = ({ onDefectsSelected, selectedDefects = [] }) => {
               onClick={handleSelectAll}
               className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 transition-colors"
             >
-              {allSelected ? 'Deselect All' : 'Select All'}
+              {allSelected ? 'Reset to Defaults' : 'Select All'}
             </button>
           </div>
         </CardHeader>

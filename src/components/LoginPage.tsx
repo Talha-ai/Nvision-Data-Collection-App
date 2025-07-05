@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import * as Sentry from '@sentry/react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -35,6 +36,16 @@ export function LoginPage({
       onLogin(data.access);
     } catch (error: any) {
       setError(error.message || 'Invalid username or password');
+      Sentry.captureException(error, {
+        tags: {
+          location: 'LoginPage',
+          operation: 'user_login',
+        },
+        extra: {
+          username: username,
+          errorStatus: error.response?.status,
+        },
+      });
     } finally {
       setIsLoading(false);
     }

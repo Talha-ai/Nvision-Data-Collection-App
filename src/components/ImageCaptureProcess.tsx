@@ -225,15 +225,15 @@ function ImageCaptureProcess({
     } catch (error) {
       console.error('Error uploading to DigitalOcean:', error);
 
-      // Sentry.captureException(error, {
-      //   tags: {
-      //     location: 'uploadToDigitalOcean',
-      //     patternIndex: index.toString(),
-      //   },
-      //   extra: {
-      //     imageDataSnippet: imageData.slice(0, 30), //preview image
-      //   },
-      // });
+      Sentry.captureException(error, {
+        tags: {
+          location: 'uploadToDigitalOcean',
+          patternIndex: index.toString(),
+        },
+        extra: {
+          imageDataSnippet: imageData.slice(0, 30), //preview image
+        },
+      });
 
       onUploadProgress(null, index);
 

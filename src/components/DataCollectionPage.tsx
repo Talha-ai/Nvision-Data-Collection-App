@@ -6,7 +6,7 @@ import { RotateCcw } from 'lucide-react';
 import { useAppMode } from '../contexts/appModeContext';
 import { baseURL } from '../../constants';
 import { checkDisplayPanel } from '@/services/api';
-
+import CameraControls from './CameraControls';
 
 interface DataCollectionrops {
   onStartDefectChecker: (
@@ -24,7 +24,9 @@ const defaultLiveSettings = {
   focusDistance: 40,
 };
 
-const DataCollectionPage: React.FC<DataCollectionrops> = ({ onStartDefectChecker }) => {
+const DataCollectionPage: React.FC<DataCollectionrops> = ({
+  onStartDefectChecker,
+}) => {
   const { isTestMode } = useAppMode();
   const [ppid, setPpid] = useState('');
   const [exposure, setExposure] = useState(() => {
@@ -69,7 +71,7 @@ const DataCollectionPage: React.FC<DataCollectionrops> = ({ onStartDefectChecker
 
   useEffect(() => {
     setupCamera();
-  },[]);
+  }, []);
 
   useEffect(() => {
     if (isCameraReady) {
@@ -89,22 +91,29 @@ const DataCollectionPage: React.FC<DataCollectionrops> = ({ onStartDefectChecker
     setCameraRefreshTrigger((prev) => prev + 1);
   };
 
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  if (ppid.trim()) {
-    setSubmitLoading(true);
-    setSubmitError(null);
-    try {
-      const checkData = await checkDisplayPanel(ppid);
-      const finalPpid = checkData.exists ? checkData.recommended_ppid : ppid;
-      onStartDefectChecker(finalPpid, isTestMode, focusDistance, 'data-collection');
-    } catch (error) {
-      setSubmitError(error instanceof Error ? error.message : 'An unknown error occurred');
-    } finally {
-      setSubmitLoading(false);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (ppid.trim()) {
+      setSubmitLoading(true);
+      setSubmitError(null);
+      try {
+        const checkData = await checkDisplayPanel(ppid);
+        const finalPpid = checkData.exists ? checkData.recommended_ppid : ppid;
+        onStartDefectChecker(
+          finalPpid,
+          isTestMode,
+          focusDistance,
+          'data-collection'
+        );
+      } catch (error) {
+        setSubmitError(
+          error instanceof Error ? error.message : 'An unknown error occurred'
+        );
+      } finally {
+        setSubmitLoading(false);
+      }
     }
-  }
-};
+  };
 
   const handleResetLiveSettings = () => {
     setExposure(defaultLiveSettings.exposure);
@@ -127,38 +136,55 @@ const handleSubmit = async (e: React.FormEvent) => {
     localStorage.setItem('contrast', contrast.toString());
   }, [contrast]);
 
-
   return (
-     <div className="max-w-3xl mx-auto space-y-6">
-          <Card>
-            <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle>Data Collection Routine</CardTitle>
-               <Button variant="ghost" size="icon" onClick={handleRefresh} title="Refresh Camera">
+    <div className="max-w-3xl mx-auto space-y-6">
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle>Data Collection Routine</CardTitle>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleRefresh}
+              title="Refresh Camera"
+            >
               <RotateCcw className="w-5 h-5" />
             </Button>
-            </div>
-            </CardHeader>
+          </div>
+        </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="flex gap-4 mb-4">
             <input
               type="text"
               value={ppid}
-              onChange={e => setPpid(e.target.value)}
+              onChange={(e) => setPpid(e.target.value)}
               className="flex-grow border border-gray-300 px-3 py-2 rounded"
               placeholder="Enter PPID"
             />
             <Button type="submit" disabled={!ppid || submitLoading}>
-              {submitLoading ? 'Processing...' : 'Start Data Collection Routine'}
+              {submitLoading
+                ? 'Processing...'
+                : 'Start Data Collection Routine'}
             </Button>
           </form>
           <div className="aspect-video w-full h-full bg-gray-200 relative mb-4 rounded-lg overflow-hidden">
-            <video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover" />
+            <video
+              ref={videoRef}
+              autoPlay
+              playsInline
+              className="w-full h-full object-cover"
+            />
           </div>
+
+          {/* Camera Controls */}
+          <div className="mb-4">
+            <CameraControls />
+          </div>
+
           <Button
             variant="link"
             className="p-0 h-auto text-primary"
-            onClick={() => setShowHiddenState(prev => !prev)}
+            onClick={() => setShowHiddenState((prev) => !prev)}
           >
             {showHiddenState ? 'Hide camera settings' : 'Show camera settings'}
           </Button>
@@ -175,13 +201,21 @@ const handleSubmit = async (e: React.FormEvent) => {
                       <div className="relative">
                         <div className="flex bg-gray-200 dark:bg-gray-700 rounded-lg p-1">
                           <button
-                            className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${isManual ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'}`}
+                            className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+                              isManual
+                                ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm'
+                                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                            }`}
                             onClick={() => setIsManual(true)}
                           >
                             Manual
                           </button>
                           <button
-                            className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${!isManual ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'}`}
+                            className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+                              !isManual
+                                ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm'
+                                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                            }`}
                             onClick={() => setIsManual(false)}
                           >
                             Automatic
@@ -207,7 +241,9 @@ const handleSubmit = async (e: React.FormEvent) => {
                         max="250"
                         step="5"
                         value={focusDistance}
-                        onChange={e => setFocusDistance(Number(e.target.value))}
+                        onChange={(e) =>
+                          setFocusDistance(Number(e.target.value))
+                        }
                         className="range-slider-green"
                       />
                       <span className="text-xs">{focusDistance}</span>
@@ -219,7 +255,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                         min="0"
                         max="255"
                         value={exposure}
-                        onChange={e => setExposure(Number(e.target.value))}
+                        onChange={(e) => setExposure(Number(e.target.value))}
                         className="range-slider-green"
                       />
                       <span className="text-xs">{exposure}</span>
@@ -231,7 +267,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                         min="0"
                         max="255"
                         value={brightness}
-                        onChange={e => setBrightness(Number(e.target.value))}
+                        onChange={(e) => setBrightness(Number(e.target.value))}
                         disabled={!isManual}
                         className="range-slider-green"
                       />
@@ -244,7 +280,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                         min="0"
                         max="255"
                         value={contrast}
-                        onChange={e => setContrast(Number(e.target.value))}
+                        onChange={(e) => setContrast(Number(e.target.value))}
                         disabled={!isManual}
                         className="range-slider-green"
                       />
@@ -261,4 +297,4 @@ const handleSubmit = async (e: React.FormEvent) => {
   );
 };
 
-export default DataCollectionPage; 
+export default DataCollectionPage;
